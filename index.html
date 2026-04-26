@@ -6,24 +6,22 @@
     <title>Serrana Florestal | Apresentação Executiva</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="./css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="presentation-container">
         <aside class="sidebar" id="sidebar">
             <div class="logo-area">
-                <img src="C:/projetos/serrana_apresentacao/assets/logo.png" alt="Serrana" class="main-logo" onerror="this.src='assets/logo.png'">
+                <img src="./assets/logo.png" alt="Serrana" class="main-logo" onerror="this.src='./assets/logoverde.png'">
             </div>
             
             <nav class="nav-menu">
                 <div class="nav-label">MENUS DE APONTAMENTO</div>
-                <ul id="menu-list">
-                    </ul>
+                <ul id="menu-list"></ul>
 
                 <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
-                    <ul id="config-menu-list">
-                        </ul>
+                    <ul id="config-menu-list"></ul>
                 </div>
             </nav>
 
@@ -59,11 +57,12 @@
                 </div>
             </header>
 
-            <section id="content-area" class="content-area">
-                </section>
+            <section id="content-area" class="content-area"></section>
         </main>
     </div>
 
-    <script src="js/app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./js/config_db.js"></script>
+    <script src="./js/app.js"></script>
 </body>
 </html>

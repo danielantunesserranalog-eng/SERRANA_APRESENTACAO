@@ -1,23 +1,23 @@
 <div class="dashboard-grid">
     <div class="kpi-card" id="card-pbtc">
-        <div id="bar-pbtc" class="farol-indicator"></div>
+        <div id="bar-pbtc" class="farol-indicator bg-amarelo"></div>
         <p class="nav-label">MÉDIA PBTC (TON) - MÊS ATUAL</p>
-        <div class="kpi-value" id="val-pbtc">75.5 <span class="kpi-unit">ton</span></div>
+        <div class="kpi-value status-amarelo" id="val-pbtc">0.0 <span class="kpi-unit">ton</span></div>
         <p id="txt-pbtc" class="status-msg">Meta de Carregamento: 74 a 77.7</p>
     </div>
 
     <div class="kpi-card">
         <div class="farol-indicator bg-verde"></div>
         <p class="nav-label">CICLO MÉDIO DE VIAGEM</p>
-        <div class="kpi-value status-verde">02:45 <span class="kpi-unit">h:min</span></div>
+        <div class="kpi-value status-verde">00:00 <span class="kpi-unit">h:min</span></div>
         <p class="status-msg">Meta: < 3.0 horas</p>
     </div>
 
     <div class="kpi-card">
         <div class="farol-indicator bg-verde"></div>
         <p class="nav-label">VOLUME TOTAL</p>
-        <div class="kpi-value status-verde">15.420 <span class="kpi-unit">ton</span></div>
-        <p class="status-msg">Operação Estável</p>
+        <div class="kpi-value status-verde">0 <span class="kpi-unit">ton</span></div>
+        <p class="status-msg">Aguardando dados</p>
     </div>
 </div>
 
@@ -39,41 +39,19 @@
         </thead>
         <tbody>
             <tr>
-                <td><strong>SERRANA</strong></td>
-                <td>GR-012</td>
-                <td>Serrana Florestal</td>
-                <td>Serrana</td>
-                <td>4.250</td>
-                <td><span class="badge bg-verde">Validado</span></td>
-            </tr>
-            <tr>
-                <td><strong>REFLORESTAR</strong></td>
-                <td>GR-005</td>
-                <td>Serrana Florestal</td>
-                <td>Terceiros</td>
-                <td>1.150</td>
-                <td><span class="badge bg-verde">Validado</span></td>
-            </tr>
-            <tr>
-                <td><strong>JSL</strong></td>
-                <td>GR-088</td>
-                <td>Terceiros</td>
-                <td>Serrana</td>
-                <td>2.300</td>
-                <td><span class="badge bg-verde">Validado</span></td>
+                <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 20px;">Aguardando apontamentos...</td>
             </tr>
         </tbody>
     </table>
 </div>
 
 <script>
-    // Executa a lógica de cores do PBTC
     (function() {
-        // Altere este valor quando integrar com seus dados reais
-        const pbtcMedia = 75.5; 
+        const pbtcMedia = 0.0; // Zerado
         const bar = document.getElementById('bar-pbtc');
         const val = document.getElementById('val-pbtc');
         
+        // Mantive a sua lógica de média PBTC, porém como está 0.0, ficará amarelo (alerta de falta de dados/abaixo de 74)
         if (pbtcMedia < 74) {
             bar.className = 'farol-indicator bg-amarelo';
             val.className = 'kpi-value status-amarelo';
