@@ -1,0 +1,64 @@
+<div class="dashboard-grid">
+    <div class="kpi-card" style="grid-column: 1 / -1;">
+        <h3 class="nav-label" style="margin-bottom: 25px; font-size: 1rem;"><i class="fas fa-users-cog"></i> NOME DOS RESPONSÁVEIS PARA APRESENTAÇÃO</h3>
+        
+        <div class="form-grid">
+            <div class="input-group">
+                <label>Responsável - Diretoria / Geral</label>
+                <input type="text" id="resp_geral" class="config-input" placeholder="Ex: Diretoria Executiva">
+            </div>
+
+            <div class="input-group">
+                <label>Responsável - RH</label>
+                <input type="text" id="resp_rh" class="config-input" placeholder="Ex: Maria Silva">
+            </div>
+
+            <div class="input-group">
+                <label>Responsável - Operacional</label>
+                <input type="text" id="resp_operacional" class="config-input" placeholder="Ex: Anderson Lemos">
+            </div>
+
+            <div class="input-group">
+                <label>Responsável - Manutenção</label>
+                <input type="text" id="resp_manutencao" class="config-input" placeholder="Ex: Gestão de Frota">
+            </div>
+
+            <div class="input-group">
+                <label>Responsável - SSMA</label>
+                <input type="text" id="resp_ssma" class="config-input" placeholder="Ex: Segurança do Trabalho">
+            </div>
+        </div>
+
+        <button class="btn-salvar" onclick="salvarNomes()">
+            <i class="fas fa-save"></i> Salvar Responsáveis
+        </button>
+        <span id="msg-salvo" style="color: var(--verde); margin-left: 15px; font-weight: bold; display: none;">Salvo com sucesso!</span>
+    </div>
+</div>
+
+<script>
+    // 1. Carrega os nomes que já estão salvos na memória ao abrir a tela
+    document.getElementById('resp_geral').value = localStorage.getItem('resp_geral') || 'Diretoria';
+    document.getElementById('resp_rh').value = localStorage.getItem('resp_rh') || 'Responsável RH';
+    document.getElementById('resp_operacional').value = localStorage.getItem('resp_operacional') || 'Anderson Lemos';
+    document.getElementById('resp_manutencao').value = localStorage.getItem('resp_manutencao') || 'Gestão de Frota';
+    document.getElementById('resp_ssma').value = localStorage.getItem('resp_ssma') || 'Segurança do Trabalho';
+
+    // 2. Função acionada pelo botão salvar
+    function salvarNomes() {
+        localStorage.setItem('resp_geral', document.getElementById('resp_geral').value);
+        localStorage.setItem('resp_rh', document.getElementById('resp_rh').value);
+        localStorage.setItem('resp_operacional', document.getElementById('resp_operacional').value);
+        localStorage.setItem('resp_manutencao', document.getElementById('resp_manutencao').value);
+        localStorage.setItem('resp_ssma', document.getElementById('resp_ssma').value);
+
+        // Mostra a mensagem de "Salvo com sucesso"
+        const msg = document.getElementById('msg-salvo');
+        msg.style.display = 'inline-block';
+        
+        // Atualiza na hora o crachá do topo se o cara testar
+        document.getElementById('presenter-name').innerText = "Administrador TI";
+
+        setTimeout(() => { msg.style.display = 'none'; }, 3000);
+    }
+</script>
