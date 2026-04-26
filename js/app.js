@@ -63,7 +63,6 @@ function renderMenuElements(dataArray, containerId) {
     });
 }
 
-// FUNÇÃO QUE FALTAVA ADICIONADA AQUI
 function initMenu() {
     renderMenuElements(menuData, 'menu-list');
     renderMenuElements(configMenuData, 'config-menu-list');
@@ -90,6 +89,8 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
     if(event) event.preventDefault();
     const contentArea = document.getElementById('content-area');
     document.getElementById('current-sector-title').innerText = subTitle;
+    
+    // Busca o nome do responsável. Prioriza localStorage (que é atualizado ao salvar no banco) ou o padrão.
     let nomeResponsavel = (respKey !== 'none') ? (localStorage.getItem(respKey) || defName) : defName;
     document.getElementById('presenter-name').innerText = nomeResponsavel;
     
@@ -112,14 +113,32 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
             document.body.removeChild(newScript);
         });
     } catch (e) {
-        contentArea.innerHTML = `<div class="kpi-card" style="border-color: var(--vermelho);"><h3>Erro ao carregar</h3><p>Crie o arquivo <b>views/${fileName}</b></p></div>`;
+        contentArea.innerHTML = `<div class="kpi-card" style="border-color: var(--vermelho);"><h3>Erro ao carregar</h3><p>Verifique o arquivo <b>views/${fileName}</b></p></div>`;
     }
+}
+
+// Sincroniza os nomes do Supabase para o cache local ao iniciar
+async function sincronizarNomesDoBanco() {
+    try {
+        const { createClient } = supabase;
+        const _supa = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+        const { data } = await _supa.from('configuracoes').select('chave, valor');
+        if (data) {
+            data.forEach(item => localStorage.setItem(item.chave, item.valor));
+            // Atualiza o nome exibido no header se houver um módulo carregado
+            const currentTitle = document.getElementById('current-sector-title').innerText;
+            if (currentTitle.includes('OPERACIONAL')) {
+                document.getElementById('presenter-name').innerText = localStorage.getItem('resp_operacional') || 'Anderson Lemos';
+            }
+        }
+    } catch (e) { console.log('Erro na sincronização inicial'); }
 }
 
 function updateClock() { document.getElementById('clock').innerText = new Date().toLocaleTimeString('pt-BR'); }
 
 document.addEventListener('DOMContentLoaded', () => {
     initMenu();
+    sincronizarNomesDoBanco();
     setInterval(updateClock, 1000);
     updateClock();
     loadModule(null, 'OPERACIONAL - INDICADORES GERAIS', 'dash_operacional.html', 'resp_operacional', 'Anderson Lemos');
