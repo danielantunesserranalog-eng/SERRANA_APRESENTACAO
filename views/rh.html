@@ -1,0 +1,76 @@
+<div class="dashboard-grid">
+    <div class="kpi-card" style="grid-column: 1 / -1; border-color: var(--primary);">
+        <h3 class="nav-label" style="margin-bottom: 20px;"><i class="fas fa-edit"></i> LANÇAMENTO DIÁRIO DE INDICADORES - RH</h3>
+        
+        <div class="form-grid">
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Headcount Atual</label>
+                <input type="number" id="input-headcount" class="config-input" placeholder="Ex: 250">
+            </div>
+            
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Taxa de Absenteísmo (%)</label>
+                <input type="number" id="input-abs" class="config-input" step="0.1" placeholder="Ex: 3.5">
+            </div>
+
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Turnover Acumulado (%)</label>
+                <input type="number" id="input-turnover" class="config-input" step="0.1" placeholder="Ex: 1.2">
+            </div>
+
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Total Vagas Abertas</label>
+                <input type="number" id="input-vagas" class="config-input" placeholder="Ex: 8">
+            </div>
+
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Custo Horas Extras (R$)</label>
+                <input type="number" id="input-he" class="config-input" placeholder="Ex: 12450">
+            </div>
+        </div>
+
+        <button class="btn-salvar" onclick="salvarDadosRH()" style="margin-top: 20px;">
+            <i class="fas fa-save"></i> Atualizar Painel
+        </button>
+        <span id="msg-rh" style="margin-left: 15px; font-weight: bold; color: var(--verde);"></span>
+    </div>
+</div>
+
+<div class="dashboard-grid" style="margin-top: 30px;">
+    <div class="kpi-card">
+        <div class="farol-indicator bg-verde" id="farol-headcount"></div>
+        <p class="nav-label">HEADCOUNT ATUAL</p>
+        <div class="kpi-value status-verde" id="val-headcount">0</div>
+        <p class="status-msg">Total de colaboradores ativos</p>
+    </div>
+
+    <div class="kpi-card">
+        <div class="farol-indicator bg-verde" id="farol-abs"></div>
+        <p class="nav-label">TAXA DE ABSENTEÍSMO</p>
+        <div class="kpi-value status-verde" id="val-abs">0.0%</div>
+        <p class="status-msg">Meta tolerável: 3.5%</p>
+    </div>
+
+    <div class="kpi-card">
+        <div class="farol-indicator bg-verde" id="farol-turnover"></div>
+        <p class="nav-label">TURNOVER ACUMULADO</p>
+        <div class="kpi-value status-verde" id="val-turnover">0.0%</div>
+        <p class="status-msg">Meta: < 3.0%</p>
+    </div>
+
+    <div class="kpi-card">
+        <div class="farol-indicator bg-amarelo"></div>
+        <p class="nav-label">RECRUTAMENTO & SELEÇÃO</p>
+        <div class="kpi-value status-amarelo" id="val-vagas">0</div>
+        <p class="status-msg">Vagas Abertas em Andamento</p>
+    </div>
+
+    <div class="kpi-card">
+        <div class="farol-indicator bg-vermelho"></div>
+        <p class="nav-label">CUSTO HORAS EXTRAS</p>
+        <div class="kpi-value status-vermelho" id="val-he">R$ 0,00</div>
+        <p class="status-msg">Orçado vs Realizado</p>
+    </div>
+</div>
+
+<script src="./js/rh.js"></script>

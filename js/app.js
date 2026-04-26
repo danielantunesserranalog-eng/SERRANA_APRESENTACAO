@@ -1,9 +1,8 @@
 const menuData = [
     { 
-        id: 'rh', title: 'RH', icon: 'fa-users', mainFile: 'dash_rh.html', key: 'resp_rh', def: 'Responsável RH',
+        id: 'rh', title: 'RH', icon: 'fa-users', mainFile: 'rh.html', key: 'resp_rh', def: 'Responsável RH',
         submenus: [
-            { id: 'rh_apontamentos', title: 'Apontamentos Diários', file: 'rh_apontamentos.html', key: 'resp_rh', def: 'Responsável RH' },
-            { id: 'rh_jornada', title: 'Jornadas e Escalas', file: 'rh_jornada.html', key: 'resp_rh', def: 'Responsável RH' }
+            { id: 'rh_painel', title: 'Lançamentos e Painel', file: 'rh.html', key: 'resp_rh', def: 'Responsável RH' }
         ]
     },
     { 
@@ -90,7 +89,6 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
     const contentArea = document.getElementById('content-area');
     document.getElementById('current-sector-title').innerText = subTitle;
     
-    // Busca o nome do responsável. Prioriza localStorage (que é atualizado ao salvar no banco) ou o padrão.
     let nomeResponsavel = (respKey !== 'none') ? (localStorage.getItem(respKey) || defName) : defName;
     document.getElementById('presenter-name').innerText = nomeResponsavel;
     
@@ -117,7 +115,6 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
     }
 }
 
-// Sincroniza os nomes do Supabase para o cache local ao iniciar
 async function sincronizarNomesDoBanco() {
     try {
         const { createClient } = supabase;
@@ -125,7 +122,6 @@ async function sincronizarNomesDoBanco() {
         const { data } = await _supa.from('configuracoes').select('chave, valor');
         if (data) {
             data.forEach(item => localStorage.setItem(item.chave, item.valor));
-            // Atualiza o nome exibido no header se houver um módulo carregado
             const currentTitle = document.getElementById('current-sector-title').innerText;
             if (currentTitle.includes('OPERACIONAL')) {
                 document.getElementById('presenter-name').innerText = localStorage.getItem('resp_operacional') || 'Anderson Lemos';
