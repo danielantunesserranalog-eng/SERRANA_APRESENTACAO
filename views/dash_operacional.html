@@ -230,7 +230,6 @@
 <script>
 (async function initDashboardFull() {
     try {
-        // Recupera o DB global ou inicializa
         const SUPABASE_URL = 'https://qnpwkvazkntbqjbwegcp.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_bjTFgpk-qAdpVuWzr4hbng_G8O9qlc8';
         let _db;
@@ -247,7 +246,6 @@
         let metasGlobais = {};
         let activeFilter = 'ALL';
         
-        // Proteção contra duplicação de gráficos no Router
         if (window.chartEvoObj) window.chartEvoObj.destroy();
         if (window.chartProjObj) window.chartProjObj.destroy();
 
@@ -257,7 +255,6 @@
             Chart.defaults.font.family = "'Inter', sans-serif";
         }
 
-        // Extrator Seguro de Números (Protegido contra crashes de Regex)
         const getValNum = (obj, keys) => {
             for(let k of keys) {
                 if(obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== '') {
@@ -269,7 +266,6 @@
             return 0;
         };
 
-        // UI Listeners
         const btnQFs = document.querySelectorAll('.btn-qf');
         const inputData = document.getElementById('op-data');
         const selectMes = document.getElementById('op-mes');
@@ -306,7 +302,6 @@
             renderizarPainel();
         });
 
-        // Carrega Dados DB
         async function loadData() {
             try {
                 const { data: mData } = await _db.from('metas_globais').select('*').eq('id', 1).single();
@@ -329,7 +324,6 @@
             } catch(e) { console.error("Erro no DB:", e); }
         }
 
-        // Parse Seguro de Datas
         function popularFiltroMeses(data) {
             const meses = new Set();
             data.forEach(d => {
@@ -371,7 +365,6 @@
             return `${h}h ${m.toString().padStart(2,'0')}m`;
         }
 
-        // Núcleo Renderizador
         function renderizarPainel() {
             const hj = new Date(); hj.setHours(0,0,0,0);
             let diasNoFiltro = 30;
@@ -482,7 +475,6 @@
             renderGraficos(filtered);
         }
 
-        // --- FUNÇÕES DE IDENTIFICAÇÃO DOS CENÁRIOS ---
         const serranaLoaders = ['GSR0001', 'GSR0002', 'GSR0003', 'GSR0007', 'GSR0008', 'GRB0015', 'GRB0022'];
         const reflorestarLoaders = ['GRB0017', 'GRB0020', 'GRB0029'];
         const jslLoaders = ['GSL0012', 'GSL0016'];
@@ -504,7 +496,6 @@
             return name.includes('SERRANALOG') || name.includes('SERRANA');
         }
 
-        // --- FUNÇÕES DE CÁLCULO E FORMATAÇÃO ---
         function calcStats(dataArr) {
             const viagens = dataArr.length;
             const vol = dataArr.reduce((s,d) => s + (parseFloat(String(d.volumeReal).replace(',','.'))||0), 0);
@@ -539,7 +530,6 @@
             return `${horas}h ${minutos.toString().padStart(2, '0')}m`;
         }
 
-        // --- FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO DA TABELA NOVA ---
         function renderizarTabelaComparativa(filteredData) {
             const tbodyComp = document.getElementById('comparativoBody');
             if (!tbodyComp) return;
@@ -643,7 +633,6 @@
             `;
         }
 
-        // Leaderboards Seguros
         function renderTopTabelas(data) {
             const pMap = new Map();
             data.forEach(d => {
@@ -678,7 +667,31 @@
             ).join('');
         }
 
-        // Gráficos Seguros
+        // NOVO: Plugin customizado para escrever os valores em cima das barras no Chart.js
+        const chartDataLabelsPlugin = {
+            id: 'customDataLabels',
+            afterDatasetsDraw: (chart) => {
+                const { ctx } = chart;
+                ctx.save();
+                ctx.font = 'bold 10px Inter, sans-serif';
+                ctx.fillStyle = '#f8fafc'; // Cor clara para sobressair no fundo escuro
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                
+                chart.data.datasets.forEach((dataset, i) => {
+                    const meta = chart.getDatasetMeta(i);
+                    meta.data.forEach((bar, index) => {
+                        const dataVal = dataset.data[index];
+                        if (dataVal > 0) {
+                            // Imprime o valor sem casas decimais, um pouco acima da barra
+                            ctx.fillText(dataVal.toLocaleString('pt-BR', {maximumFractionDigits: 0}), bar.x, bar.y - 4);
+                        }
+                    });
+                });
+                ctx.restore();
+            }
+        };
+
         function renderGraficos(data) {
             const dMap = new Map();
             data.forEach(d => {
@@ -696,10 +709,19 @@
             const dispEvo = sorted.slice(-30);
             const ctxEvo = document.getElementById('chart-evolucao');
             if(window.chartEvoObj) window.chartEvoObj.destroy();
+            
+            // Gráfico EVOLUÇÃO com os Valores Rótulados
             window.chartEvoObj = new Chart(ctxEvo, {
                 type: 'bar',
                 data: { labels: dispEvo.map(d=>d.substring(0,5)), datasets: [{ data: dispEvo.map(d=>dMap.get(d)), backgroundColor: '#10b981', borderRadius: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } } }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    layout: { padding: { top: 20 } }, // Espaçamento extra em cima pra caber o número
+                    plugins: { legend: { display: false } }, 
+                    scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } } 
+                },
+                plugins: [chartDataLabelsPlugin] // Injeção do nosso plugin customizado
             });
 
             const last7 = sorted.slice(-7);
@@ -720,14 +742,22 @@
 
             const ctxProj = document.getElementById('chart-projecao');
             if(window.chartProjObj) window.chartProjObj.destroy();
+            
+            // Gráfico PROJEÇÃO com os Valores Rótulados
             window.chartProjObj = new Chart(ctxProj, {
                 type: 'bar',
                 data: { labels: projLabels, datasets: [{ data: projData, backgroundColor: '#38bdf8', borderRadius: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } } }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    layout: { padding: { top: 20 } }, // Espaçamento extra em cima pra caber o número
+                    plugins: { legend: { display: false } }, 
+                    scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } } 
+                },
+                plugins: [chartDataLabelsPlugin] // Injeção do nosso plugin customizado
             });
         }
 
-        // Lógica para exportar PNG do novo comparativo (Protegida contra múltiplos listeners)
         const btnExportarComparativo = document.getElementById('btnExportarComparativo');
         if(btnExportarComparativo) {
             btnExportarComparativo.replaceWith(btnExportarComparativo.cloneNode(true));
