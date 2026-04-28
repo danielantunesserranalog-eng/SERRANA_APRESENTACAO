@@ -37,9 +37,9 @@
 </div>
 
 <script>
-    // Inicializa o cliente do Supabase para esta tela
-    const { createClient } = supabase;
-    const _supabase = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+    // Inicializa o cliente do Supabase declarando com 'var' para permitir 
+    // que a página seja recarregada pelo loadModule sem gerar erro de re-declaração
+    var _supabase = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
 
     async function buscarConfiguracoesDoBanco() {
         const status = document.getElementById('msg-status');
