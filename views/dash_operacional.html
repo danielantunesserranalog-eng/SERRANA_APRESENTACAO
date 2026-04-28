@@ -153,7 +153,7 @@
     </div>
 
     <div class="kpi-card">
-        <p class="nav-label">DIST. MÉDIA (ASFALTO/TERRA)</p>
+        <p class="nav-label">DIST. MÉDIA GERAL</p>
         <div class="kpi-value" id="val-dist-total" style="font-size: 2rem; margin: 10px 0;">0 km</div>
         <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
             <span style="color: var(--text-dim);">Asfalto: <span id="val-dist-asfalto" style="color: #60a5fa;">0</span></span>
@@ -233,11 +233,10 @@
         Chart.defaults.font.family = "'Inter', sans-serif";
     }
 
-    // 1. Buscador Flexível de Valores (Corrige falha na captação de Distância)
+    // Buscador Flexível de Valores (Números) - Agora mais robusto
     const getValNum = (obj, keys) => {
         for(let k of keys) {
             if(obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== '') {
-                // Tira espaços, troca vírgula por ponto e tira letras extras (como "km")
                 let cleanStr = String(obj[k]).replace(/\s/g, '').replace(',', '.').replace(/[^\d.-]/g, '');
                 const v = parseFloat(cleanStr);
                 if(!isNaN(v)) return v;
@@ -246,7 +245,7 @@
         return 0;
     };
 
-    // 2. Filtros de Interface
+    // Filtros de Interface
     const btnQFs = document.querySelectorAll('.btn-qf');
     const inputData = document.getElementById('op-data');
     const selectMes = document.getElementById('op-mes');
@@ -283,7 +282,7 @@
         renderizarPainel();
     });
 
-    // 3. Carga do Banco
+    // Carga do Banco
     async function loadData() {
         try {
             const { data: mData } = await _db.from('metas_globais').select('*').eq('id', 1).single();
@@ -339,7 +338,7 @@
         return `${h}h ${m.toString().padStart(2,'0')}m`;
     }
 
-    // 4. Renderização Principal
+    // === RENDERIZAÇÃO GERAL E CÁLCULOS ===
     function renderizarPainel() {
         const hj = new Date(); hj.setHours(0,0,0,0);
         let diasNoFiltro = 30;
@@ -391,7 +390,6 @@
             if(d.tempoCarregamentoHoras > 0) { somaCarga += d.tempoCarregamentoHoras; qtdCarga++; }
             if(d.filaFabricaHoras > 0) { somaFab += d.filaFabricaHoras; qtdFab++; }
             
-            // Busca Inteligente da Distância
             const distA = getValNum(d, ['distanciaAsfalto', 'distancia_asfalto', 'kmAsfalto', 'km_asfalto', 'asfalto', 'km_asf', 'dist_asfalto']);
             const distTe = getValNum(d, ['distanciaTerra', 'distancia_terra', 'kmTerra', 'km_terra', 'terra', 'km_ter', 'dist_terra']);
             let distT = getValNum(d, ['distanciaTotal', 'distancia_total', 'kmTotal', 'km_total', 'distancia', 'km', 'dist']);
@@ -456,27 +454,41 @@
         renderGraficos(filtered);
     }
 
-    // 5. Tabela de Comparativo (Correção de Nomes)
+    // === TABELA DE CENÁRIOS (LÓGICA BLINDADA DE BUSCA GLOBAL) ===
     function renderComparativoTabela(data) {
         const cenarios = {
             C1: { n: 'SERRANA', v: 0, vol: 0, cx: 0, c: 0, cc: 0, cp: 0, cpc: 0, cg: 0, cgc: 0, fb: 0, fbc: 0, da: 0, dt: 0, ddc: 0 },
             C2: { n: 'ASN', v: 0, vol: 0, cx: 0, c: 0, cc: 0, cp: 0, cpc: 0, cg: 0, cgc: 0, fb: 0, fbc: 0, da: 0, dt: 0, ddc: 0 },
             C3: { n: 'REFLORESTAR', v: 0, vol: 0, cx: 0, c: 0, cc: 0, cp: 0, cpc: 0, cg: 0, cgc: 0, fb: 0, fbc: 0, da: 0, dt: 0, ddc: 0 },
             C4: { n: 'JSL', v: 0, vol: 0, cx: 0, c: 0, cc: 0, cp: 0, cpc: 0, cg: 0, cgc: 0, fb: 0, fbc: 0, da: 0, dt: 0, ddc: 0 },
+            OUTROS: { v: 0, vol: 0, cx: 0, c: 0, cc: 0, cp: 0, cpc: 0, cg: 0, cgc: 0, fb: 0, fbc: 0, da: 0, dt: 0, ddc: 0 },
             TOT: { v: 0, vol: 0, cx: 0, c: 0, cc: 0, cp: 0, cpc: 0, cg: 0, cgc: 0, fb: 0, fbc: 0, da: 0, dt: 0, ddc: 0 }
         };
 
         const getGrp = (d) => {
-            // Unifica as colunas para evitar de perder alguém escrito na coluna errada
-            let strSearch = [d.transportadora, d.carregador, d.empresa, d.fornecedor, d.prestador].join(' ').toUpperCase();
-            strSearch = strSearch.replace(/\./g, ''); // Ignora pontos (ex: A.S.N vira ASN)
+            // Arrays de campos para pesquisar de forma limpa (sem ponto e sem espaço)
+            const fields = [d.transportadora, d.carregador, d.carregadorFlorestal, d.frente, d.prestador, d.empresa];
             
-            if(strSearch.includes('SERRANA')) return 'C1';
-            if(strSearch.includes('ASN')) return 'C2';
-            if(strSearch.includes('REFLORESTAR')) return 'C3';
-            if(strSearch.includes('JSL')) return 'C4';
+            // 1. Busca primeiro se é terceiro (Isso evita que a Serrana roube a viagem se ela for apenas Carregadora)
+            for (let f of fields) {
+                if (!f) continue;
+                let val = String(f).toUpperCase().replace(/[.\s]/g, ''); 
+                
+                if (val.includes('ASN')) return 'C2';
+                if (val.includes('REFLORESTAR')) return 'C3';
+                if (val.includes('JSL')) return 'C4';
+                if (val.includes('SERRANA')) return 'C1';
+            }
             
-            return 'TOT';
+            // 2. Busca Extrema: Pega a linha inteira da planilha e procura a palavra chave
+            const allValues = Object.values(d).join(' ').toUpperCase().replace(/[.\s]/g, '');
+            if (allValues.includes('ASN')) return 'C2';
+            if (allValues.includes('REFLORESTAR')) return 'C3';
+            if (allValues.includes('JSL')) return 'C4';
+            if (allValues.includes('SERRANA')) return 'C1';
+
+            // 3. Se não for nenhum dos 4, joga para Outros e NÃO para C1.
+            return 'OUTROS';
         };
 
         data.forEach(d => {
@@ -491,16 +503,21 @@
                 
                 const dA = getValNum(d, ['distanciaAsfalto', 'distancia_asfalto', 'kmAsfalto', 'km_asfalto', 'asfalto', 'km_asf', 'dist_asfalto']);
                 const dT = getValNum(d, ['distanciaTerra', 'distancia_terra', 'kmTerra', 'km_terra', 'terra', 'km_ter', 'dist_terra']);
-                const dTot = getValNum(d, ['distanciaTotal', 'distancia_total', 'kmTotal', 'km_total', 'distancia', 'km', 'dist']);
+                let dTot = getValNum(d, ['distanciaTotal', 'distancia_total', 'kmTotal', 'km_total', 'distancia', 'km', 'dist']);
                 
-                if(dA > 0 || dT > 0 || dTot > 0) { 
+                if (dTot === 0 && (dA > 0 || dT > 0)) dTot = dA + dT;
+
+                if(dTot > 0 || dA > 0 || dT > 0) { 
                     obj.da += dA; 
                     obj.dt += dT; 
                     obj.ddc++; 
                 }
             };
-            if(g !== 'TOT') process(cenarios[g]);
-            process(cenarios.TOT);
+            
+            if (cenarios[g]) {
+                process(cenarios[g]);
+            }
+            process(cenarios.TOT); // Soma sempre no total Geral
         });
 
         const tbody = document.getElementById('comparativo-body');
@@ -538,7 +555,7 @@
             rowHTML('<i class="fas fa-road" style="color:var(--text-dim); margin-right:8px;"></i> Dist. Média (Asfalto/Terra)', {val: ''}, false, true);
     }
 
-    // 6. Tabelas de Leaderboard
+    // Leaderboards
     function renderTopTabelas(data) {
         const pMap = new Map();
         data.forEach(d => {
@@ -573,7 +590,7 @@
         ).join('');
     }
 
-    // 7. Gráficos
+    // Gráficos
     function renderGraficos(data) {
         const dMap = new Map();
         data.forEach(d => {
