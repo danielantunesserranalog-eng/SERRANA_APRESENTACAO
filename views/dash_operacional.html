@@ -162,22 +162,34 @@
     </div>
 </div>
 
-<div class="table-box" style="margin-top: 30px;">
-    <h3 class="nav-label"><i class="fas fa-balance-scale" style="color: #38bdf8;"></i> COMPARATIVO DE DESEMPENHO OPERACIONAL POR CENÁRIOS</h3>
-    <div style="overflow-x: auto;">
-        <table class="exec-table">
-            <thead style="background: rgba(0,0,0,0.2);">
+<div id="comparativoContainer" class="rounded-xl border border-slate-700/50 shadow-xl overflow-hidden mb-6 bg-slate-900 relative" style="background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); margin-top: 30px;">
+    <div class="bg-slate-800/90 px-6 py-6 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <h3 class="font-extrabold text-white tracking-wide uppercase text-base flex items-center">
+            <i class="fas fa-balance-scale text-sky-400 mr-3 text-xl"></i> Comparativo de Desempenho Operacional por Cenários
+        </h3>
+        
+        <div class="flex items-center gap-6">
+            <button id="btnExportarComparativo" data-html2canvas-ignore class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-colors text-xs flex items-center gap-2 border border-indigo-500/50 cursor-pointer" style="border: none; padding: 10px 15px;">
+                <i class="fas fa-camera"></i> Salvar PNG
+            </button>
+            <img src="./assets/logo.png" alt="Serrana Florestal" class="h-10 object-contain drop-shadow-md" style="max-height: 40px;" onerror="this.style.display='none'">
+        </div>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-xs text-left">
+            <thead class="bg-slate-900/95 text-white font-semibold uppercase text-xs tracking-wider border-b border-slate-700">
                 <tr>
-                    <th style="color: var(--text-dim);">INDICADOR DE PERFORMANCE</th>
-                    <th style="text-align: right; color: var(--verde);"><i class="fas fa-star"></i> C1: SERRANA</th>
-                    <th style="text-align: right; color: #f43f5e;"><i class="fas fa-truck"></i> C2: TRANSP. ASN</th>
-                    <th style="text-align: right; color: var(--amarelo);"><i class="fas fa-tree"></i> C3: REFLORESTAR</th>
-                    <th style="text-align: right; color: #8b5cf6;"><i class="fas fa-leaf"></i> C4: JSL</th>
-                    <th style="text-align: right; color: #38bdf8;"><i class="fas fa-globe"></i> TOTAL (GERAL)</th>
+                    <th class="px-6 py-4 text-slate-300">Indicador de Performance</th>
+                    <th class="px-6 py-4 text-white bg-emerald-900/10 text-right"><i class="fas fa-star mr-1 text-emerald-400"></i> C1: Serrana</th>
+                    <th class="px-6 py-4 text-white bg-rose-900/10 text-right"><i class="fas fa-truck-loading mr-1 text-rose-400"></i> C2: TRANSP. ASN</th>
+                    <th class="px-6 py-4 text-white bg-amber-900/10 text-right"><i class="fas fa-tree mr-1 text-amber-400"></i> C3: Reflorestar</th>
+                    <th class="px-6 py-4 text-white bg-indigo-900/10 text-right"><i class="fas fa-leaf mr-1 text-indigo-400"></i> C4: JSL</th>
+                    <th class="px-6 py-4 text-white bg-sky-900/10 text-right"><i class="fas fa-globe mr-1 text-sky-400"></i> Total (Geral)</th>
                 </tr>
             </thead>
-            <tbody id="comparativo-body">
-                <tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--text-dim);">Carregando cenários...</td></tr>
+            <tbody id="comparativoBody" class="divide-y divide-slate-800/80 text-slate-300">
+                <tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--text-dim);">Aguardando sincronização de dados...</td></tr>
             </tbody>
         </table>
     </div>
@@ -217,422 +229,535 @@
 
 <script>
 (async function initDashboardFull() {
-    const SUPABASE_URL = 'https://qnpwkvazkntbqjbwegcp.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_bjTFgpk-qAdpVuWzr4hbng_G8O9qlc8';
-    const _db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    let fullData = [];
-    let metasGlobais = {};
-    let activeFilter = 'ALL';
-    let chartEvo = null;
-    let chartProj = null;
-
-    if (typeof Chart !== 'undefined') {
-        Chart.defaults.color = '#94a3b8';
-        Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
-        Chart.defaults.font.family = "'Inter', sans-serif";
-    }
-
-    // Buscador Flexível de Valores (Números) - Agora mais robusto
-    const getValNum = (obj, keys) => {
-        for(let k of keys) {
-            if(obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== '') {
-                let cleanStr = String(obj[k]).replace(/\s/g, '').replace(',', '.').replace(/[^\d.-]/g, '');
-                const v = parseFloat(cleanStr);
-                if(!isNaN(v)) return v;
-            }
-        }
-        return 0;
-    };
-
-    // Filtros de Interface
-    const btnQFs = document.querySelectorAll('.btn-qf');
-    const inputData = document.getElementById('op-data');
-    const selectMes = document.getElementById('op-mes');
-
-    btnQFs.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            activeFilter = e.target.getAttribute('data-qf');
-            btnQFs.forEach(b => {
-                b.classList.remove('active');
-                b.style.background = 'transparent'; b.style.color = 'var(--text-dim)';
-            });
-            e.target.classList.add('active');
-            e.target.style.background = 'var(--primary)'; e.target.style.color = 'white';
-            inputData.value = ''; selectMes.value = 'ALL';
-            renderizarPainel();
-        });
-    });
-
-    inputData.addEventListener('change', () => {
-        if(inputData.value) {
-            activeFilter = 'DATE';
-            btnQFs.forEach(b => { b.classList.remove('active'); b.style.background = 'transparent'; b.style.color = 'var(--text-dim)'; });
-            selectMes.value = 'ALL';
-            renderizarPainel();
-        }
-    });
-
-    selectMes.addEventListener('change', () => {
-        if(selectMes.value !== 'ALL') {
-            activeFilter = 'MONTH';
-            btnQFs.forEach(b => { b.classList.remove('active'); b.style.background = 'transparent'; b.style.color = 'var(--text-dim)'; });
-            inputData.value = '';
-        }
-        renderizarPainel();
-    });
-
-    // Carga do Banco
-    async function loadData() {
-        try {
-            const { data: mData } = await _db.from('metas_globais').select('*').eq('id', 1).single();
-            if(mData) metasGlobais = mData;
-
-            let historico = [];
-            let from = 0; const step = 1000; let fetchMore = true;
-
-            while(fetchMore) {
-                const { data, error } = await _db.from('historico_viagens').select('*').range(from, from + step - 1);
-                if(error || !data || data.length === 0) break;
-                historico = historico.concat(data);
-                if(data.length < step) fetchMore = false;
-                from += step;
-            }
-
-            fullData = historico;
-            popularFiltroMeses(fullData);
-            renderizarPainel();
-        } catch(e) { console.error("Erro BD:", e); }
-    }
-
-    function popularFiltroMeses(data) {
-        const meses = new Set();
-        data.forEach(d => {
-            if(d.dataDaBaseExcel && d.dataDaBaseExcel !== 'Desconhecida') {
-                const p = d.dataDaBaseExcel.split('/');
-                if(p.length >= 3) meses.add(`${p[1]}/${p[2].length===2?'20'+p[2]:p[2]}`);
-            }
-        });
-        const arrMeses = Array.from(meses).sort((a,b) => {
-            const pa = a.split('/'), pb = b.split('/');
-            return new Date(pa[1], pa[0]-1) - new Date(pb[1], pb[0]-1);
-        });
-        selectMes.innerHTML = '<option value="ALL">TODOS OS MESES</option>';
-        arrMeses.forEach(m => selectMes.insertAdjacentHTML('beforeend', `<option value="${m}">${m}</option>`));
-    }
-
-    function parseDataBR(dtStr) {
-        if(!dtStr || dtStr === 'Desconhecida') return null;
-        if(dtStr.includes('/')) {
-            const p = dtStr.split(' ')[0].split('/');
-            return new Date(p[2].length===2?'20'+p[2]:p[2], p[1]-1, p[0]);
-        }
-        return new Date(dtStr);
-    }
-
-    function formatTime(horasDecimais) {
-        if(isNaN(horasDecimais) || horasDecimais <= 0) return '-';
-        const h = Math.floor(horasDecimais);
-        const m = Math.round((horasDecimais - h) * 60);
-        if(h === 0) return `${m}m`;
-        return `${h}h ${m.toString().padStart(2,'0')}m`;
-    }
-
-    // === RENDERIZAÇÃO GERAL E CÁLCULOS ===
-    function renderizarPainel() {
-        const hj = new Date(); hj.setHours(0,0,0,0);
-        let diasNoFiltro = 30;
-
-        const filtered = fullData.filter(d => {
-            const dt = parseDataBR(d.dataDaBaseExcel);
-            if(!dt) return false;
-            
-            if(activeFilter === 'DATE') {
-                const dr = new Date(inputData.value + "T00:00:00"); dr.setHours(0,0,0,0);
-                return dt.getTime() === dr.getTime();
-            }
-            if(activeFilter === 'MONTH') {
-                const m = String(dt.getMonth()+1).padStart(2,'0'); const y = dt.getFullYear();
-                return `${m}/${y}` === selectMes.value;
-            }
-            if(activeFilter === 'ALL') return true;
-
-            const diff = Math.round((hj - dt)/86400000);
-            if(activeFilter === 'D-1') { diasNoFiltro = 1; return diff === 1; }
-            if(activeFilter === 'D-2') { diasNoFiltro = 2; return diff === 2; }
-            if(activeFilter === 'D-7') { diasNoFiltro = 7; return diff >= 0 && diff <= 7; }
-            if(activeFilter === 'D-30') { diasNoFiltro = 30; return diff >= 0 && diff <= 30; }
-            return true;
-        });
-
-        const placasUnicas = new Set(filtered.map(d=>d.placa).filter(p=>p&&p!=='-')).size || 1;
-        if(activeFilter === 'MONTH' || activeFilter === 'ALL') {
-            const dts = new Set(filtered.map(d=>d.dataDaBaseExcel));
-            diasNoFiltro = dts.size || 1;
+    try {
+        // Recupera o DB global ou inicializa
+        const SUPABASE_URL = 'https://qnpwkvazkntbqjbwegcp.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_bjTFgpk-qAdpVuWzr4hbng_G8O9qlc8';
+        let _db;
+        if (typeof supabaseClient !== 'undefined') {
+            _db = supabaseClient;
+        } else if (window.supabase) {
+            _db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        } else {
+            console.error("Supabase não carregado!");
+            return;
         }
 
-        document.getElementById('op-status').innerText = `Base: ${filtered.length} Viagens Globais | ${diasNoFiltro} Dia(s)`;
-
-        const tViagens = filtered.length;
-        const tVol = filtered.reduce((s,x) => s + (parseFloat(String(x.volumeReal).replace(',','.'))||0), 0);
-        const tPesoLiq = filtered.reduce((s,x) => s + (parseFloat(String(x.pesoLiquido).replace(',','.'))||0), 0) / 1000;
+        let fullData = [];
+        let metasGlobais = {};
+        let activeFilter = 'ALL';
         
-        let somaCiclo = 0, qtdCiclo = 0;
-        let somaCampo = 0, qtdCampo = 0;
-        let somaCarga = 0, qtdCarga = 0;
-        let somaFab = 0, qtdFab = 0;
-        
-        let sDistT = 0, sDistA = 0, sDistTe = 0, qtdDist = 0;
+        // Proteção contra duplicação de gráficos no Router
+        if (window.chartEvoObj) window.chartEvoObj.destroy();
+        if (window.chartProjObj) window.chartProjObj.destroy();
 
-        filtered.forEach(d => {
-            if(d.cicloHoras > 0) { somaCiclo += d.cicloHoras; qtdCiclo++; }
-            if(d.filaCampoHoras > 0) { somaCampo += d.filaCampoHoras; qtdCampo++; }
-            if(d.tempoCarregamentoHoras > 0) { somaCarga += d.tempoCarregamentoHoras; qtdCarga++; }
-            if(d.filaFabricaHoras > 0) { somaFab += d.filaFabricaHoras; qtdFab++; }
-            
-            const distA = getValNum(d, ['distanciaAsfalto', 'distancia_asfalto', 'kmAsfalto', 'km_asfalto', 'asfalto', 'km_asf', 'dist_asfalto']);
-            const distTe = getValNum(d, ['distanciaTerra', 'distancia_terra', 'kmTerra', 'km_terra', 'terra', 'km_ter', 'dist_terra']);
-            let distT = getValNum(d, ['distanciaTotal', 'distancia_total', 'kmTotal', 'km_total', 'distancia', 'km', 'dist']);
-            
-            if (distT === 0 && (distA > 0 || distTe > 0)) distT = distA + distTe;
+        if (typeof Chart !== 'undefined') {
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+            Chart.defaults.font.family = "'Inter', sans-serif";
+        }
 
-            if(distT > 0 || distA > 0 || distTe > 0) {
-                sDistT += distT;
-                sDistA += distA;
-                sDistTe += distTe;
-                qtdDist++;
-            }
-        });
-
-        const mediaCx = tViagens > 0 ? (tVol / tViagens) : 0;
-        const mediaPbtc = tViagens > 0 ? (tPesoLiq / tViagens) : 0;
-
-        const metaV = (metasGlobais.v_prog||0) * placasUnicas * diasNoFiltro;
-        const metaVol = (metasGlobais.vol_prog||0) * diasNoFiltro;
-        const metaCx = metasGlobais.cx_prog || 62.2;
-        
-        const percV = metaV > 0 ? Math.min((tViagens/metaV)*100, 100) : 0;
-        const percVol = metaVol > 0 ? Math.min((tVol/metaVol)*100, 100) : 0;
-        const percCx = metaCx > 0 ? Math.min((mediaCx/metaCx)*100, 100) : 0;
-
-        document.getElementById('val-v-prog').innerText = metaV;
-        document.getElementById('val-v-real').innerText = tViagens;
-        document.getElementById('perc-v').innerText = `${percV.toFixed(1)}%`;
-        document.getElementById('bar-v').style.width = `${percV}%`;
-
-        document.getElementById('val-vol-prog').innerText = metaVol.toLocaleString('pt-BR');
-        document.getElementById('val-vol-real').innerText = tVol.toLocaleString('pt-BR', {maximumFractionDigits:1});
-        document.getElementById('perc-vol').innerText = `${percVol.toFixed(1)}%`;
-        document.getElementById('bar-vol').style.width = `${percVol}%`;
-
-        document.getElementById('val-cx-prog').innerText = metaCx.toLocaleString('pt-BR');
-        document.getElementById('val-cx-real').innerText = mediaCx.toLocaleString('pt-BR', {maximumFractionDigits:2});
-        document.getElementById('perc-cx').innerText = `${percCx.toFixed(1)}%`;
-        document.getElementById('bar-cx').style.width = `${percCx}%`;
-
-        document.getElementById('val-pbtc-prog').innerText = metasGlobais.pbtc_prog || '74';
-        document.getElementById('val-pbtc-real').innerText = mediaPbtc.toLocaleString('pt-BR', {maximumFractionDigits:2});
-        
-        const bPbtc = document.getElementById('bar-pbtc');
-        const vPbtc = document.getElementById('val-pbtc-real');
-        const txtPbtc = document.getElementById('perc-pbtc');
-        if (mediaPbtc < 74) { bPbtc.style.background = 'var(--amarelo)'; vPbtc.style.color = 'var(--amarelo)'; txtPbtc.innerText = 'Abaixo do Ideal'; txtPbtc.style.color = 'var(--amarelo)'; }
-        else if (mediaPbtc <= 77.7) { bPbtc.style.background = 'var(--verde)'; vPbtc.style.color = 'var(--verde)'; txtPbtc.innerText = 'Ideal'; txtPbtc.style.color = 'var(--verde)'; }
-        else { bPbtc.style.background = '#f43f5e'; vPbtc.style.color = '#f43f5e'; txtPbtc.innerText = 'Acima do Limite'; txtPbtc.style.color = '#f43f5e'; }
-
-        document.getElementById('val-ciclo').innerText = formatTime(qtdCiclo > 0 ? somaCiclo/qtdCiclo : 0);
-        document.getElementById('val-campo').innerText = formatTime(qtdCampo > 0 ? somaCampo/qtdCampo : 0);
-        document.getElementById('val-carga').innerText = formatTime(qtdCarga > 0 ? somaCarga/qtdCarga : 0);
-        document.getElementById('val-fabrica').innerText = formatTime(qtdFab > 0 ? somaFab/qtdFab : 0);
-        
-        document.getElementById('val-dist-total').innerText = `${(qtdDist>0?sDistT/qtdDist:0).toFixed(1)} km`;
-        document.getElementById('val-dist-asfalto').innerText = (qtdDist>0?sDistA/qtdDist:0).toFixed(1);
-        document.getElementById('val-dist-terra').innerText = (qtdDist>0?sDistTe/qtdDist:0).toFixed(1);
-
-        renderComparativoTabela(filtered);
-        renderTopTabelas(filtered);
-        renderGraficos(filtered);
-    }
-
-    // === TABELA DE CENÁRIOS (LÓGICA BLINDADA DE BUSCA GLOBAL) ===
-    function renderComparativoTabela(data) {
-        const cenarios = {
-            C1: { n: 'SERRANA', v: 0, vol: 0, cx: 0, c: 0, cc: 0, cp: 0, cpc: 0, cg: 0, cgc: 0, fb: 0, fbc: 0, da: 0, dt: 0, ddc: 0 },
-            C2: { n: 'ASN', v: 0, vol: 0, cx: 0, c: 0, cc: 0, cp: 0, cpc: 0, cg: 0, cgc: 0, fb: 0, fbc: 0, da: 0, dt: 0, ddc: 0 },
-            C3: { n: 'REFLORESTAR', v: 0, vol: 0, cx: 0, c: 0, cc: 0, cp: 0, cpc: 0, cg: 0, cgc: 0, fb: 0, fbc: 0, da: 0, dt: 0, ddc: 0 },
-            C4: { n: 'JSL', v: 0, vol: 0, cx: 0, c: 0, cc: 0, cp: 0, cpc: 0, cg: 0, cgc: 0, fb: 0, fbc: 0, da: 0, dt: 0, ddc: 0 },
-            OUTROS: { v: 0, vol: 0, cx: 0, c: 0, cc: 0, cp: 0, cpc: 0, cg: 0, cgc: 0, fb: 0, fbc: 0, da: 0, dt: 0, ddc: 0 },
-            TOT: { v: 0, vol: 0, cx: 0, c: 0, cc: 0, cp: 0, cpc: 0, cg: 0, cgc: 0, fb: 0, fbc: 0, da: 0, dt: 0, ddc: 0 }
-        };
-
-        const getGrp = (d) => {
-            // Arrays de campos para pesquisar de forma limpa (sem ponto e sem espaço)
-            const fields = [d.transportadora, d.carregador, d.carregadorFlorestal, d.frente, d.prestador, d.empresa];
-            
-            // 1. Busca primeiro se é terceiro (Isso evita que a Serrana roube a viagem se ela for apenas Carregadora)
-            for (let f of fields) {
-                if (!f) continue;
-                let val = String(f).toUpperCase().replace(/[.\s]/g, ''); 
-                
-                if (val.includes('ASN')) return 'C2';
-                if (val.includes('REFLORESTAR')) return 'C3';
-                if (val.includes('JSL')) return 'C4';
-                if (val.includes('SERRANA')) return 'C1';
-            }
-            
-            // 2. Busca Extrema: Pega a linha inteira da planilha e procura a palavra chave
-            const allValues = Object.values(d).join(' ').toUpperCase().replace(/[.\s]/g, '');
-            if (allValues.includes('ASN')) return 'C2';
-            if (allValues.includes('REFLORESTAR')) return 'C3';
-            if (allValues.includes('JSL')) return 'C4';
-            if (allValues.includes('SERRANA')) return 'C1';
-
-            // 3. Se não for nenhum dos 4, joga para Outros e NÃO para C1.
-            return 'OUTROS';
-        };
-
-        data.forEach(d => {
-            const g = getGrp(d);
-            const process = (obj) => {
-                obj.v++;
-                obj.vol += parseFloat(String(d.volumeReal).replace(',','.'))||0;
-                if(d.cicloHoras>0) { obj.c += d.cicloHoras; obj.cc++; }
-                if(d.filaCampoHoras>0) { obj.cp += d.filaCampoHoras; obj.cpc++; }
-                if(d.tempoCarregamentoHoras>0) { obj.cg += d.tempoCarregamentoHoras; obj.cgc++; }
-                if(d.filaFabricaHoras>0) { obj.fb += d.filaFabricaHoras; obj.fbc++; }
-                
-                const dA = getValNum(d, ['distanciaAsfalto', 'distancia_asfalto', 'kmAsfalto', 'km_asfalto', 'asfalto', 'km_asf', 'dist_asfalto']);
-                const dT = getValNum(d, ['distanciaTerra', 'distancia_terra', 'kmTerra', 'km_terra', 'terra', 'km_ter', 'dist_terra']);
-                let dTot = getValNum(d, ['distanciaTotal', 'distancia_total', 'kmTotal', 'km_total', 'distancia', 'km', 'dist']);
-                
-                if (dTot === 0 && (dA > 0 || dT > 0)) dTot = dA + dT;
-
-                if(dTot > 0 || dA > 0 || dT > 0) { 
-                    obj.da += dA; 
-                    obj.dt += dT; 
-                    obj.ddc++; 
+        // Extrator Seguro de Números (Protegido contra crashes de Regex)
+        const getValNum = (obj, keys) => {
+            for(let k of keys) {
+                if(obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== '') {
+                    let cleanStr = String(obj[k]).replace(/\s/g, '').replace(',', '.').replace(/[^\d.-]/g, '');
+                    const v = parseFloat(cleanStr);
+                    if(!isNaN(v)) return v;
                 }
-            };
-            
-            if (cenarios[g]) {
-                process(cenarios[g]);
             }
-            process(cenarios.TOT); // Soma sempre no total Geral
+            return 0;
+        };
+
+        // UI Listeners
+        const btnQFs = document.querySelectorAll('.btn-qf');
+        const inputData = document.getElementById('op-data');
+        const selectMes = document.getElementById('op-mes');
+
+        btnQFs.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                activeFilter = e.target.getAttribute('data-qf');
+                btnQFs.forEach(b => {
+                    b.classList.remove('active');
+                    b.style.background = 'transparent'; b.style.color = 'var(--text-dim)';
+                });
+                e.target.classList.add('active');
+                e.target.style.background = 'var(--primary)'; e.target.style.color = 'white';
+                inputData.value = ''; selectMes.value = 'ALL';
+                renderizarPainel();
+            });
         });
 
-        const tbody = document.getElementById('comparativo-body');
-        const c = cenarios;
-        
-        const rowHTML = (titulo, fName, isTime, isDist) => {
-            const format = (obj) => {
-                if(isTime) return formatTime(obj[fName.val]/obj[fName.count] || 0);
-                if(isDist) return `<span style="color:#60a5fa">Asf: ${(obj.da/obj.ddc||0).toFixed(1)}</span><br><span style="color:var(--amarelo)">Ter: ${(obj.dt/obj.ddc||0).toFixed(1)}</span>`;
-                if(fName.val === 'v') return obj.v;
-                if(fName.val === 'vol') return obj.vol.toLocaleString('pt-BR', {maximumFractionDigits:1}) + ' m³';
-                if(fName.val === 'cx') return obj.v>0 ? (obj.vol/obj.v).toLocaleString('pt-BR', {maximumFractionDigits:1}) + ' m³' : '0';
-                return '-';
-            };
-            return `
-                <tr style="border-bottom: 1px solid var(--border);">
-                    <td style="font-weight:bold; color: white;">${titulo}</td>
-                    <td style="text-align:right;">${format(c.C1)}</td>
-                    <td style="text-align:right;">${format(c.C2)}</td>
-                    <td style="text-align:right;">${format(c.C3)}</td>
-                    <td style="text-align:right;">${format(c.C4)}</td>
-                    <td style="text-align:right; font-weight:bold; color:#38bdf8; background:rgba(14,165,233,0.05);">${format(c.TOT)}</td>
+        inputData.addEventListener('change', () => {
+            if(inputData.value) {
+                activeFilter = 'DATE';
+                btnQFs.forEach(b => { b.classList.remove('active'); b.style.background = 'transparent'; b.style.color = 'var(--text-dim)'; });
+                selectMes.value = 'ALL';
+                renderizarPainel();
+            }
+        });
+
+        selectMes.addEventListener('change', () => {
+            if(selectMes.value !== 'ALL') {
+                activeFilter = 'MONTH';
+                btnQFs.forEach(b => { b.classList.remove('active'); b.style.background = 'transparent'; b.style.color = 'var(--text-dim)'; });
+                inputData.value = '';
+            }
+            renderizarPainel();
+        });
+
+        // Carrega Dados DB
+        async function loadData() {
+            try {
+                const { data: mData } = await _db.from('metas_globais').select('*').eq('id', 1).single();
+                if(mData) metasGlobais = mData;
+
+                let historico = [];
+                let from = 0; const step = 1000; let fetchMore = true;
+
+                while(fetchMore) {
+                    const { data, error } = await _db.from('historico_viagens').select('*').range(from, from + step - 1);
+                    if(error || !data || data.length === 0) break;
+                    historico = historico.concat(data);
+                    if(data.length < step) fetchMore = false;
+                    from += step;
+                }
+
+                fullData = historico;
+                popularFiltroMeses(fullData);
+                renderizarPainel();
+            } catch(e) { console.error("Erro no DB:", e); }
+        }
+
+        // Parse Seguro de Datas
+        function popularFiltroMeses(data) {
+            const meses = new Set();
+            data.forEach(d => {
+                if(d.dataDaBaseExcel && d.dataDaBaseExcel !== 'Desconhecida') {
+                    const dtStr = String(d.dataDaBaseExcel).trim();
+                    if(dtStr.includes('/')) {
+                        const p = dtStr.split(' ')[0].split('/');
+                        if(p.length >= 3) meses.add(`${p[1]}/${p[2].length===2?'20'+p[2]:p[2]}`);
+                    }
+                }
+            });
+            const arrMeses = Array.from(meses).sort((a,b) => {
+                const pa = a.split('/'), pb = b.split('/');
+                return new Date(pa[1], pa[0]-1) - new Date(pb[1], pb[0]-1);
+            });
+            selectMes.innerHTML = '<option value="ALL">TODOS OS MESES</option>';
+            arrMeses.forEach(m => selectMes.insertAdjacentHTML('beforeend', `<option value="${m}">${m}</option>`));
+        }
+
+        function parseDataBR(dtVal) {
+            if(!dtVal || dtVal === 'Desconhecida') return null;
+            const dtStr = String(dtVal).trim();
+            if(dtStr.includes('/')) {
+                const p = dtStr.split(' ')[0].split('/');
+                if(p.length >= 3) {
+                    let y = p[2]; if(y.length === 2) y = '20' + y;
+                    return new Date(y, p[1]-1, p[0]);
+                }
+            }
+            if(dtStr.includes('-')) return new Date(dtStr);
+            return null;
+        }
+
+        function formatTime(horasDecimais) {
+            if(isNaN(horasDecimais) || horasDecimais <= 0) return '-';
+            const h = Math.floor(horasDecimais);
+            const m = Math.round((horasDecimais - h) * 60);
+            if(h === 0) return `${m}m`;
+            return `${h}h ${m.toString().padStart(2,'0')}m`;
+        }
+
+        // Núcleo Renderizador
+        function renderizarPainel() {
+            const hj = new Date(); hj.setHours(0,0,0,0);
+            let diasNoFiltro = 30;
+
+            const filtered = fullData.filter(d => {
+                const dt = parseDataBR(d.dataDaBaseExcel);
+                if(!dt) return false;
+                
+                if(activeFilter === 'DATE') {
+                    const dr = new Date(inputData.value + "T00:00:00"); dr.setHours(0,0,0,0);
+                    return dt.getTime() === dr.getTime();
+                }
+                if(activeFilter === 'MONTH') {
+                    const m = String(dt.getMonth()+1).padStart(2,'0'); const y = dt.getFullYear();
+                    return `${m}/${y}` === selectMes.value;
+                }
+                if(activeFilter === 'ALL') return true;
+
+                const diff = Math.round((hj - dt)/86400000);
+                if(activeFilter === 'D-1') { diasNoFiltro = 1; return diff === 1; }
+                if(activeFilter === 'D-2') { diasNoFiltro = 2; return diff === 2; }
+                if(activeFilter === 'D-7') { diasNoFiltro = 7; return diff >= 0 && diff <= 7; }
+                if(activeFilter === 'D-30') { diasNoFiltro = 30; return diff >= 0 && diff <= 30; }
+                return true;
+            });
+
+            const dts = new Set(filtered.map(d=>d.dataDaBaseExcel));
+            if(activeFilter === 'MONTH' || activeFilter === 'ALL') diasNoFiltro = dts.size || 1;
+
+            document.getElementById('op-status').innerText = `Base: ${filtered.length} Viagens Globais | ${diasNoFiltro} Dia(s)`;
+
+            const tViagens = filtered.length;
+            const tVol = filtered.reduce((s,x) => s + (parseFloat(String(x.volumeReal).replace(',','.'))||0), 0);
+            const tPesoLiq = filtered.reduce((s,x) => s + (parseFloat(String(x.pesoLiquido).replace(',','.'))||0), 0) / 1000;
+            
+            let somaCiclo = 0, qtdCiclo = 0;
+            let somaCampo = 0, qtdCampo = 0;
+            let somaCarga = 0, qtdCarga = 0;
+            let somaFab = 0, qtdFab = 0;
+            let sDistT = 0, sDistA = 0, sDistTe = 0, qtdDist = 0;
+
+            filtered.forEach(d => {
+                if(d.cicloHoras > 0) { somaCiclo += d.cicloHoras; qtdCiclo++; }
+                if(d.filaCampoHoras > 0) { somaCampo += d.filaCampoHoras; qtdCampo++; }
+                if(d.tempoCarregamentoHoras > 0) { somaCarga += d.tempoCarregamentoHoras; qtdCarga++; }
+                if(d.filaFabricaHoras > 0) { somaFab += d.filaFabricaHoras; qtdFab++; }
+                
+                const distA = getValNum(d, ['distanciaAsfalto', 'distancia_asfalto', 'kmAsfalto', 'km_asfalto', 'asfalto', 'km_asf', 'dist_asfalto']);
+                const distTe = getValNum(d, ['distanciaTerra', 'distancia_terra', 'kmTerra', 'km_terra', 'terra', 'km_ter', 'dist_terra']);
+                let distT = getValNum(d, ['distanciaTotal', 'distancia_total', 'kmTotal', 'km_total', 'distancia', 'km', 'dist']);
+                
+                if (distT === 0 && (distA > 0 || distTe > 0)) distT = distA + distTe;
+
+                if(distT > 0 || distA > 0 || distTe > 0) {
+                    sDistT += distT; sDistA += distA; sDistTe += distTe; qtdDist++;
+                }
+            });
+
+            // Metas
+            const placasUnicas = new Set(filtered.map(d=>d.placa).filter(p=>p&&p!=='-')).size || 1;
+            const mediaCx = tViagens > 0 ? (tVol / tViagens) : 0;
+            const mediaPbtc = tViagens > 0 ? (tPesoLiq / tViagens) : 0;
+            const metaV = (metasGlobais.v_prog||0) * placasUnicas * diasNoFiltro;
+            const metaVol = (metasGlobais.vol_prog||0) * diasNoFiltro;
+            const metaCx = metasGlobais.cx_prog || 62.2;
+            
+            const percV = metaV > 0 ? Math.min((tViagens/metaV)*100, 100) : 0;
+            const percVol = metaVol > 0 ? Math.min((tVol/metaVol)*100, 100) : 0;
+            const percCx = metaCx > 0 ? Math.min((mediaCx/metaCx)*100, 100) : 0;
+
+            // UI Cards
+            document.getElementById('val-v-prog').innerText = metaV;
+            document.getElementById('val-v-real').innerText = tViagens;
+            document.getElementById('perc-v').innerText = `${percV.toFixed(1)}%`;
+            document.getElementById('bar-v').style.width = `${percV}%`;
+
+            document.getElementById('val-vol-prog').innerText = metaVol.toLocaleString('pt-BR');
+            document.getElementById('val-vol-real').innerText = tVol.toLocaleString('pt-BR', {maximumFractionDigits:1});
+            document.getElementById('perc-vol').innerText = `${percVol.toFixed(1)}%`;
+            document.getElementById('bar-vol').style.width = `${percVol}%`;
+
+            document.getElementById('val-cx-prog').innerText = metaCx.toLocaleString('pt-BR');
+            document.getElementById('val-cx-real').innerText = mediaCx.toLocaleString('pt-BR', {maximumFractionDigits:2});
+            document.getElementById('perc-cx').innerText = `${percCx.toFixed(1)}%`;
+            document.getElementById('bar-cx').style.width = `${percCx}%`;
+
+            document.getElementById('val-pbtc-prog').innerText = metasGlobais.pbtc_prog || '74';
+            document.getElementById('val-pbtc-real').innerText = mediaPbtc.toLocaleString('pt-BR', {maximumFractionDigits:2});
+            
+            const bPbtc = document.getElementById('bar-pbtc');
+            const vPbtc = document.getElementById('val-pbtc-real');
+            const txtPbtc = document.getElementById('perc-pbtc');
+            if (mediaPbtc < 74) { bPbtc.style.background = 'var(--amarelo)'; vPbtc.style.color = 'var(--amarelo)'; txtPbtc.innerText = 'Abaixo do Ideal'; txtPbtc.style.color = 'var(--amarelo)'; }
+            else if (mediaPbtc <= 77.7) { bPbtc.style.background = 'var(--verde)'; vPbtc.style.color = 'var(--verde)'; txtPbtc.innerText = 'Ideal'; txtPbtc.style.color = 'var(--verde)'; }
+            else { bPbtc.style.background = '#f43f5e'; vPbtc.style.color = '#f43f5e'; txtPbtc.innerText = 'Acima do Limite'; txtPbtc.style.color = '#f43f5e'; }
+
+            document.getElementById('val-ciclo').innerText = formatTime(qtdCiclo > 0 ? somaCiclo/qtdCiclo : 0);
+            document.getElementById('val-campo').innerText = formatTime(qtdCampo > 0 ? somaCampo/qtdCampo : 0);
+            document.getElementById('val-carga').innerText = formatTime(qtdCarga > 0 ? somaCarga/qtdCarga : 0);
+            document.getElementById('val-fabrica').innerText = formatTime(qtdFab > 0 ? somaFab/qtdFab : 0);
+            
+            document.getElementById('val-dist-total').innerText = `${(qtdDist>0?sDistT/qtdDist:0).toFixed(1)} km`;
+            document.getElementById('val-dist-asfalto').innerText = (qtdDist>0?sDistA/qtdDist:0).toFixed(1);
+            document.getElementById('val-dist-terra').innerText = (qtdDist>0?sDistTe/qtdDist:0).toFixed(1);
+
+            renderizarTabelaComparativa(filtered);
+            renderTopTabelas(filtered);
+            renderGraficos(filtered);
+        }
+
+        // --- FUNÇÕES DE IDENTIFICAÇÃO DOS CENÁRIOS ---
+        const serranaLoaders = ['GSR0001', 'GSR0002', 'GSR0003', 'GSR0007', 'GSR0008', 'GRB0015', 'GRB0022'];
+        const reflorestarLoaders = ['GRB0017', 'GRB0020', 'GRB0029'];
+        const jslLoaders = ['GSL0012', 'GSL0016'];
+
+        function checkLoader(d, loaderArray) {
+            const val = String(d.carregadorFlorestal || d.grua || '').trim().toUpperCase();
+            if (val && val !== '-') return loaderArray.includes(val);
+            for (let key in d) {
+                if (d[key] && typeof d[key] === 'string') {
+                    const v = d[key].trim().toUpperCase();
+                    if (loaderArray.includes(v)) return true;
+                }
+            }
+            return false;
+        }
+
+        function isSerranaTransp(d) {
+            const name = String(d.transportadora || '').toUpperCase();
+            return name.includes('SERRANALOG') || name.includes('SERRANA');
+        }
+
+        // --- FUNÇÕES DE CÁLCULO E FORMATAÇÃO ---
+        function calcStats(dataArr) {
+            const viagens = dataArr.length;
+            const vol = dataArr.reduce((s,d) => s + (parseFloat(String(d.volumeReal).replace(',','.'))||0), 0);
+            const medVol = viagens > 0 ? vol / viagens : 0;
+
+            const validCiclos = dataArr.filter(d => d.cicloHoras > 0);
+            const somaCiclos = validCiclos.reduce((s,d) => s + d.cicloHoras, 0);
+            const medCiclo = validCiclos.length > 0 ? somaCiclos / validCiclos.length : 0;
+
+            const validFilaCpo = dataArr.filter(d => d.filaCampoHoras > 0);
+            const medFilaCpo = validFilaCpo.length > 0 ? validFilaCpo.reduce((s,d) => s + d.filaCampoHoras, 0) / validFilaCpo.length : 0;
+
+            const validCarreg = dataArr.filter(d => d.tempoCarregamentoHoras > 0);
+            const medCarreg = validCarreg.length > 0 ? validCarreg.reduce((s,d) => s + d.tempoCarregamentoHoras, 0) / validCarreg.length : 0;
+
+            const validFilaFab = dataArr.filter(d => d.filaFabricaHoras > 0);
+            const medFilaFab = validFilaFab.length > 0 ? validFilaFab.reduce((s,d) => s + d.filaFabricaHoras, 0) / validFilaFab.length : 0;
+
+            const medAsfalto = viagens > 0 ? dataArr.reduce((s, d) => s + (getValNum(d, ['distanciaAsfalto', 'distancia_asfalto', 'kmAsfalto', 'asfalto']) || 0), 0) / viagens : 0;
+            const medTerra = viagens > 0 ? dataArr.reduce((s, d) => s + (getValNum(d, ['distanciaTerra', 'distancia_terra', 'kmTerra', 'terra']) || 0), 0) / viagens : 0;
+
+            return { volTotal: vol, medVol, medCiclo, medFilaCpo, medCarreg, medFilaFab, medAsfalto, medTerra };
+        }
+
+        function formatarHorasMinutos(horasDecimais) {
+            if (horasDecimais === null || horasDecimais === undefined || isNaN(horasDecimais) || horasDecimais <= 0) return '-';
+            const horas = Math.floor(horasDecimais);
+            const minutos = Math.round((horasDecimais - horas) * 60);
+            if (horas === 0 && minutos === 0) return '0m';
+            if (horas === 0) return `${minutos}m`;
+            if (minutos === 0) return `${horas}h`;
+            return `${horas}h ${minutos.toString().padStart(2, '0')}m`;
+        }
+
+        // --- FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO DA TABELA NOVA ---
+        function renderizarTabelaComparativa(filteredData) {
+            const tbodyComp = document.getElementById('comparativoBody');
+            if (!tbodyComp) return;
+
+            if (!filteredData || filteredData.length === 0) {
+                tbodyComp.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-slate-500" style="text-align: center;">Sem dados para comparar</td></tr>';
+                return;
+            }
+
+            const dataC1 = filteredData.filter(d => checkLoader(d, serranaLoaders) && isSerranaTransp(d));
+            const dataC2 = filteredData.filter(d => checkLoader(d, serranaLoaders) && !isSerranaTransp(d));
+            const dataC3 = filteredData.filter(d => checkLoader(d, reflorestarLoaders) && isSerranaTransp(d));
+            const dataC4 = filteredData.filter(d => checkLoader(d, jslLoaders) && isSerranaTransp(d));
+            
+            const stC1 = calcStats(dataC1);
+            const stC2 = calcStats(dataC2);
+            const stC3 = calcStats(dataC3);
+            const stC4 = calcStats(dataC4);
+            const stGlobal = calcStats(filteredData);
+
+            tbodyComp.innerHTML = `
+                <tr class="hover:bg-slate-800/30 transition-colors">
+                    <td class="px-6 py-4 font-bold text-white text-sm"><i class="fas fa-route text-slate-400 w-5"></i> Viagens Realizadas</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${dataC1.length}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${dataC2.length}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${dataC3.length}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${dataC4.length}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${filteredData.length}</td>
+                </tr>
+                <tr class="hover:bg-slate-800/30 transition-colors">
+                    <td class="px-6 py-4 font-bold text-white text-sm"><i class="fas fa-box-open text-indigo-400 w-5"></i> Caixa de Carga Média</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stC1.medVol.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stC2.medVol.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stC3.medVol.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stC4.medVol.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stGlobal.medVol.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
+                </tr>
+                <tr class="hover:bg-slate-800/30 transition-colors">
+                    <td class="px-6 py-4 font-bold text-white text-sm"><i class="fas fa-cubes text-cyan-400 w-5"></i> Volume Total</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stC1.volTotal.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stC2.volTotal.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stC3.volTotal.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stC4.volTotal.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stGlobal.volTotal.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
+                </tr>
+                <tr class="hover:bg-slate-800/30 transition-colors">
+                    <td class="px-6 py-4 font-bold text-white text-sm"><i class="fas fa-stopwatch text-blue-400 w-5"></i> Ciclo Médio Total</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC1.medCiclo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC2.medCiclo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC3.medCiclo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC4.medCiclo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stGlobal.medCiclo)}</td>
+                </tr>
+                <tr class="hover:bg-slate-800/30 transition-colors border-t border-slate-700/50">
+                    <td class="px-6 py-4 font-bold text-slate-300 text-xs uppercase tracking-wider"><i class="fas fa-hourglass-half text-amber-500 w-5"></i> Espera Média no Campo</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC1.medFilaCpo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC2.medFilaCpo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC3.medFilaCpo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC4.medFilaCpo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stGlobal.medFilaCpo)}</td>
+                </tr>
+                <tr class="hover:bg-slate-800/30 transition-colors">
+                    <td class="px-6 py-4 font-bold text-slate-300 text-xs uppercase tracking-wider"><i class="fas fa-truck-loading text-emerald-500 w-5"></i> T. Médio Carregamento</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC1.medCarreg)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC2.medCarreg)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC3.medCarreg)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC4.medCarreg)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stGlobal.medCarreg)}</td>
+                </tr>
+                <tr class="hover:bg-slate-800/30 transition-colors">
+                    <td class="px-6 py-4 font-bold text-slate-300 text-xs uppercase tracking-wider"><i class="fas fa-industry text-rose-500 w-5"></i> Espera Média Fábrica</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC1.medFilaFab)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC2.medFilaFab)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC3.medFilaFab)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC4.medFilaFab)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stGlobal.medFilaFab)}</td>
+                </tr>
+                <tr class="hover:bg-slate-800/30 transition-colors border-t border-slate-700">
+                    <td class="px-6 py-4 font-bold text-slate-300 text-xs uppercase tracking-wider"><i class="fas fa-road text-slate-400 w-5"></i> Dist. Média (Asfalto / Terra)</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">
+                        <span class="text-sky-300" title="Asfalto">Asf: ${stC1.medAsfalto.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
+                        <span class="text-amber-400" title="Terra">Ter: ${stC1.medTerra.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
+                    </td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">
+                        <span class="text-sky-300" title="Asfalto">Asf: ${stC2.medAsfalto.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
+                        <span class="text-amber-400" title="Terra">Ter: ${stC2.medTerra.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
+                    </td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">
+                        <span class="text-sky-300" title="Asfalto">Asf: ${stC3.medAsfalto.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
+                        <span class="text-amber-400" title="Terra">Ter: ${stC3.medTerra.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
+                    </td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">
+                        <span class="text-sky-300" title="Asfalto">Asf: ${stC4.medAsfalto.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
+                        <span class="text-amber-400" title="Terra">Ter: ${stC4.medTerra.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
+                    </td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">
+                        <span class="text-sky-300" title="Asfalto">Asf: ${stGlobal.medAsfalto.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
+                        <span class="text-amber-400" title="Terra">Ter: ${stGlobal.medTerra.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
+                    </td>
                 </tr>
             `;
-        };
-
-        tbody.innerHTML = 
-            rowHTML('<i class="fas fa-route" style="color:var(--text-dim); margin-right:8px;"></i> Viagens Realizadas', {val: 'v'}, false, false) +
-            rowHTML('<i class="fas fa-box" style="color:var(--text-dim); margin-right:8px;"></i> Caixa de Carga Média', {val: 'cx'}, false, false) +
-            rowHTML('<i class="fas fa-cubes" style="color:var(--text-dim); margin-right:8px;"></i> Volume Total', {val: 'vol'}, false, false) +
-            rowHTML('<i class="fas fa-stopwatch" style="color:var(--text-dim); margin-right:8px;"></i> Ciclo Médio Total', {val: 'c', count: 'cc'}, true, false) +
-            rowHTML('<i class="fas fa-hourglass-half" style="color:var(--text-dim); margin-right:8px;"></i> Espera Média no Campo', {val: 'cp', count: 'cpc'}, true, false) +
-            rowHTML('<i class="fas fa-truck-loading" style="color:var(--text-dim); margin-right:8px;"></i> Tempo Médio Carregamento', {val: 'cg', count: 'cgc'}, true, false) +
-            rowHTML('<i class="fas fa-industry" style="color:var(--text-dim); margin-right:8px;"></i> Espera Média na Fábrica', {val: 'fb', count: 'fbc'}, true, false) +
-            rowHTML('<i class="fas fa-road" style="color:var(--text-dim); margin-right:8px;"></i> Dist. Média (Asfalto/Terra)', {val: ''}, false, true);
-    }
-
-    // Leaderboards
-    function renderTopTabelas(data) {
-        const pMap = new Map();
-        data.forEach(d => {
-            const pl = d.placa || 'N/A';
-            if(!pMap.has(pl)) pMap.set(pl, { p: pl, t: d.transportadora||'-', vol:0, v:0, c:0, cc:0 });
-            const o = pMap.get(pl);
-            o.vol += parseFloat(String(d.volumeReal).replace(',','.'))||0; o.v++;
-            if(d.cicloHoras > 0) { o.c += d.cicloHoras; o.cc++; }
-        });
-
-        const arr = Array.from(pMap.values());
-        const tVol = document.getElementById('top-vol-body');
-        tVol.innerHTML = arr.sort((a,b)=>b.vol - a.vol).slice(0,5).map((x,i) => 
-            `<tr>
-                <td><span style="background: ${i<3?'var(--verde)':'var(--border)'}; color: ${i<3?'white':'var(--text-dim)'}; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; font-weight:bold;">${i+1}</span></td>
-                <td style="font-weight:bold; color:white;">${x.p}</td>
-                <td style="color:var(--text-dim);">${x.t}</td>
-                <td style="text-align:center;">${x.v}</td>
-                <td style="text-align:right; font-weight:bold; color:var(--verde);">${x.vol.toLocaleString('pt-BR',{maximumFractionDigits:1})}</td>
-            </tr>`
-        ).join('');
-
-        const tCiclo = document.getElementById('top-ciclo-body');
-        tCiclo.innerHTML = arr.filter(x=>x.cc>0).sort((a,b)=>(a.c/a.cc) - (b.c/b.cc)).slice(0,5).map((x,i) => 
-            `<tr>
-                <td><span style="background: ${i<3?'#38bdf8':'var(--border)'}; color: ${i<3?'white':'var(--text-dim)'}; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; font-weight:bold;">${i+1}</span></td>
-                <td style="font-weight:bold; color:white;">${x.p}</td>
-                <td style="color:var(--text-dim);">${x.t}</td>
-                <td style="text-align:center;">${x.v}</td>
-                <td style="text-align:right; font-weight:bold; color:#38bdf8;">${formatTime(x.c/x.cc)}</td>
-            </tr>`
-        ).join('');
-    }
-
-    // Gráficos
-    function renderGraficos(data) {
-        const dMap = new Map();
-        data.forEach(d => {
-            const dt = d.dataDaBaseExcel; if(!dt) return;
-            dMap.set(dt, (dMap.get(dt)||0) + (parseFloat(String(d.volumeReal).replace(',','.'))||0));
-        });
-
-        const sorted = Array.from(dMap.keys()).sort((a,b) => {
-            const pa = a.split('/'), pb = b.split('/');
-            return new Date(pa[2], pa[1]-1, pa[0]) - new Date(pb[2], pb[1]-1, pb[0]);
-        });
-
-        const dispEvo = sorted.slice(-30);
-        if(chartEvo) chartEvo.destroy();
-        chartEvo = new Chart(document.getElementById('chart-evolucao'), {
-            type: 'bar',
-            data: { labels: dispEvo.map(d=>d.substring(0,5)), datasets: [{ data: dispEvo.map(d=>dMap.get(d)), backgroundColor: '#10b981', borderRadius: 4 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } } }
-        });
-
-        const last7 = sorted.slice(-7);
-        const avg7 = last7.reduce((s, d) => s + dMap.get(d), 0) / (last7.length||1);
-        
-        const projLabels = [], projData = [];
-        if(sorted.length > 0) {
-            const pL = sorted[sorted.length-1].split('/');
-            let bd = new Date(pL[2].length===2?'20'+pL[2]:pL[2], pL[1]-1, pL[0]);
-            for(let i=1; i<=5; i++) {
-                bd.setDate(bd.getDate()+1);
-                projLabels.push(`${String(bd.getDate()).padStart(2,'0')}/${String(bd.getMonth()+1).padStart(2,'0')}`);
-                projData.push(avg7 * (1 + ((Math.random()-0.5)*0.04)));
-            }
         }
 
-        if(chartProj) chartProj.destroy();
-        chartProj = new Chart(document.getElementById('chart-projecao'), {
-            type: 'bar',
-            data: { labels: projLabels, datasets: [{ data: projData, backgroundColor: '#38bdf8', borderRadius: 4 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } } }
-        });
-    }
+        // Leaderboards Seguros
+        function renderTopTabelas(data) {
+            const pMap = new Map();
+            data.forEach(d => {
+                const pl = d.placa || 'N/A';
+                if(!pMap.has(pl)) pMap.set(pl, { p: pl, t: d.transportadora||'-', vol:0, v:0, c:0, cc:0 });
+                const o = pMap.get(pl);
+                o.vol += parseFloat(String(d.volumeReal).replace(',','.'))||0; o.v++;
+                if(d.cicloHoras > 0) { o.c += d.cicloHoras; o.cc++; }
+            });
 
-    loadData();
+            const arr = Array.from(pMap.values());
+            const tVol = document.getElementById('top-vol-body');
+            tVol.innerHTML = arr.sort((a,b)=>b.vol - a.vol).slice(0,5).map((x,i) => 
+                `<tr>
+                    <td><span style="background: ${i<3?'var(--verde)':'var(--border)'}; color: ${i<3?'white':'var(--text-dim)'}; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; font-weight:bold;">${i+1}</span></td>
+                    <td style="font-weight:bold; color:white;">${x.p}</td>
+                    <td style="color:var(--text-dim);">${x.t}</td>
+                    <td style="text-align:center;">${x.v}</td>
+                    <td style="text-align:right; font-weight:bold; color:var(--verde);">${x.vol.toLocaleString('pt-BR',{maximumFractionDigits:1})}</td>
+                </tr>`
+            ).join('');
+
+            const tCiclo = document.getElementById('top-ciclo-body');
+            tCiclo.innerHTML = arr.filter(x=>x.cc>0).sort((a,b)=>(a.c/a.cc) - (b.c/b.cc)).slice(0,5).map((x,i) => 
+                `<tr>
+                    <td><span style="background: ${i<3?'#38bdf8':'var(--border)'}; color: ${i<3?'white':'var(--text-dim)'}; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; font-weight:bold;">${i+1}</span></td>
+                    <td style="font-weight:bold; color:white;">${x.p}</td>
+                    <td style="color:var(--text-dim);">${x.t}</td>
+                    <td style="text-align:center;">${x.v}</td>
+                    <td style="text-align:right; font-weight:bold; color:#38bdf8;">${formatTime(x.c/x.cc)}</td>
+                </tr>`
+            ).join('');
+        }
+
+        // Gráficos Seguros
+        function renderGraficos(data) {
+            const dMap = new Map();
+            data.forEach(d => {
+                const dtStr = String(d.dataDaBaseExcel || '').trim();
+                if(!dtStr || dtStr === 'Desconhecida') return;
+                dMap.set(dtStr, (dMap.get(dtStr)||0) + (parseFloat(String(d.volumeReal).replace(',','.'))||0));
+            });
+
+            const sorted = Array.from(dMap.keys()).sort((a,b) => {
+                if(!a.includes('/') || !b.includes('/')) return 0;
+                const pa = a.split(' ')[0].split('/'); const pb = b.split(' ')[0].split('/');
+                return new Date(pa[2], pa[1]-1, pa[0]) - new Date(pb[2], pb[1]-1, pb[0]);
+            });
+
+            const dispEvo = sorted.slice(-30);
+            const ctxEvo = document.getElementById('chart-evolucao');
+            if(window.chartEvoObj) window.chartEvoObj.destroy();
+            window.chartEvoObj = new Chart(ctxEvo, {
+                type: 'bar',
+                data: { labels: dispEvo.map(d=>d.substring(0,5)), datasets: [{ data: dispEvo.map(d=>dMap.get(d)), backgroundColor: '#10b981', borderRadius: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } } }
+            });
+
+            const last7 = sorted.slice(-7);
+            const avg7 = last7.reduce((s, d) => s + dMap.get(d), 0) / (last7.length||1);
+            
+            const projLabels = [], projData = [];
+            if(sorted.length > 0) {
+                const pL = sorted[sorted.length-1].split(' ')[0].split('/');
+                if(pL.length >= 3) {
+                    let bd = new Date(pL[2], pL[1]-1, pL[0]);
+                    for(let i=1; i<=5; i++) {
+                        bd.setDate(bd.getDate()+1);
+                        projLabels.push(`${String(bd.getDate()).padStart(2,'0')}/${String(bd.getMonth()+1).padStart(2,'0')}`);
+                        projData.push(avg7 * (1 + ((Math.random()-0.5)*0.04)));
+                    }
+                }
+            }
+
+            const ctxProj = document.getElementById('chart-projecao');
+            if(window.chartProjObj) window.chartProjObj.destroy();
+            window.chartProjObj = new Chart(ctxProj, {
+                type: 'bar',
+                data: { labels: projLabels, datasets: [{ data: projData, backgroundColor: '#38bdf8', borderRadius: 4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } } }
+            });
+        }
+
+        // Lógica para exportar PNG do novo comparativo (Protegida contra múltiplos listeners)
+        const btnExportarComparativo = document.getElementById('btnExportarComparativo');
+        if(btnExportarComparativo) {
+            btnExportarComparativo.replaceWith(btnExportarComparativo.cloneNode(true));
+            document.getElementById('btnExportarComparativo').addEventListener('click', () => {
+                const btn = document.getElementById('btnExportarComparativo');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
+                
+                const container = document.getElementById('comparativoContainer');
+                html2canvas(container, {
+                    scale: 2, 
+                    backgroundColor: '#0f172a', 
+                    useCORS: true
+                }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'Comparativo_Cenarios_Serrana.png';
+                    link.href = canvas.toDataURL('image/png', 1.0);
+                    link.click();
+                    btn.innerHTML = originalText;
+                }).catch(err => {
+                    console.error("Erro ao gerar a imagem PNG:", err);
+                    alert("Houve um erro ao tentar salvar a imagem.");
+                    btn.innerHTML = originalText;
+                });
+            });
+        }
+
+        loadData();
+    } catch(err) {
+        console.error("ERRO CRÍTICO AO INICIAR DASHBOARD OPERACIONAL:", err);
+    }
 })();
 </script>
