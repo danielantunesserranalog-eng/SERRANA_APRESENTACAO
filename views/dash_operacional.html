@@ -1,66 +1,230 @@
-<div class="dashboard-grid">
-    <div class="kpi-card" id="card-pbtc">
-        <div id="bar-pbtc" class="farol-indicator bg-amarelo"></div>
-        <p class="nav-label">MÉDIA PBTC (TON) - MÊS ATUAL</p>
-        <div class="kpi-value status-amarelo" id="val-pbtc">0.0 <span class="kpi-unit">ton</span></div>
-        <p id="txt-pbtc" class="status-msg">Meta de Carregamento: 74 a 77.7</p>
-    </div>
-
-    <div class="kpi-card">
-        <div class="farol-indicator bg-verde"></div>
-        <p class="nav-label">CICLO MÉDIO DE VIAGEM</p>
-        <div class="kpi-value status-verde">00:00 <span class="kpi-unit">h:min</span></div>
-        <p class="status-msg">Meta: < 3.0 horas</p>
-    </div>
-
-    <div class="kpi-card">
-        <div class="farol-indicator bg-verde"></div>
-        <p class="nav-label">VOLUME TOTAL</p>
-        <div class="kpi-value status-verde">0 <span class="kpi-unit">ton</span></div>
-        <p class="status-msg">Aguardando dados</p>
+<div class="dashboard-grid" style="margin-bottom: 20px;">
+    <div class="kpi-card" style="padding: 15px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+        <div class="input-group" style="flex: 1; min-width: 200px;">
+            <label class="nav-label" style="margin-bottom: 5px; display: block;">Filtrar por Data</label>
+            <input type="date" id="op-date-picker" class="config-input" style="padding: 10px;">
+        </div>
+        <div class="input-group" style="flex: 1; min-width: 200px;">
+            <label class="nav-label" style="margin-bottom: 5px; display: block;">Período Rápido</label>
+            <select id="op-quick-filter" class="top-select" style="width: 100%;">
+                <option value="D-1">Ontem (D-1)</option>
+                <option value="D-7">Últimos 7 Dias</option>
+                <option value="D-30" selected>Últimos 30 Dias</option>
+                <option value="ALL">Todo o Período</option>
+            </select>
+        </div>
+        <div style="flex: 0.5; text-align: right;">
+            <span id="op-status-info" style="font-size: 0.7rem; color: var(--text-dim); font-weight: bold;"></span>
+        </div>
     </div>
 </div>
 
-<div class="table-box">
-    <h3 class="nav-label">EXTRAÇÃO E TRANSPORTE POR FRENTES</h3>
-    <p style="font-size: 0.8rem; color: var(--amarelo); margin-bottom: 15px;">
-        <i class="fas fa-filter"></i> <strong>Filtro Ativo:</strong> Exibindo apenas operações onde a Serrana é Transportadora OU Carregadora (incluindo gruas das outras frentes).
-    </p>
-    <table class="exec-table">
-        <thead>
-            <tr>
-                <th>Frente Ocorrência</th>
-                <th>Cód. Grua</th>
-                <th>Transportadora</th>
-                <th>Carregador</th>
-                <th>Volume (Ton)</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td colspan="6" style="text-align: center; color: var(--text-dim); padding: 20px;">Aguardando apontamentos...</td>
-            </tr>
-        </tbody>
-    </table>
+<div class="dashboard-grid">
+    <div class="kpi-card">
+        <div class="farol-indicator" id="farol-v"></div>
+        <p class="nav-label">META DE VIAGENS</p>
+        <div class="kpi-value" id="val-v">0</div>
+        <p class="status-msg" id="msg-v">Calculando...</p>
+    </div>
+
+    <div class="kpi-card">
+        <div class="farol-indicator" id="farol-vol"></div>
+        <p class="nav-label">VOLUME REALIZADO (m³)</p>
+        <div class="kpi-value" id="val-vol">0</div>
+        <p class="status-msg" id="msg-vol">Calculando...</p>
+    </div>
+
+    <div class="kpi-card">
+        <div class="farol-indicator" id="farol-cx"></div>
+        <p class="nav-label">CAIXA DE CARGA MÉDIA</p>
+        <div class="kpi-value" id="val-cx">0</div>
+        <p class="status-msg" id="msg-cx">Calculando...</p>
+    </div>
+
+    <div class="kpi-card">
+        <div class="farol-indicator" id="farol-pbtc"></div>
+        <p class="nav-label">PBTC MÉDIO (TON)</p>
+        <div class="kpi-value" id="val-pbtc">0.0</div>
+        <p class="status-msg" id="msg-pbtc">Meta Ideal: 74 a 77.7</p>
+    </div>
+</div>
+
+<div class="dashboard-grid" style="margin-top: 30px;">
+    <div class="kpi-card" style="grid-column: span 2;">
+        <p class="nav-label"><i class="fas fa-chart-line"></i> EVOLUÇÃO DIÁRIA DE VOLUME (m³)</p>
+        <div style="height: 250px; margin-top: 20px;">
+            <canvas id="chart-evolucao"></canvas>
+        </div>
+    </div>
+    <div class="kpi-card">
+        <p class="nav-label"><i class="fas fa-forward"></i> PROJEÇÃO (PRÓX. 5 DIAS)</p>
+        <div style="height: 250px; margin-top: 20px;">
+            <canvas id="chart-projecao"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid" style="margin-top: 30px;">
+    <div class="table-box">
+        <h3 class="nav-label">TOP VOLUME (PRODUTIVIDADE POR PLACA)</h3>
+        <table class="exec-table">
+            <thead>
+                <tr>
+                    <th>Placa</th>
+                    <th>Transportadora</th>
+                    <th>Viagens</th>
+                    <th>Vol (m³)</th>
+                </tr>
+            </thead>
+            <tbody id="table-top-vol"></tbody>
+        </table>
+    </div>
+    <div class="table-box">
+        <h3 class="nav-label">TOP CICLO (MENOR TEMPO MÉDIO)</h3>
+        <table class="exec-table">
+            <thead>
+                <tr>
+                    <th>Placa</th>
+                    <th>Transportadora</th>
+                    <th>Viagens</th>
+                    <th>Ciclo</th>
+                </tr>
+            </thead>
+            <tbody id="table-top-ciclo"></tbody>
+        </table>
+    </div>
 </div>
 
 <script>
-    (function() {
-        const pbtcMedia = 0.0; // Zerado
-        const bar = document.getElementById('bar-pbtc');
-        const val = document.getElementById('val-pbtc');
+(async function() {
+    // Configurações do Banco do Sistema Anterior
+    const SUPABASE_URL = 'https://qnpwkvazkntbqjbwegcp.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_bjTFgpk-qAdpVuWzr4hbng_G8O9qlc8';
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let fullData = [];
+    let metas = {};
+    let chartEvo = null;
+    let chartProj = null;
+
+    async function loadData() {
+        try {
+            const { data: mData } = await _supabase.from('metas_globais').select('*').eq('id', 1).single();
+            metas = mData || {};
+
+            let historico = [];
+            let from = 0;
+            const step = 1000;
+            let hasMore = true;
+
+            while (hasMore) {
+                const { data, error } = await _supabase.from('historico_viagens').select('*').range(from, from + step - 1);
+                if (error || !data || data.length === 0) break;
+                historico = historico.concat(data);
+                if (data.length < step) hasMore = false;
+                from += step;
+            }
+
+            // REGRA: Filtrar apenas onde Serrana participou do transporte ou carregamento
+            fullData = historico.filter(d => {
+                const transp = String(d.transportadora || "").toUpperCase();
+                const carr = String(d.carregador || "").toUpperCase();
+                return transp.includes('SERRANA') || carr.includes('SERRANA');
+            });
+
+            renderDashboard();
+        } catch (e) { console.error("Erro ao carregar dados:", e); }
+    }
+
+    function renderDashboard() {
+        const qf = document.getElementById('op-quick-filter').value;
+        const dp = document.getElementById('op-date-picker').value;
+        const hj = new Date(); hj.setHours(0,0,0,0);
+
+        const filtered = fullData.filter(d => {
+            if (!d.dataDaBaseExcel || d.dataDaBaseExcel === 'Desconhecida') return false;
+            const p = d.dataDaBaseExcel.split('/');
+            const dt = new Date(p[2].length === 2 ? "20"+p[2] : p[2], p[1]-1, p[0]);
+            
+            if (dp) return dt.toISOString().split('T')[0] === dp;
+            if (qf === 'ALL') return true;
+            
+            const diff = Math.round((hj - dt) / 86400000);
+            if (qf === 'D-1') return diff === 1;
+            if (qf === 'D-7') return diff >= 0 && diff <= 7;
+            if (qf === 'D-30') return diff >= 0 && diff <= 30;
+            return true;
+        });
+
+        // Cálculos dos Indicadores
+        const totalV = filtered.length;
+        const totalVol = filtered.reduce((s, x) => s + (parseFloat(String(x.volumeReal).replace(',','.')) || 0), 0);
+        const totalPeso = filtered.reduce((s, x) => s + (parseFloat(String(x.pesoLiquido).replace(',','.')) || 0), 0) / 1000;
         
-        // Mantive a sua lógica de média PBTC, porém como está 0.0, ficará amarelo (alerta de falta de dados/abaixo de 74)
-        if (pbtcMedia < 74) {
-            bar.className = 'farol-indicator bg-amarelo';
-            val.className = 'kpi-value status-amarelo';
-        } else if (pbtcMedia >= 74 && pbtcMedia <= 77.7) {
-            bar.className = 'farol-indicator bg-verde';
-            val.className = 'kpi-value status-verde';
-        } else {
-            bar.className = 'farol-indicator bg-vermelho';
-            val.className = 'kpi-value status-vermelho';
-        }
-    })();
+        // PBTC é sempre a média
+        const mediaPbtc = totalV > 0 ? (totalPeso / totalV) : 0;
+        const mediaCx = totalV > 0 ? (totalVol / totalV) : 0;
+
+        // Atualiza UI
+        document.getElementById('val-v').innerText = totalV;
+        document.getElementById('val-vol').innerText = totalVol.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+        document.getElementById('val-cx').innerText = mediaCx.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
+        document.getElementById('val-pbtc').innerText = mediaPbtc.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+
+        // Lógica do Farol PBTC
+        const fPbtc = document.getElementById('farol-pbtc');
+        const vPbtc = document.getElementById('val-pbtc');
+        if (mediaPbtc < 74) { fPbtc.className = 'farol-indicator bg-amarelo'; vPbtc.className = 'kpi-value status-amarelo'; }
+        else if (mediaPbtc <= 77.7) { fPbtc.className = 'farol-indicator bg-verde'; vPbtc.className = 'kpi-value status-verde'; }
+        else { fPbtc.className = 'farol-indicator bg-vermelho'; vPbtc.className = 'kpi-value status-vermelho'; }
+
+        updateTables(filtered);
+        updateCharts(filtered);
+    }
+
+    function updateTables(data) {
+        const pMap = new Map();
+        data.forEach(d => {
+            const pl = d.placa || 'N/A';
+            const vol = parseFloat(String(d.volumeReal).replace(',','.')) || 0;
+            if (!pMap.has(pl)) pMap.set(pl, { pl, t: d.transportadora || '-', vol: 0, v: 0, c: 0, cc: 0 });
+            const o = pMap.get(pl); o.vol += vol; o.v++;
+            if (d.cicloHoras > 0) { o.c += d.cicloHoras; o.cc++; }
+        });
+
+        const arr = Array.from(pMap.values());
+        const tVol = document.getElementById('table-top-vol');
+        tVol.innerHTML = arr.sort((a,b) => b.vol - a.vol).slice(0, 5).map(x => 
+            `<tr><td><strong>${x.pl}</strong></td><td>${x.t}</td><td>${x.v}</td><td class="status-verde">${x.vol.toFixed(1)}</td></tr>`).join('');
+
+        const tCiclo = document.getElementById('table-top-ciclo');
+        tCiclo.innerHTML = arr.filter(x => x.cc > 0).sort((a,b) => (a.c/a.cc) - (b.c/b.cc)).slice(0, 5).map(x => 
+            `<tr><td><strong>${x.pl}</strong></td><td>${x.t}</td><td>${x.v}</td><td class="status-verde">${(x.c/x.cc).toFixed(2)}h</td></tr>`).join('');
+    }
+
+    function updateCharts(data) {
+        const dMap = new Map();
+        data.forEach(d => {
+            const dt = d.dataDaBaseExcel; if (!dt) return;
+            dMap.set(dt, (dMap.get(dt) || 0) + (parseFloat(String(d.volumeReal).replace(',','.')) || 0));
+        });
+
+        const sorted = Array.from(dMap.keys()).sort((a,b) => {
+            const pa = a.split('/'), pb = b.split('/');
+            return new Date(pa[2], pa[1]-1, pa[0]) - new Date(pb[2], pb[1]-1, pb[0]);
+        }).slice(-15);
+
+        if (chartEvo) chartEvo.destroy();
+        chartEvo = new Chart(document.getElementById('chart-evolucao'), {
+            type: 'bar',
+            data: { labels: sorted.map(d => d.substring(0, 5)), datasets: [{ label: 'Volume', data: sorted.map(d => dMap.get(d)), backgroundColor: '#10b981' }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+    }
+
+    document.getElementById('op-quick-filter').addEventListener('change', renderDashboard);
+    document.getElementById('op-date-picker').addEventListener('change', renderDashboard);
+
+    loadData();
+})();
 </script>
