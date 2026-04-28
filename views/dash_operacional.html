@@ -1,229 +1,600 @@
 <div class="dashboard-grid" style="margin-bottom: 20px;">
-    <div class="kpi-card" style="padding: 15px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
-        <div class="input-group" style="flex: 1; min-width: 200px;">
-            <label class="nav-label" style="margin-bottom: 5px; display: block;">Filtrar por Data</label>
-            <input type="date" id="op-date-picker" class="config-input" style="padding: 10px;">
-        </div>
-        <div class="input-group" style="flex: 1; min-width: 200px;">
-            <label class="nav-label" style="margin-bottom: 5px; display: block;">Período Rápido</label>
-            <select id="op-quick-filter" class="top-select" style="width: 100%;">
-                <option value="D-1">Ontem (D-1)</option>
-                <option value="D-7">Últimos 7 Dias</option>
-                <option value="D-30" selected>Últimos 30 Dias</option>
-                <option value="ALL">Todo o Período</option>
+    <div class="kpi-card" style="grid-column: 1 / -1; display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; padding: 20px;">
+        <div class="input-group" style="flex: 1; min-width: 150px;">
+            <label class="nav-label" style="margin-bottom: 5px; display: block;"><i class="fas fa-calendar-alt"></i> Mês</label>
+            <select id="op-mes" class="config-input" style="padding: 10px;">
+                <option value="ALL">TODOS OS MESES</option>
             </select>
         </div>
-        <div style="flex: 0.5; text-align: right;">
-            <span id="op-status-info" style="font-size: 0.7rem; color: var(--text-dim); font-weight: bold;"></span>
+        
+        <div class="input-group" style="flex: 1; min-width: 150px;">
+            <label class="nav-label" style="margin-bottom: 5px; display: block;"><i class="fas fa-calendar-day"></i> Dia Específico</label>
+            <input type="date" id="op-data" class="config-input" style="padding: 10px;">
+        </div>
+
+        <div class="input-group" style="flex: 2; min-width: 300px;">
+            <label class="nav-label" style="margin-bottom: 5px; display: block;">Filtros Rápidos</label>
+            <div style="display: flex; gap: 5px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 8px; border: 1px solid var(--border);">
+                <button class="btn-qf" data-qf="D-1" style="flex: 1; padding: 8px; border: none; border-radius: 5px; background: transparent; color: var(--text-dim); cursor: pointer; font-weight: bold;">D-1</button>
+                <button class="btn-qf" data-qf="D-2" style="flex: 1; padding: 8px; border: none; border-radius: 5px; background: transparent; color: var(--text-dim); cursor: pointer; font-weight: bold;">D-2</button>
+                <button class="btn-qf" data-qf="D-7" style="flex: 1; padding: 8px; border: none; border-radius: 5px; background: transparent; color: var(--text-dim); cursor: pointer; font-weight: bold;">D-7</button>
+                <button class="btn-qf" data-qf="D-30" style="flex: 1; padding: 8px; border: none; border-radius: 5px; background: transparent; color: var(--text-dim); cursor: pointer; font-weight: bold;">D-30</button>
+                <button class="btn-qf active" data-qf="ALL" style="flex: 1; padding: 8px; border: none; border-radius: 5px; background: var(--primary); color: white; cursor: pointer; font-weight: bold;">TODOS</button>
+            </div>
+        </div>
+
+        <div style="flex: 1; text-align: right; min-width: 150px;">
+            <span id="op-status" style="font-size: 0.75rem; color: var(--text-dim); font-weight: bold; background: rgba(0,0,0,0.3); padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border);">Carregando dados...</span>
         </div>
     </div>
 </div>
 
 <div class="dashboard-grid">
-    <div class="kpi-card">
-        <div class="farol-indicator" id="farol-v"></div>
-        <p class="nav-label">META DE VIAGENS</p>
-        <div class="kpi-value" id="val-v">0</div>
-        <p class="status-msg" id="msg-v">Calculando...</p>
+    <div class="kpi-card" style="border-left: 4px solid #3b82f6;">
+        <p class="nav-label" style="color: #3b82f6;">META DE VIAGENS</p>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin: 15px 0;">
+            <div>
+                <p style="font-size: 0.7rem; color: var(--text-dim); font-weight: bold;">PROG.</p>
+                <p id="val-v-prog" style="font-size: 1.5rem; font-weight: 800; color: var(--text-dim);">0</p>
+            </div>
+            <div style="text-align: right;">
+                <p style="font-size: 0.7rem; color: var(--text-dim); font-weight: bold;">REALIZADO GERAL</p>
+                <p id="val-v-real" style="font-size: 2.2rem; font-weight: 800; color: white;">0</p>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: bold; margin-bottom: 5px;">
+            <span style="color: var(--text-dim);">ATINGIMENTO</span>
+            <span id="perc-v" style="color: #3b82f6;">0%</span>
+        </div>
+        <div style="width: 100%; height: 6px; background: var(--bg-dark); border-radius: 10px; overflow: hidden;">
+            <div id="bar-v" style="height: 100%; width: 0%; background: #3b82f6; transition: 0.5s;"></div>
+        </div>
+    </div>
+
+    <div class="kpi-card" style="border-left: 4px solid var(--verde);">
+        <p class="nav-label" style="color: var(--verde);">VOLUME REALIZADO GERAL (m³)</p>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin: 15px 0;">
+            <div>
+                <p style="font-size: 0.7rem; color: var(--text-dim); font-weight: bold;">PROG.</p>
+                <p id="val-vol-prog" style="font-size: 1.5rem; font-weight: 800; color: var(--text-dim);">0</p>
+            </div>
+            <div style="text-align: right;">
+                <p style="font-size: 0.7rem; color: var(--text-dim); font-weight: bold;">REALIZADO</p>
+                <p id="val-vol-real" style="font-size: 2.2rem; font-weight: 800; color: white;">0</p>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: bold; margin-bottom: 5px;">
+            <span style="color: var(--text-dim);">ATINGIMENTO</span>
+            <span id="perc-vol" style="color: var(--verde);">0%</span>
+        </div>
+        <div style="width: 100%; height: 6px; background: var(--bg-dark); border-radius: 10px; overflow: hidden;">
+            <div id="bar-vol" style="height: 100%; width: 0%; background: var(--verde); transition: 0.5s;"></div>
+        </div>
+    </div>
+
+    <div class="kpi-card" style="border-left: 4px solid var(--amarelo);">
+        <p class="nav-label" style="color: var(--amarelo);">CAIXA DE CARGA MÉDIA GERAL (m³)</p>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin: 15px 0;">
+            <div>
+                <p style="font-size: 0.7rem; color: var(--text-dim); font-weight: bold;">META BASE</p>
+                <p id="val-cx-prog" style="font-size: 1.5rem; font-weight: 800; color: var(--text-dim);">0</p>
+            </div>
+            <div style="text-align: right;">
+                <p style="font-size: 0.7rem; color: var(--text-dim); font-weight: bold;">REALIZADA</p>
+                <p id="val-cx-real" style="font-size: 2.2rem; font-weight: 800; color: white;">0</p>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: bold; margin-bottom: 5px;">
+            <span style="color: var(--text-dim);">DESEMPENHO</span>
+            <span id="perc-cx" style="color: var(--amarelo);">0%</span>
+        </div>
+        <div style="width: 100%; height: 6px; background: var(--bg-dark); border-radius: 10px; overflow: hidden;">
+            <div id="bar-cx" style="height: 100%; width: 0%; background: var(--amarelo); transition: 0.5s;"></div>
+        </div>
+    </div>
+
+    <div class="kpi-card" style="border-left: 4px solid #f43f5e;">
+        <p class="nav-label" style="color: #f43f5e;">PBTC MÉDIO REALIZADO GERAL</p>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin: 15px 0;">
+            <div>
+                <p style="font-size: 0.7rem; color: var(--text-dim); font-weight: bold;">META BASE</p>
+                <p id="val-pbtc-prog" style="font-size: 1.5rem; font-weight: 800; color: var(--text-dim);">74 a 77.7</p>
+            </div>
+            <div style="text-align: right;">
+                <p style="font-size: 0.7rem; color: var(--text-dim); font-weight: bold;">REALIZADO</p>
+                <p id="val-pbtc-real" style="font-size: 2.2rem; font-weight: 800; color: white;">0.0</p>
+            </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: bold; margin-bottom: 5px;">
+            <span style="color: var(--text-dim);">STATUS DA MÉDIA</span>
+            <span id="perc-pbtc" style="color: #f43f5e;">Apurando</span>
+        </div>
+        <div style="width: 100%; height: 6px; background: var(--bg-dark); border-radius: 10px; overflow: hidden;">
+            <div id="bar-pbtc" style="height: 100%; width: 100%; background: #f43f5e; transition: 0.5s;"></div>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid" style="margin-top: 30px;">
+    <div class="kpi-card" style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+            <p class="nav-label" style="color: #60a5fa;">CICLO MÉDIO GERAL</p>
+            <div class="kpi-value" id="val-ciclo" style="font-size: 2rem; margin: 10px 0;">0h 0m</div>
+            <p class="status-msg">PADRÃO: 10H 05M</p>
+        </div>
+        <i class="fas fa-stopwatch" style="font-size: 2rem; color: rgba(96, 165, 250, 0.2);"></i>
+    </div>
+
+    <div class="kpi-card" style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+            <p class="nav-label" style="color: var(--amarelo);">ESPERA MÉDIA NO CAMPO</p>
+            <div class="kpi-value" id="val-campo" style="font-size: 2rem; margin: 10px 0;">0h 0m</div>
+            <p class="status-msg">PADRÃO: 1H 20M</p>
+        </div>
+        <i class="fas fa-tractor" style="font-size: 2rem; color: rgba(245, 158, 11, 0.2);"></i>
+    </div>
+
+    <div class="kpi-card" style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+            <p class="nav-label" style="color: var(--verde);">TEMPO MÉDIO DE CARGA</p>
+            <div class="kpi-value" id="val-carga" style="font-size: 2rem; margin: 10px 0;">0m</div>
+            <p class="status-msg">PADRÃO: 1H</p>
+        </div>
+        <i class="fas fa-truck-loading" style="font-size: 2rem; color: rgba(16, 185, 129, 0.2);"></i>
+    </div>
+
+    <div class="kpi-card" style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+            <p class="nav-label" style="color: #f43f5e;">ESPERA MÉDIA NA FÁBRICA</p>
+            <div class="kpi-value" id="val-fabrica" style="font-size: 2rem; margin: 10px 0;">0m</div>
+            <p class="status-msg">PADRÃO: 30M</p>
+        </div>
+        <i class="fas fa-industry" style="font-size: 2rem; color: rgba(244, 63, 94, 0.2);"></i>
     </div>
 
     <div class="kpi-card">
-        <div class="farol-indicator" id="farol-vol"></div>
-        <p class="nav-label">VOLUME REALIZADO (m³)</p>
-        <div class="kpi-value" id="val-vol">0</div>
-        <p class="status-msg" id="msg-vol">Calculando...</p>
+        <p class="nav-label">DIST. MÉDIA (ASFALTO/TERRA)</p>
+        <div class="kpi-value" id="val-dist-total" style="font-size: 2rem; margin: 10px 0;">0 km</div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
+            <span style="color: var(--text-dim);">Asfalto: <span id="val-dist-asfalto" style="color: #60a5fa;">0</span></span>
+            <span style="color: var(--text-dim);">Terra: <span id="val-dist-terra" style="color: var(--amarelo);">0</span></span>
+        </div>
     </div>
+</div>
 
-    <div class="kpi-card">
-        <div class="farol-indicator" id="farol-cx"></div>
-        <p class="nav-label">CAIXA DE CARGA MÉDIA</p>
-        <div class="kpi-value" id="val-cx">0</div>
-        <p class="status-msg" id="msg-cx">Calculando...</p>
-    </div>
-
-    <div class="kpi-card">
-        <div class="farol-indicator" id="farol-pbtc"></div>
-        <p class="nav-label">PBTC MÉDIO (TON)</p>
-        <div class="kpi-value" id="val-pbtc">0.0</div>
-        <p class="status-msg" id="msg-pbtc">Meta Ideal: 74 a 77.7</p>
+<div class="table-box" style="margin-top: 30px;">
+    <h3 class="nav-label"><i class="fas fa-balance-scale" style="color: #38bdf8;"></i> COMPARATIVO DE DESEMPENHO OPERACIONAL POR CENÁRIOS</h3>
+    <div style="overflow-x: auto;">
+        <table class="exec-table">
+            <thead style="background: rgba(0,0,0,0.2);">
+                <tr>
+                    <th style="color: var(--text-dim);">INDICADOR DE PERFORMANCE</th>
+                    <th style="text-align: right; color: var(--verde);"><i class="fas fa-star"></i> C1: SERRANA</th>
+                    <th style="text-align: right; color: #f43f5e;"><i class="fas fa-truck"></i> C2: TRANSP. ASN</th>
+                    <th style="text-align: right; color: var(--amarelo);"><i class="fas fa-tree"></i> C3: REFLORESTAR</th>
+                    <th style="text-align: right; color: #8b5cf6;"><i class="fas fa-leaf"></i> C4: JSL</th>
+                    <th style="text-align: right; color: #38bdf8;"><i class="fas fa-globe"></i> TOTAL (GERAL)</th>
+                </tr>
+            </thead>
+            <tbody id="comparativo-body">
+                <tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--text-dim);">Carregando cenários...</td></tr>
+            </tbody>
+        </table>
     </div>
 </div>
 
 <div class="dashboard-grid" style="margin-top: 30px;">
     <div class="kpi-card" style="grid-column: span 2;">
-        <p class="nav-label"><i class="fas fa-chart-line"></i> EVOLUÇÃO DIÁRIA DE VOLUME (m³)</p>
-        <div style="height: 250px; margin-top: 20px;">
+        <p class="nav-label"><i class="fas fa-chart-line" style="color: var(--verde);"></i> EVOLUÇÃO DIÁRIA DE VOLUME (m³) - GERAL</p>
+        <div style="height: 250px; margin-top: 15px; position: relative;">
             <canvas id="chart-evolucao"></canvas>
         </div>
     </div>
     <div class="kpi-card">
-        <p class="nav-label"><i class="fas fa-forward"></i> PROJEÇÃO (PRÓX. 5 DIAS)</p>
-        <div style="height: 250px; margin-top: 20px;">
+        <p class="nav-label"><i class="fas fa-forward" style="color: #38bdf8;"></i> PROJEÇÃO (PRÓX. 5 DIAS) - GERAL</p>
+        <div style="height: 250px; margin-top: 15px; position: relative;">
             <canvas id="chart-projecao"></canvas>
         </div>
     </div>
 </div>
 
-<div class="dashboard-grid" style="margin-top: 30px;">
+<div class="dashboard-grid" style="margin-top: 30px; margin-bottom: 50px;">
     <div class="table-box">
-        <h3 class="nav-label">TOP VOLUME (PRODUTIVIDADE POR PLACA)</h3>
+        <h3 class="nav-label"><i class="fas fa-trophy" style="color: var(--verde);"></i> TOP VOLUME (PRODUTIVIDADE POR PLACA)</h3>
         <table class="exec-table">
-            <thead>
-                <tr>
-                    <th>Placa</th>
-                    <th>Transportadora</th>
-                    <th>Viagens</th>
-                    <th>Vol (m³)</th>
-                </tr>
-            </thead>
-            <tbody id="table-top-vol"></tbody>
+            <thead><tr><th>Pos</th><th>Placa</th><th>Transportadora</th><th style="text-align: center;">Viagens</th><th style="text-align: right;">Vol (m³)</th></tr></thead>
+            <tbody id="top-vol-body"></tbody>
         </table>
     </div>
     <div class="table-box">
-        <h3 class="nav-label">TOP CICLO (MENOR TEMPO MÉDIO)</h3>
+        <h3 class="nav-label"><i class="fas fa-stopwatch" style="color: #38bdf8;"></i> TOP CICLO (MENOR TEMPO MÉDIO)</h3>
         <table class="exec-table">
-            <thead>
-                <tr>
-                    <th>Placa</th>
-                    <th>Transportadora</th>
-                    <th>Viagens</th>
-                    <th>Ciclo</th>
-                </tr>
-            </thead>
-            <tbody id="table-top-ciclo"></tbody>
+            <thead><tr><th>Pos</th><th>Placa</th><th>Transportadora</th><th style="text-align: center;">Viagens</th><th style="text-align: right;">T. Médio</th></tr></thead>
+            <tbody id="top-ciclo-body"></tbody>
         </table>
     </div>
 </div>
 
 <script>
-(async function() {
-    // Configurações do Banco do Sistema Anterior
+(async function initDashboardFull() {
+    // 1. Configurações do Supabase (Mesmo Banco do Sistema Antigo)
     const SUPABASE_URL = 'https://qnpwkvazkntbqjbwegcp.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_bjTFgpk-qAdpVuWzr4hbng_G8O9qlc8';
-    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const _db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let fullData = [];
-    let metas = {};
+    let metasGlobais = {};
+    let activeFilter = 'ALL';
     let chartEvo = null;
     let chartProj = null;
 
+    if (typeof Chart !== 'undefined') {
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
+        Chart.defaults.font.family = "'Inter', sans-serif";
+    }
+
+    // 2. Filtros de Interface
+    const btnQFs = document.querySelectorAll('.btn-qf');
+    const inputData = document.getElementById('op-data');
+    const selectMes = document.getElementById('op-mes');
+
+    btnQFs.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            activeFilter = e.target.getAttribute('data-qf');
+            btnQFs.forEach(b => {
+                b.classList.remove('active');
+                b.style.background = 'transparent'; b.style.color = 'var(--text-dim)';
+            });
+            e.target.classList.add('active');
+            e.target.style.background = 'var(--primary)'; e.target.style.color = 'white';
+            inputData.value = ''; selectMes.value = 'ALL';
+            renderizarPainel();
+        });
+    });
+
+    inputData.addEventListener('change', () => {
+        if(inputData.value) {
+            activeFilter = 'DATE';
+            btnQFs.forEach(b => { b.classList.remove('active'); b.style.background = 'transparent'; b.style.color = 'var(--text-dim)'; });
+            selectMes.value = 'ALL';
+            renderizarPainel();
+        }
+    });
+
+    selectMes.addEventListener('change', () => {
+        if(selectMes.value !== 'ALL') {
+            activeFilter = 'MONTH';
+            btnQFs.forEach(b => { b.classList.remove('active'); b.style.background = 'transparent'; b.style.color = 'var(--text-dim)'; });
+            inputData.value = '';
+        }
+        renderizarPainel();
+    });
+
+    // 3. Carregamento de Dados do Banco
     async function loadData() {
         try {
-            const { data: mData } = await _supabase.from('metas_globais').select('*').eq('id', 1).single();
-            metas = mData || {};
+            const { data: mData } = await _db.from('metas_globais').select('*').eq('id', 1).single();
+            if(mData) metasGlobais = mData;
 
             let historico = [];
-            let from = 0;
-            const step = 1000;
-            let hasMore = true;
+            let from = 0; const step = 1000; let fetchMore = true;
 
-            while (hasMore) {
-                const { data, error } = await _supabase.from('historico_viagens').select('*').range(from, from + step - 1);
-                if (error || !data || data.length === 0) break;
+            while(fetchMore) {
+                const { data, error } = await _db.from('historico_viagens').select('*').range(from, from + step - 1);
+                if(error || !data || data.length === 0) break;
                 historico = historico.concat(data);
-                if (data.length < step) hasMore = false;
+                if(data.length < step) fetchMore = false;
                 from += step;
             }
 
-            // REGRA: Filtrar apenas onde Serrana participou do transporte ou carregamento
-            fullData = historico.filter(d => {
-                const transp = String(d.transportadora || "").toUpperCase();
-                const carr = String(d.carregador || "").toUpperCase();
-                return transp.includes('SERRANA') || carr.includes('SERRANA');
-            });
+            // AGORA SEM A TRAVA DA SERRANA: Puxa 100% de todas as viagens globais
+            fullData = historico;
 
-            renderDashboard();
-        } catch (e) { console.error("Erro ao carregar dados:", e); }
+            popularFiltroMeses(fullData);
+            renderizarPainel();
+        } catch(e) { console.error("Erro BD:", e); }
     }
 
-    function renderDashboard() {
-        const qf = document.getElementById('op-quick-filter').value;
-        const dp = document.getElementById('op-date-picker').value;
+    function popularFiltroMeses(data) {
+        const meses = new Set();
+        data.forEach(d => {
+            if(d.dataDaBaseExcel && d.dataDaBaseExcel !== 'Desconhecida') {
+                const p = d.dataDaBaseExcel.split('/');
+                if(p.length >= 3) meses.add(`${p[1]}/${p[2].length===2?'20'+p[2]:p[2]}`);
+            }
+        });
+        const arrMeses = Array.from(meses).sort((a,b) => {
+            const pa = a.split('/'), pb = b.split('/');
+            return new Date(pa[1], pa[0]-1) - new Date(pb[1], pb[0]-1);
+        });
+        selectMes.innerHTML = '<option value="ALL">TODOS OS MESES</option>';
+        arrMeses.forEach(m => selectMes.insertAdjacentHTML('beforeend', `<option value="${m}">${m}</option>`));
+    }
+
+    // 4. Utilitários de Tempo e Parse
+    function parseDataBR(dtStr) {
+        if(!dtStr || dtStr === 'Desconhecida') return null;
+        if(dtStr.includes('/')) {
+            const p = dtStr.split(' ')[0].split('/');
+            return new Date(p[2].length===2?'20'+p[2]:p[2], p[1]-1, p[0]);
+        }
+        return new Date(dtStr);
+    }
+
+    function formatTime(horasDecimais) {
+        if(isNaN(horasDecimais) || horasDecimais <= 0) return '-';
+        const h = Math.floor(horasDecimais);
+        const m = Math.round((horasDecimais - h) * 60);
+        if(h === 0) return `${m}m`;
+        return `${h}h ${m.toString().padStart(2,'0')}m`;
+    }
+
+    // 5. Renderização Central
+    function renderizarPainel() {
         const hj = new Date(); hj.setHours(0,0,0,0);
+        let diasNoFiltro = 30;
 
         const filtered = fullData.filter(d => {
-            if (!d.dataDaBaseExcel || d.dataDaBaseExcel === 'Desconhecida') return false;
-            const p = d.dataDaBaseExcel.split('/');
-            const dt = new Date(p[2].length === 2 ? "20"+p[2] : p[2], p[1]-1, p[0]);
+            const dt = parseDataBR(d.dataDaBaseExcel);
+            if(!dt) return false;
             
-            if (dp) return dt.toISOString().split('T')[0] === dp;
-            if (qf === 'ALL') return true;
-            
-            const diff = Math.round((hj - dt) / 86400000);
-            if (qf === 'D-1') return diff === 1;
-            if (qf === 'D-7') return diff >= 0 && diff <= 7;
-            if (qf === 'D-30') return diff >= 0 && diff <= 30;
+            if(activeFilter === 'DATE') {
+                const dr = new Date(inputData.value + "T00:00:00"); dr.setHours(0,0,0,0);
+                return dt.getTime() === dr.getTime();
+            }
+            if(activeFilter === 'MONTH') {
+                const m = String(dt.getMonth()+1).padStart(2,'0'); const y = dt.getFullYear();
+                return `${m}/${y}` === selectMes.value;
+            }
+            if(activeFilter === 'ALL') return true;
+
+            const diff = Math.round((hj - dt)/86400000);
+            if(activeFilter === 'D-1') { diasNoFiltro = 1; return diff === 1; }
+            if(activeFilter === 'D-2') { diasNoFiltro = 2; return diff === 2; }
+            if(activeFilter === 'D-7') { diasNoFiltro = 7; return diff >= 0 && diff <= 7; }
+            if(activeFilter === 'D-30') { diasNoFiltro = 30; return diff >= 0 && diff <= 30; }
             return true;
         });
 
-        // Cálculos dos Indicadores
-        const totalV = filtered.length;
-        const totalVol = filtered.reduce((s, x) => s + (parseFloat(String(x.volumeReal).replace(',','.')) || 0), 0);
-        const totalPeso = filtered.reduce((s, x) => s + (parseFloat(String(x.pesoLiquido).replace(',','.')) || 0), 0) / 1000;
+        // Placas únicas para cálculo da meta
+        const placasUnicas = new Set(filtered.map(d=>d.placa).filter(p=>p&&p!=='-')).size || 1;
+        if(activeFilter === 'MONTH' || activeFilter === 'ALL') {
+            const dts = new Set(filtered.map(d=>d.dataDaBaseExcel));
+            diasNoFiltro = dts.size || 1;
+        }
+
+        document.getElementById('op-status').innerText = `Base: ${filtered.length} Viagens Globais | ${diasNoFiltro} Dia(s)`;
+
+        // === CÁLCULOS TOTAIS GERAIS ===
+        const tViagens = filtered.length;
+        const tVol = filtered.reduce((s,x) => s + (parseFloat(String(x.volumeReal).replace(',','.'))||0), 0);
+        const tPesoLiq = filtered.reduce((s,x) => s + (parseFloat(String(x.pesoLiquido).replace(',','.'))||0), 0) / 1000;
         
-        // PBTC é sempre a média
-        const mediaPbtc = totalV > 0 ? (totalPeso / totalV) : 0;
-        const mediaCx = totalV > 0 ? (totalVol / totalV) : 0;
+        let somaCiclo = 0, qtdCiclo = 0;
+        let somaCampo = 0, qtdCampo = 0;
+        let somaCarga = 0, qtdCarga = 0;
+        let somaFab = 0, qtdFab = 0;
+        let sDistT = 0, sDistA = 0, sDistTe = 0, qtdDist = 0;
 
-        // Atualiza UI
-        document.getElementById('val-v').innerText = totalV;
-        document.getElementById('val-vol').innerText = totalVol.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
-        document.getElementById('val-cx').innerText = mediaCx.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
-        document.getElementById('val-pbtc').innerText = mediaPbtc.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+        filtered.forEach(d => {
+            if(d.cicloHoras > 0) { somaCiclo += d.cicloHoras; qtdCiclo++; }
+            if(d.filaCampoHoras > 0) { somaCampo += d.filaCampoHoras; qtdCampo++; }
+            if(d.tempoCarregamentoHoras > 0) { somaCarga += d.tempoCarregamentoHoras; qtdCarga++; }
+            if(d.filaFabricaHoras > 0) { somaFab += d.filaFabricaHoras; qtdFab++; }
+            
+            const distT = parseFloat(d.distanciaTotal)||0;
+            if(distT > 0) {
+                sDistT += distT;
+                sDistA += parseFloat(d.distanciaAsfalto)||0;
+                sDistTe += parseFloat(d.distanciaTerra)||0;
+                qtdDist++;
+            }
+        });
 
-        // Lógica do Farol PBTC
-        const fPbtc = document.getElementById('farol-pbtc');
-        const vPbtc = document.getElementById('val-pbtc');
-        if (mediaPbtc < 74) { fPbtc.className = 'farol-indicator bg-amarelo'; vPbtc.className = 'kpi-value status-amarelo'; }
-        else if (mediaPbtc <= 77.7) { fPbtc.className = 'farol-indicator bg-verde'; vPbtc.className = 'kpi-value status-verde'; }
-        else { fPbtc.className = 'farol-indicator bg-vermelho'; vPbtc.className = 'kpi-value status-vermelho'; }
+        // MÉDIAS (PBTC como média)
+        const mediaCx = tViagens > 0 ? (tVol / tViagens) : 0;
+        const mediaPbtc = tViagens > 0 ? (tPesoLiq / tViagens) : 0;
 
-        updateTables(filtered);
-        updateCharts(filtered);
+        // METAS
+        const metaV = (metasGlobais.v_prog||0) * placasUnicas * diasNoFiltro;
+        const metaVol = (metasGlobais.vol_prog||0) * diasNoFiltro;
+        const metaCx = metasGlobais.cx_prog || 62.2;
+        
+        // % Atingimento
+        const percV = metaV > 0 ? Math.min((tViagens/metaV)*100, 100) : 0;
+        const percVol = metaVol > 0 ? Math.min((tVol/metaVol)*100, 100) : 0;
+        const percCx = metaCx > 0 ? Math.min((mediaCx/metaCx)*100, 100) : 0;
+
+        // Atualizar Tela - Linha 1 (Cards Progress)
+        document.getElementById('val-v-prog').innerText = metaV;
+        document.getElementById('val-v-real').innerText = tViagens;
+        document.getElementById('perc-v').innerText = `${percV.toFixed(1)}%`;
+        document.getElementById('bar-v').style.width = `${percV}%`;
+
+        document.getElementById('val-vol-prog').innerText = metaVol.toLocaleString('pt-BR');
+        document.getElementById('val-vol-real').innerText = tVol.toLocaleString('pt-BR', {maximumFractionDigits:1});
+        document.getElementById('perc-vol').innerText = `${percVol.toFixed(1)}%`;
+        document.getElementById('bar-vol').style.width = `${percVol}%`;
+
+        document.getElementById('val-cx-prog').innerText = metaCx.toLocaleString('pt-BR');
+        document.getElementById('val-cx-real').innerText = mediaCx.toLocaleString('pt-BR', {maximumFractionDigits:2});
+        document.getElementById('perc-cx').innerText = `${percCx.toFixed(1)}%`;
+        document.getElementById('bar-cx').style.width = `${percCx}%`;
+
+        document.getElementById('val-pbtc-prog').innerText = metasGlobais.pbtc_prog || '74';
+        document.getElementById('val-pbtc-real').innerText = mediaPbtc.toLocaleString('pt-BR', {maximumFractionDigits:2});
+        
+        const bPbtc = document.getElementById('bar-pbtc');
+        const vPbtc = document.getElementById('val-pbtc-real');
+        const txtPbtc = document.getElementById('perc-pbtc');
+        if (mediaPbtc < 74) { bPbtc.style.background = 'var(--amarelo)'; vPbtc.style.color = 'var(--amarelo)'; txtPbtc.innerText = 'Abaixo do Ideal'; txtPbtc.style.color = 'var(--amarelo)'; }
+        else if (mediaPbtc <= 77.7) { bPbtc.style.background = 'var(--verde)'; vPbtc.style.color = 'var(--verde)'; txtPbtc.innerText = 'Ideal'; txtPbtc.style.color = 'var(--verde)'; }
+        else { bPbtc.style.background = '#f43f5e'; vPbtc.style.color = '#f43f5e'; txtPbtc.innerText = 'Acima do Limite'; txtPbtc.style.color = '#f43f5e'; }
+
+        // Atualizar Tela - Linha 2 (Tempos e Distâncias)
+        document.getElementById('val-ciclo').innerText = formatTime(qtdCiclo > 0 ? somaCiclo/qtdCiclo : 0);
+        document.getElementById('val-campo').innerText = formatTime(qtdCampo > 0 ? somaCampo/qtdCampo : 0);
+        document.getElementById('val-carga').innerText = formatTime(qtdCarga > 0 ? somaCarga/qtdCarga : 0);
+        document.getElementById('val-fabrica').innerText = formatTime(qtdFab > 0 ? somaFab/qtdFab : 0);
+        
+        document.getElementById('val-dist-total').innerText = `${(qtdDist>0?sDistT/qtdDist:0).toFixed(2)} km`;
+        document.getElementById('val-dist-asfalto').innerText = (qtdDist>0?sDistA/qtdDist:0).toFixed(2);
+        document.getElementById('val-dist-terra').innerText = (qtdDist>0?sDistTe/qtdDist:0).toFixed(2);
+
+        // Atualizar Tabelas e Gráficos
+        renderComparativoTabela(filtered);
+        renderTopTabelas(filtered);
+        renderGraficos(filtered);
     }
 
-    function updateTables(data) {
+    // 6. Tabela de Comparativo (Cenários)
+    function renderComparativoTabela(data) {
+        const cenarios = {
+            C1: { n: 'SERRANA', v: 0, vol: 0, cx: 0, c: 0, cc: 0, cp: 0, cpc: 0, cg: 0, cgc: 0, fb: 0, fbc: 0, da: 0, dt: 0, ddc: 0 },
+            C2: { n: 'ASN', v: 0, vol: 0, cx: 0, c: 0, cc: 0, cp: 0, cpc: 0, cg: 0, cgc: 0, fb: 0, fbc: 0, da: 0, dt: 0, ddc: 0 },
+            C3: { n: 'REFLORESTAR', v: 0, vol: 0, cx: 0, c: 0, cc: 0, cp: 0, cpc: 0, cg: 0, cgc: 0, fb: 0, fbc: 0, da: 0, dt: 0, ddc: 0 },
+            C4: { n: 'JSL', v: 0, vol: 0, cx: 0, c: 0, cc: 0, cp: 0, cpc: 0, cg: 0, cgc: 0, fb: 0, fbc: 0, da: 0, dt: 0, ddc: 0 },
+            TOT: { v: 0, vol: 0, cx: 0, c: 0, cc: 0, cp: 0, cpc: 0, cg: 0, cgc: 0, fb: 0, fbc: 0, da: 0, dt: 0, ddc: 0 }
+        };
+
+        const getGrp = (d) => {
+            const t = String(d.transportadora||'').toUpperCase();
+            if(t.includes('SERRANA')) return 'C1';
+            if(t.includes('ASN')) return 'C2';
+            if(t.includes('REFLORESTAR')) return 'C3';
+            if(t.includes('JSL')) return 'C4';
+            return 'TOT'; // Agrupa no Total Geral
+        };
+
+        data.forEach(d => {
+            const g = getGrp(d);
+            const process = (obj) => {
+                obj.v++;
+                obj.vol += parseFloat(String(d.volumeReal).replace(',','.'))||0;
+                if(d.cicloHoras>0) { obj.c += d.cicloHoras; obj.cc++; }
+                if(d.filaCampoHoras>0) { obj.cp += d.filaCampoHoras; obj.cpc++; }
+                if(d.tempoCarregamentoHoras>0) { obj.cg += d.tempoCarregamentoHoras; obj.cgc++; }
+                if(d.filaFabricaHoras>0) { obj.fb += d.filaFabricaHoras; obj.fbc++; }
+                const dA = parseFloat(d.distanciaAsfalto)||0;
+                if(dA > 0) { obj.da += dA; obj.dt += parseFloat(d.distanciaTerra)||0; obj.ddc++; }
+            };
+            if(g !== 'TOT') process(cenarios[g]);
+            process(cenarios.TOT);
+        });
+
+        const tbody = document.getElementById('comparativo-body');
+        const c = cenarios;
+        
+        const rowHTML = (titulo, fName, isTime, isDist) => {
+            const format = (obj) => {
+                if(isTime) return formatTime(obj[fName.val]/obj[fName.count] || 0);
+                if(isDist) return `<span style="color:#60a5fa">Asf: ${(obj.da/obj.ddc||0).toFixed(2)}</span><br><span style="color:var(--amarelo)">Ter: ${(obj.dt/obj.ddc||0).toFixed(2)}</span>`;
+                if(fName.val === 'v') return obj.v;
+                if(fName.val === 'vol') return obj.vol.toLocaleString('pt-BR', {maximumFractionDigits:1}) + ' m³';
+                if(fName.val === 'cx') return obj.v>0 ? (obj.vol/obj.v).toLocaleString('pt-BR', {maximumFractionDigits:1}) + ' m³' : '0';
+                return '-';
+            };
+            return `
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="font-weight:bold; color: white;">${titulo}</td>
+                    <td style="text-align:right;">${format(c.C1)}</td>
+                    <td style="text-align:right;">${format(c.C2)}</td>
+                    <td style="text-align:right;">${format(c.C3)}</td>
+                    <td style="text-align:right;">${format(c.C4)}</td>
+                    <td style="text-align:right; font-weight:bold; color:#38bdf8; background:rgba(14,165,233,0.05);">${format(c.TOT)}</td>
+                </tr>
+            `;
+        };
+
+        tbody.innerHTML = 
+            rowHTML('<i class="fas fa-route" style="color:var(--text-dim); margin-right:8px;"></i> Viagens Realizadas', {val: 'v'}, false, false) +
+            rowHTML('<i class="fas fa-box" style="color:var(--text-dim); margin-right:8px;"></i> Caixa de Carga Média', {val: 'cx'}, false, false) +
+            rowHTML('<i class="fas fa-cubes" style="color:var(--text-dim); margin-right:8px;"></i> Volume Total', {val: 'vol'}, false, false) +
+            rowHTML('<i class="fas fa-stopwatch" style="color:var(--text-dim); margin-right:8px;"></i> Ciclo Médio Total', {val: 'c', count: 'cc'}, true, false) +
+            rowHTML('<i class="fas fa-hourglass-half" style="color:var(--text-dim); margin-right:8px;"></i> Espera Média no Campo', {val: 'cp', count: 'cpc'}, true, false) +
+            rowHTML('<i class="fas fa-truck-loading" style="color:var(--text-dim); margin-right:8px;"></i> Tempo Médio Carregamento', {val: 'cg', count: 'cgc'}, true, false) +
+            rowHTML('<i class="fas fa-industry" style="color:var(--text-dim); margin-right:8px;"></i> Espera Média na Fábrica', {val: 'fb', count: 'fbc'}, true, false) +
+            rowHTML('<i class="fas fa-road" style="color:var(--text-dim); margin-right:8px;"></i> Dist. Média (Asfalto/Terra)', {val: ''}, false, true);
+    }
+
+    // 7. Tabelas de Leaderboard (Top)
+    function renderTopTabelas(data) {
         const pMap = new Map();
         data.forEach(d => {
             const pl = d.placa || 'N/A';
-            const vol = parseFloat(String(d.volumeReal).replace(',','.')) || 0;
-            if (!pMap.has(pl)) pMap.set(pl, { pl, t: d.transportadora || '-', vol: 0, v: 0, c: 0, cc: 0 });
-            const o = pMap.get(pl); o.vol += vol; o.v++;
-            if (d.cicloHoras > 0) { o.c += d.cicloHoras; o.cc++; }
+            if(!pMap.has(pl)) pMap.set(pl, { p: pl, t: d.transportadora||'-', vol:0, v:0, c:0, cc:0 });
+            const o = pMap.get(pl);
+            o.vol += parseFloat(String(d.volumeReal).replace(',','.'))||0; o.v++;
+            if(d.cicloHoras > 0) { o.c += d.cicloHoras; o.cc++; }
         });
 
         const arr = Array.from(pMap.values());
-        const tVol = document.getElementById('table-top-vol');
-        tVol.innerHTML = arr.sort((a,b) => b.vol - a.vol).slice(0, 5).map(x => 
-            `<tr><td><strong>${x.pl}</strong></td><td>${x.t}</td><td>${x.v}</td><td class="status-verde">${x.vol.toFixed(1)}</td></tr>`).join('');
+        const tVol = document.getElementById('top-vol-body');
+        tVol.innerHTML = arr.sort((a,b)=>b.vol - a.vol).slice(0,5).map((x,i) => 
+            `<tr>
+                <td><span style="background: ${i<3?'var(--verde)':'var(--border)'}; color: ${i<3?'white':'var(--text-dim)'}; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; font-weight:bold;">${i+1}</span></td>
+                <td style="font-weight:bold; color:white;">${x.p}</td>
+                <td style="color:var(--text-dim);">${x.t}</td>
+                <td style="text-align:center;">${x.v}</td>
+                <td style="text-align:right; font-weight:bold; color:var(--verde);">${x.vol.toLocaleString('pt-BR',{maximumFractionDigits:1})}</td>
+            </tr>`
+        ).join('');
 
-        const tCiclo = document.getElementById('table-top-ciclo');
-        tCiclo.innerHTML = arr.filter(x => x.cc > 0).sort((a,b) => (a.c/a.cc) - (b.c/b.cc)).slice(0, 5).map(x => 
-            `<tr><td><strong>${x.pl}</strong></td><td>${x.t}</td><td>${x.v}</td><td class="status-verde">${(x.c/x.cc).toFixed(2)}h</td></tr>`).join('');
+        const tCiclo = document.getElementById('top-ciclo-body');
+        tCiclo.innerHTML = arr.filter(x=>x.cc>0).sort((a,b)=>(a.c/a.cc) - (b.c/b.cc)).slice(0,5).map((x,i) => 
+            `<tr>
+                <td><span style="background: ${i<3?'#38bdf8':'var(--border)'}; color: ${i<3?'white':'var(--text-dim)'}; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; font-weight:bold;">${i+1}</span></td>
+                <td style="font-weight:bold; color:white;">${x.p}</td>
+                <td style="color:var(--text-dim);">${x.t}</td>
+                <td style="text-align:center;">${x.v}</td>
+                <td style="text-align:right; font-weight:bold; color:#38bdf8;">${formatTime(x.c/x.cc)}</td>
+            </tr>`
+        ).join('');
     }
 
-    function updateCharts(data) {
+    // 8. Gráficos (Evolução e Projeção)
+    function renderGraficos(data) {
         const dMap = new Map();
         data.forEach(d => {
-            const dt = d.dataDaBaseExcel; if (!dt) return;
-            dMap.set(dt, (dMap.get(dt) || 0) + (parseFloat(String(d.volumeReal).replace(',','.')) || 0));
+            const dt = d.dataDaBaseExcel; if(!dt) return;
+            dMap.set(dt, (dMap.get(dt)||0) + (parseFloat(String(d.volumeReal).replace(',','.'))||0));
         });
 
         const sorted = Array.from(dMap.keys()).sort((a,b) => {
             const pa = a.split('/'), pb = b.split('/');
             return new Date(pa[2], pa[1]-1, pa[0]) - new Date(pb[2], pb[1]-1, pb[0]);
-        }).slice(-15);
+        });
 
-        if (chartEvo) chartEvo.destroy();
+        const dispEvo = sorted.slice(-30);
+        if(chartEvo) chartEvo.destroy();
         chartEvo = new Chart(document.getElementById('chart-evolucao'), {
             type: 'bar',
-            data: { labels: sorted.map(d => d.substring(0, 5)), datasets: [{ label: 'Volume', data: sorted.map(d => dMap.get(d)), backgroundColor: '#10b981' }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            data: { labels: dispEvo.map(d=>d.substring(0,5)), datasets: [{ data: dispEvo.map(d=>dMap.get(d)), backgroundColor: '#10b981', borderRadius: 4 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } } }
+        });
+
+        const last7 = sorted.slice(-7);
+        const avg7 = last7.reduce((s, d) => s + dMap.get(d), 0) / (last7.length||1);
+        
+        const projLabels = [], projData = [];
+        if(sorted.length > 0) {
+            const pL = sorted[sorted.length-1].split('/');
+            let bd = new Date(pL[2].length===2?'20'+pL[2]:pL[2], pL[1]-1, pL[0]);
+            for(let i=1; i<=5; i++) {
+                bd.setDate(bd.getDate()+1);
+                projLabels.push(`${String(bd.getDate()).padStart(2,'0')}/${String(bd.getMonth()+1).padStart(2,'0')}`);
+                projData.push(avg7 * (1 + ((Math.random()-0.5)*0.04))); // leve variação
+            }
+        }
+
+        if(chartProj) chartProj.destroy();
+        chartProj = new Chart(document.getElementById('chart-projecao'), {
+            type: 'bar',
+            data: { labels: projLabels, datasets: [{ data: projData, backgroundColor: '#38bdf8', borderRadius: 4 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } } }
         });
     }
-
-    document.getElementById('op-quick-filter').addEventListener('change', renderDashboard);
-    document.getElementById('op-date-picker').addEventListener('change', renderDashboard);
 
     loadData();
 })();
