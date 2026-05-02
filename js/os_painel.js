@@ -6,17 +6,16 @@
 const supabaseUrlManutencao = 'https://ihgiyxzxdldqmrkziijl.supabase.co';
 const supabaseKeyManutencao = 'sb_publishable_JpMZhW5ZrFKBr7m9KXBkoQ_cpxy1k3x';
 
-// Inicializa a instância separada para não conflitar com a base principal (viagens)
 const supabaseManutencao = window.supabase.createClient(supabaseUrlManutencao, supabaseKeyManutencao);
 
-// Variáveis Globais de Manutenção
+// Variáveis Globais de Manutenção e Filtros
 window.ordensServico = [];
 window.frotasManutencao = [];
+window.estadoFiltroGlobal = { tipo: 'MES_ATUAL', mesAno: '' };
 
 // Função que puxa os dados ao abrir o Dashboard
 window.carregarDadosManutencao = async function() {
     try {
-        // Busca Ordens de Serviço
         const { data: osData, error: osError } = await supabaseManutencao.from('ordens_servico').select('*');
         if (!osError && osData) {
             window.ordensServico = osData;
@@ -24,7 +23,6 @@ window.carregarDadosManutencao = async function() {
             window.ordensServico = [];
         }
 
-        // CORREÇÃO: Busca a frota real cadastrada na tabela frotas_manutencao
         const { data: frotaData, error: frotaError } = await supabaseManutencao.from('frotas_manutencao').select('*').order('cavalo', { ascending: true });
         
         if (!frotaError && frotaData) {
@@ -32,36 +30,155 @@ window.carregarDadosManutencao = async function() {
         } else {
             window.frotasManutencao = [];
         }
-
     } catch (error) {
         console.error("Erro Crítico ao carregar dados da manutenção:", error);
     }
 };
 
 // =================================================================
-// FUNÇÕES DO FILTRO GLOBAL E KPIS
+// LÓGICA DE FILTROS RÁPIDOS E GLOBAIS
 // =================================================================
+
+window.preencherFiltroMesGlobal = function() {
+    const select = document.getElementById('filtroMesGlobal');
+    if (!select || !window.ordensServico) return;
+
+    const mesesDisponiveis = new Set();
+    const hoje = new Date();
+    const mesAtualKey = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+
+    window.ordensServico.forEach(os => {
+        if (os.data_abertura && os.status !== 'Agendada') {
+            let dataStr = os.data_abertura;
+            if (!dataStr.includes('T')) dataStr += 'T00:00:00';
+            const data = new Date(dataStr.replace('Z', '').replace('+00:00', ''));
+            if (!isNaN(data.getTime())) {
+                const ano = data.getFullYear();
+                const mes = String(data.getMonth() + 1).padStart(2, '0');
+                mesesDisponiveis.add(`${ano}-${mes}`);
+            }
+        }
+    });
+
+    mesesDisponiveis.add(mesAtualKey); 
+    const mesesOrdenados = Array.from(mesesDisponiveis).sort((a, b) => b.localeCompare(a)); 
+    const nomesMeses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+    let html = '<option value="ATUAL">MÊS ATUAL</option>';
+    mesesOrdenados.forEach(chave => {
+        if (chave !== mesAtualKey) {
+            const [ano, mes] = chave.split('-');
+            const nomeMes = nomesMeses[parseInt(mes) - 1];
+            html += `<option value="${chave}">${nomeMes}/${ano.slice(2)}</option>`;
+        }
+    });
+    
+    select.innerHTML = html;
+};
+
+window.aplicarFiltroRapido = function(tipo, btn) {
+    window.estadoFiltroGlobal.tipo = tipo;
+    
+    // Atualiza Botões
+    document.querySelectorAll('.btn-qf-global').forEach(b => {
+        b.classList.remove('active');
+        b.style.background = 'transparent';
+        b.style.color = '#94a3b8';
+    });
+    if(btn) {
+        btn.classList.add('active');
+        btn.style.background = '#3b82f6';
+        btn.style.color = 'white';
+    }
+    
+    // Reseta o Seletor de Mês
+    const selectMes = document.getElementById('filtroMesGlobal');
+    if(selectMes) selectMes.value = 'ATUAL';
+    
+    window.dispararFiltrosGlobais();
+};
+
+window.aplicarFiltroMesGlobal = function() {
+    const select = document.getElementById('filtroMesGlobal');
+    const valor = select.value;
+    
+    // Tira seleção dos botões rápidos
+    document.querySelectorAll('.btn-qf-global').forEach(b => {
+        b.classList.remove('active');
+        b.style.background = 'transparent';
+        b.style.color = '#94a3b8';
+    });
+
+    if (valor === 'ATUAL') {
+        window.estadoFiltroGlobal.tipo = 'MES_ATUAL';
+        window.estadoFiltroGlobal.mesAno = '';
+        
+        // Reativa visualmente o botão MÊS ATUAL
+        const btnMesAtual = document.querySelector('.btn-qf-global[data-qf="MES_ATUAL"]');
+        if (btnMesAtual) {
+            btnMesAtual.classList.add('active');
+            btnMesAtual.style.background = '#3b82f6';
+            btnMesAtual.style.color = 'white';
+        }
+    } else {
+        window.estadoFiltroGlobal.tipo = 'MES_ESPECIFICO';
+        window.estadoFiltroGlobal.mesAno = valor;
+    }
+    
+    window.dispararFiltrosGlobais();
+};
+
 window.getDatasFiltroGlobal = function() {
-    const selectFiltro = document.getElementById('filtroGlobalPeriodo');
-    const filtro = selectFiltro ? selectFiltro.value : 'mes_atual';
     const hoje = new Date();
     let inicio = new Date(hoje);
-    inicio.setHours(0,0,0,0);
-    
-    let fim = new Date();
-    fim.setHours(23,59,59,999);
-    if (filtro === 'dia_atual') {
-        // inicio já é hoje às 00:00
-    } else if (filtro === 'semana_atual') {
-        inicio.setDate(inicio.getDate() - inicio.getDay());
-    } else if (filtro === 'mes_atual') {
-        inicio.setDate(1);
+    let fim = new Date(hoje);
+    fim.setHours(23, 59, 59, 999);
+
+    if (window.estadoFiltroGlobal.tipo === 'D-1') {
+        // Ontem exato (00:00 até 23:59)
+        inicio.setDate(hoje.getDate() - 1);
+        inicio.setHours(0, 0, 0, 0);
+        fim = new Date(hoje);
+        fim.setDate(hoje.getDate() - 1);
+        fim.setHours(23, 59, 59, 999);
+    } else if (window.estadoFiltroGlobal.tipo === 'D-2') {
+        // Anteontem e Ontem (Até o momento atual hoje)
+        inicio.setDate(hoje.getDate() - 2);
+        inicio.setHours(0, 0, 0, 0);
+    } else if (window.estadoFiltroGlobal.tipo === 'D-7') {
+        // Últimos 7 dias
+        inicio.setDate(hoje.getDate() - 7);
+        inicio.setHours(0, 0, 0, 0);
+    } else if (window.estadoFiltroGlobal.tipo === 'MES_ESPECIFICO' && window.estadoFiltroGlobal.mesAno) {
+        // Mês Fechado Histórico
+        const [ano, mes] = window.estadoFiltroGlobal.mesAno.split('-');
+        inicio = new Date(parseInt(ano), parseInt(mes) - 1, 1, 0, 0, 0);
+        fim = new Date(parseInt(ano), parseInt(mes), 0, 23, 59, 59, 999);
+        
+        // Se for o mês atual correndo, trava o fim para agora.
+        if (inicio.getFullYear() === hoje.getFullYear() && inicio.getMonth() === hoje.getMonth()) {
+            fim = new Date(hoje);
+            fim.setHours(23, 59, 59, 999);
+        }
     } else {
-        let d = parseInt(filtro) || 30;
-        inicio.setDate(inicio.getDate() - d + 1);
+        // Padrão: MÊS ATUAL
+        inicio.setDate(1);
+        inicio.setHours(0, 0, 0, 0);
     }
-    return { inicio: inicio, fim: fim, valorBruto: filtro };
+    
+    return { inicio: inicio, fim: fim, valorBruto: window.estadoFiltroGlobal.tipo };
 };
+
+window.dispararFiltrosGlobais = function() {
+    try { if(typeof atualizarKPIsGlobais === 'function') atualizarKPIsGlobais(); } catch(e){}
+    try { if(typeof renderizarGraficoEvolucaoDMDiaria === 'function') renderizarGraficoEvolucaoDMDiaria(); } catch(e){}
+    try { if(typeof renderizarRelatorioGerencialOS === 'function') renderizarRelatorioGerencialOS(); } catch(e){}
+    try { if(typeof renderizarRelatorioTipoServico === 'function') renderizarRelatorioTipoServico(); } catch(e){}
+};
+
+// =================================================================
+// FUNÇÕES DOS KPIS E GRÁFICOS
+// =================================================================
 
 window.atualizarKPIsGlobais = function() {
     try {
@@ -168,75 +285,13 @@ window.atualizarKPIsGlobais = function() {
     }
 };
 
-window.dispararFiltrosGlobais = function() {
-    try { if(typeof atualizarKPIsGlobais === 'function') atualizarKPIsGlobais(); } catch(e){}
-    try { if(typeof renderizarGraficoEvolucaoDMDiaria === 'function') renderizarGraficoEvolucaoDMDiaria(); } catch(e){}
-    try { if(typeof renderizarRelatorioGerencialOS === 'function') renderizarRelatorioGerencialOS(); } catch(e){}
-    try { if(typeof renderizarRelatorioTipoServico === 'function') renderizarRelatorioTipoServico(); } catch(e){}
-};
-
-window.preencherMesesDMDiaria = function() {
-    const select = document.getElementById('filtroMesEvolucaoDMDiaria');
-    if (!select || !window.ordensServico) return;
-
-    const mesesDisponiveis = new Set();
-    const hoje = new Date();
-    const mesAtualKey = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
-
-    window.ordensServico.forEach(os => {
-        if (os.data_abertura && os.status !== 'Agendada') {
-            let dataStr = os.data_abertura;
-            if (!dataStr.includes('T')) dataStr += 'T00:00:00';
-            const data = new Date(dataStr.replace('Z', '').replace('+00:00', ''));
-            if (!isNaN(data.getTime())) {
-                const ano = data.getFullYear();
-                const mes = String(data.getMonth() + 1).padStart(2, '0');
-                mesesDisponiveis.add(`${ano}-${mes}`);
-            }
-        }
-    });
-
-    mesesDisponiveis.add(mesAtualKey); 
-    const mesesOrdenados = Array.from(mesesDisponiveis).sort((a, b) => b.localeCompare(a)); 
-    const nomesMeses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-
-    let html = '';
-    mesesOrdenados.forEach(chave => {
-        const [ano, mes] = chave.split('-');
-        const nomeMes = nomesMeses[parseInt(mes) - 1];
-        const label = `${nomeMes}/${ano.slice(2)}`;
-        const isAtual = chave === mesAtualKey;
-        html += `<option value="${chave}" ${isAtual ? 'selected' : ''}>${label}</option>`;
-    });
-    
-    select.innerHTML = html;
-};
-
 window.renderizarGraficoEvolucaoDMDiaria = function() {
     try {
         if (!window.frotasManutencao || window.frotasManutencao.length === 0) return;
         
-        if (document.getElementById('filtroMesEvolucaoDMDiaria').options.length === 0) {
-            window.preencherMesesDMDiaria();
-        }
-
-        const selectMes = document.getElementById('filtroMesEvolucaoDMDiaria');
-        let dataInicio, hoje;
-
-        if (selectMes && selectMes.value) {
-            const [ano, mes] = selectMes.value.split('-');
-            dataInicio = new Date(parseInt(ano), parseInt(mes) - 1, 1, 0, 0, 0);
-            hoje = new Date(parseInt(ano), parseInt(mes), 0, 23, 59, 59, 999);
-
-            const agora = new Date();
-            if (dataInicio.getFullYear() === agora.getFullYear() && dataInicio.getMonth() === agora.getMonth()) {
-                hoje = agora;
-            }
-        } else {
-            hoje = new Date();
-            hoje.setHours(23, 59, 59, 999);
-            dataInicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-        }
+        const datas = window.getDatasFiltroGlobal();
+        let dataInicio = new Date(datas.inicio);
+        let hoje = new Date(datas.fim);
 
         const labelsDias = [];
         const dadosDMDiaria = [];
@@ -301,7 +356,7 @@ window.renderizarGraficoEvolucaoDMDiaria = function() {
             atual.setDate(atual.getDate() + 1);
         }
 
-        // Mini KPIs
+        // Mini KPIs baseados na seleção global
         let somaDM = 0;
         dadosDMDiaria.forEach(d => somaDM += parseFloat(d.value));
         let mediaDM = dadosDMDiaria.length > 0 ? (somaDM / dadosDMDiaria.length).toFixed(1) : 0;

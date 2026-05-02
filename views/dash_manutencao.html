@@ -5,7 +5,7 @@
     </div>
 </div>
 
-<!-- Barra de Filtro Global -->
+<!-- ================= BARRA DE FILTRO GLOBAL (RÁPIDOS E MÊS) ================= -->
 <div class="content-panel global-filter-bar" style="grid-column: 1 / -1; margin-bottom: 25px; border: 1px solid #3b82f6; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border-radius: 12px; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
     <div style="display: flex; align-items: center; gap: 15px;">
         <div style="background: rgba(59, 130, 246, 0.2); padding: 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
@@ -13,18 +13,26 @@
         </div>
         <div>
             <h3 style="color: #fff; margin: 0; font-size: 1.2rem; font-weight: 700;">Filtro Global de Período</h3>
-            <span style="color: #94a3b8; font-size: 0.85rem;">Ao selecionar, toda a tela será atualizada automaticamente</span>
+            <span style="color: #94a3b8; font-size: 0.85rem;">Filtra todos os indicadores desta tela</span>
         </div>
     </div>
+    
     <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-        <select id="filtroGlobalPeriodo" class="dark-select" onchange="window.dispararFiltrosGlobais()" style="background: #1e293b; border: 1px solid #3b82f6; color: white; padding: 10px 20px; border-radius: 8px; font-size: 1.05rem; font-weight: 600; min-width: 220px; cursor: pointer; outline: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-            <option value="dia_atual">Somente Dia Atual</option>
-            <option value="semana_atual">Semana Atual</option>
-            <option value="mes_atual" selected>Mês Atual</option>
-            <option value="7">Últimos 7 Dias</option>
-            <option value="15">Últimos 15 Dias</option>
-            <option value="30">Últimos 30 Dias</option>
-        </select>
+        <!-- Seletor de Mês -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="color: #94a3b8; font-size: 0.9rem; font-weight: bold;">Mês Específico:</label>
+            <select id="filtroMesGlobal" class="dark-select" onchange="window.aplicarFiltroMesGlobal()" style="background: #1e293b; border: 1px solid #3b82f6; color: white; padding: 8px 15px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; outline: none; cursor: pointer;">
+                <option value="ATUAL">MÊS ATUAL</option>
+            </select>
+        </div>
+
+        <!-- Botões de Filtros Rápidos -->
+        <div style="display: flex; gap: 5px; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 8px; border: 1px solid var(--border);">
+            <button class="btn-qf-global" data-qf="D-1" onclick="window.aplicarFiltroRapido('D-1', this)" style="flex: 1; padding: 8px 15px; border: none; border-radius: 5px; background: transparent; color: #94a3b8; cursor: pointer; font-weight: bold; transition: 0.3s;">D-1</button>
+            <button class="btn-qf-global" data-qf="D-2" onclick="window.aplicarFiltroRapido('D-2', this)" style="flex: 1; padding: 8px 15px; border: none; border-radius: 5px; background: transparent; color: #94a3b8; cursor: pointer; font-weight: bold; transition: 0.3s;">D-2</button>
+            <button class="btn-qf-global" data-qf="D-7" onclick="window.aplicarFiltroRapido('D-7', this)" style="flex: 1; padding: 8px 15px; border: none; border-radius: 5px; background: transparent; color: #94a3b8; cursor: pointer; font-weight: bold; transition: 0.3s;">D-7</button>
+            <button class="btn-qf-global active" data-qf="MES_ATUAL" onclick="window.aplicarFiltroRapido('MES_ATUAL', this)" style="flex: 1; padding: 8px 15px; border: none; border-radius: 5px; background: #3b82f6; color: white; cursor: pointer; font-weight: bold; transition: 0.3s;">MÊS ATUAL</button>
+        </div>
     </div>
 </div>
 
@@ -76,9 +84,6 @@
             Evolução Diária da Disponibilidade Mecânica
         </h3>
         <div style="display: flex; gap: 10px; align-items: center;">
-            <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">Filtrar Mês:</span>
-            <select id="filtroMesEvolucaoDMDiaria" class="dark-select" onchange="renderizarGraficoEvolucaoDMDiaria()" style="background: #1e293b; border: 1px solid #334155; color: white; padding: 5px 12px; border-radius: 6px; height: 34px; font-size: 0.9rem; outline: none; cursor: pointer;">
-            </select>
             <button class="btn-salvar" onclick="exportarGraficoPNG('graficoEvolucaoDMDiaria', 'Evolucao_DM_Diaria')" style="padding: 5px 12px; font-size: 0.8rem; height: 32px; background: #334155; border:none; border-radius: 6px; color: white; cursor: pointer;"><i class="fas fa-camera"></i> Exportar PNG</button>
         </div>
     </div>
@@ -143,14 +148,13 @@
 </div>
 
 <script>
-    // Gatilho Automático com tempo de segurança para o ECharts ler o tamanho da tela
+    // Gatilho Automático com tempo de segurança
     if (typeof window.carregarDadosManutencao === 'function') {
         window.carregarDadosManutencao().then(() => {
             setTimeout(() => {
-                if (typeof window.dispararFiltrosGlobais === 'function') {
-                    window.dispararFiltrosGlobais();
-                }
-            }, 300); // Tempo para o HTML renderizar antes de desenhar o gráfico
+                if (typeof window.preencherFiltroMesGlobal === 'function') window.preencherFiltroMesGlobal();
+                if (typeof window.dispararFiltrosGlobais === 'function') window.dispararFiltrosGlobais();
+            }, 300);
         });
     } else {
         setTimeout(() => {
