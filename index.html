@@ -7,9 +7,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="./css/style.css">
+    
+    <!-- Bibliotecas de Gráficos e Renderização -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
     <div class="presentation-container">
@@ -21,12 +24,10 @@
             <nav class="nav-menu">
                 <div class="nav-label">MENUS DE APONTAMENTO</div>
                 <ul id="menu-list"></ul>
-
                 <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
                     <ul id="config-menu-list"></ul>
                 </div>
             </nav>
-
             <div class="sidebar-footer">
                 <div class="status-box">
                     <span class="dot online"></span>
@@ -35,7 +36,7 @@
                 <div id="clock" class="clock"></div>
             </div>
         </aside>
-
+        
         <main class="main-display">
             <header class="display-header">
                 <div class="header-info">
@@ -58,13 +59,15 @@
                     </div>
                 </div>
             </header>
-
+            
             <section id="content-area" class="content-area"></section>
         </main>
     </div>
 
+    <!-- Scripts da Aplicação e Conexões com Banco -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="./js/config_db.js"></script>
     <script src="./js/app.js"></script>
+    <script src="./js/os_painel.js"></script>
 </body>
 </html>
