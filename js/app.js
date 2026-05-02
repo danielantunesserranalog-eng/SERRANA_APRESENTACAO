@@ -48,7 +48,7 @@ function renderMenuElements(dataArray, containerId) {
         const li = document.createElement('li');
         li.className = 'menu-item';
         li.innerHTML = `
-            <a href="#" class="menu-link" onclick="handleMenuInteraction(event, this, '${menu.title} - INDICADORES GERAIS', '${menu.mainFile}', '${menu.key}', '${menu.def}')">
+            <a href="#" id="link-${menu.id}" class="menu-link" onclick="handleMenuInteraction(event, this, '${menu.title} - INDICADORES GERAIS', '${menu.mainFile}', '${menu.key}', '${menu.def}')">
                 <div class="menu-link-left"><i class="fas ${menu.icon}"></i><span>${menu.title}</span></div>
                 <i class="fas fa-chevron-down arrow"></i>
             </a>
@@ -69,7 +69,7 @@ function initMenu() {
 }
 
 function handleMenuInteraction(event, element, title, file, key, def) {
-    event.preventDefault();
+    if (event) event.preventDefault();
     const currentTime = new Date().getTime();
     const timeDiff = currentTime - lastClickTime;
     
@@ -132,10 +132,6 @@ async function sincronizarNomesDoBanco() {
         
         if (data) {
             data.forEach(item => localStorage.setItem(item.chave, item.valor));
-            const currentTitle = document.getElementById('current-sector-title').innerText;
-            if (currentTitle.includes('OPERACIONAL')) {
-                document.getElementById('presenter-name').innerText = localStorage.getItem('resp_operacional') || 'Jilcleiton / Daniel Lemos';
-            }
         }
     } catch (e) { 
         console.log('Erro na sincronização inicial'); 
@@ -146,12 +142,40 @@ function updateClock() {
     document.getElementById('clock').innerText = new Date().toLocaleTimeString('pt-BR'); 
 }
 
+// ==========================================================
+// FUNÇÃO PARA INICIAR A REUNIÃO A PARTIR DA SPLASH SCREEN
+// ==========================================================
+function iniciarReuniao() {
+    // Esconde a tela de Splash com animação
+    const splash = document.getElementById('splash-screen');
+    splash.classList.add('hidden');
+    
+    // Oculta completamente após a animação CSS (600ms)
+    setTimeout(() => {
+        splash.style.display = 'none';
+    }, 600);
+
+    // Carrega o módulo do SSMA diretamente (Mudança principal aqui)
+    loadModule(null, 'SSMA - INDICADORES GERAIS', 'dash_ssma.html', 'resp_ssma', 'Segurança do Trabalho');
+
+    // Destaca o menu do SSMA visualmente na barra lateral
+    const ssmaLink = document.getElementById('link-ssma');
+    if (ssmaLink) {
+        document.querySelectorAll('.menu-link, .submenu-link').forEach(l => l.classList.remove('active'));
+        ssmaLink.classList.add('active');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initMenu();
     sincronizarNomesDoBanco();
     setInterval(updateClock, 1000);
     updateClock();
     
-    // Inicia a aplicação exibindo a aba Operacional por padrão (pode mudar se desejar)
-    loadModule(null, 'OPERACIONAL - INDICADORES GERAIS', 'dash_operacional.html', 'resp_operacional', 'Jilcleiton / Daniel');
+    // Define a Data atual na Splash Screen
+    const splashDate = document.getElementById('splash-date');
+    if (splashDate) {
+        const opcoesData = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        splashDate.innerText = new Date().toLocaleDateString('pt-BR', opcoesData).toUpperCase();
+    }
 });

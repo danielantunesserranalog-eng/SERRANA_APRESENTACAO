@@ -15,6 +15,23 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
+
+    <!-- ================= TELA DE ABERTURA (SPLASH SCREEN) ================= -->
+    <div id="splash-screen" class="splash-screen">
+        <div class="splash-content">
+            <img src="./assets/logo.png" alt="Serrana Florestal" class="splash-logo" onerror="this.src='./assets/logoverde.png'">
+            <h1 class="splash-title">REUNIÃO DIÁRIA DE ALINHAMENTO</h1>
+            
+            <!-- A data será preenchida automaticamente pelo JavaScript -->
+            <div class="splash-date" id="splash-date"></div>
+
+            <button class="btn-iniciar-reuniao" onclick="iniciarReuniao()">
+                <i class="fas fa-play-circle"></i> INICIAR REUNIÃO
+            </button>
+        </div>
+    </div>
+    <!-- ==================================================================== -->
+
     <div class="presentation-container">
         <aside class="sidebar" id="sidebar">
             <div class="logo-area">
@@ -42,7 +59,7 @@
                 <div class="header-info">
                     <button id="toggle-menu" class="btn-icon"><i class="fas fa-bars"></i></button>
                     <div class="title-group">
-                        <h1 id="current-sector-title">Carregando...</h1>
+                        <h1 id="current-sector-title">Aguardando Início...</h1>
                         <p id="current-sector-subtitle">Módulo de Lançamento e Apresentação</p>
                     </div>
                 </div>
@@ -55,7 +72,7 @@
                     </select>
                     <div class="presenter-badge">
                         <i class="fas fa-user-tie"></i>
-                        <span>Responsável: <strong id="presenter-name">Carregando...</strong></span>
+                        <span>Responsável: <strong id="presenter-name">-</strong></span>
                     </div>
                 </div>
             </header>
