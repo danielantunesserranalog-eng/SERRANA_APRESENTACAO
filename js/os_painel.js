@@ -24,13 +24,14 @@ window.carregarDadosManutencao = async function() {
             window.ordensServico = [];
         }
 
-        // Extração robusta das placas. 
-        const placasUnicas = [...new Set(window.ordensServico.map(o => o.placa).filter(p => p && p.trim() !== '' && p !== '-'))];
+        // CORREÇÃO: Busca a frota real cadastrada na tabela frotas_manutencao
+        const { data: frotaData, error: frotaError } = await supabaseManutencao.from('frotas_manutencao').select('*').order('cavalo', { ascending: true });
         
-        window.frotasManutencao = placasUnicas.map(placa => ({
-            cavalo: placa,
-            go: 'Frota/Conjunto'
-        }));
+        if (!frotaError && frotaData) {
+            window.frotasManutencao = frotaData;
+        } else {
+            window.frotasManutencao = [];
+        }
 
     } catch (error) {
         console.error("Erro Crítico ao carregar dados da manutenção:", error);
