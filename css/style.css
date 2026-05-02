@@ -12,7 +12,6 @@ body { font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(
 .sidebar { width: 300px; background: var(--bg-sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; z-index: 100; }
 .logo-area { padding: 30px; text-align: center; border-bottom: 1px solid var(--border); }
 .main-logo { width: 100%; max-width: 200px; filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.3)); }
-
 .nav-menu { flex: 1; padding: 20px; overflow-y: auto; }
 .nav-label { font-size: 0.7rem; font-weight: 800; color: var(--text-dim); letter-spacing: 2px; margin-bottom: 15px; }
 
@@ -33,6 +32,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(
 
 .content-area { padding: 40px; }
 .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; }
+
 .kpi-card { background: var(--card-bg); padding: 30px; border-radius: 20px; border: 1px solid var(--border); position: relative; overflow: hidden; transition: 0.3s; }
 .kpi-card:hover { transform: translateY(-5px); border-color: var(--primary); }
 .kpi-value { font-size: 3.5rem; font-weight: 800; margin: 15px 0; }
@@ -46,11 +46,13 @@ body { font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(
 
 .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px; }
 .config-input { width: 100%; background: var(--bg-dark); color: white; border: 1px solid var(--border); padding: 15px; border-radius: 10px; font-size: 1rem; outline: none; }
+
 .btn-salvar { background: var(--primary); color: white; padding: 15px 30px; border-radius: 10px; font-weight: 700; cursor: pointer; border: none; text-transform: uppercase; }
 
 .exec-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
 .exec-table th { text-align: left; padding: 15px; color: var(--text-dim); border-bottom: 2px solid var(--border); font-size: 0.8rem; text-transform: uppercase; }
 .exec-table td { padding: 18px; border-bottom: 1px solid var(--border); font-size: 1rem; }
+
 .status-verde { color: var(--verde); }
 .status-amarelo { color: var(--amarelo); }
 .status-vermelho { color: var(--vermelho); }
@@ -58,6 +60,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(
 .bg-amarelo { background-color: var(--amarelo); }
 .bg-vermelho { background-color: var(--vermelho); }
 .badge { padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; color: white; }
+
 /* ================= SPLASH SCREEN (TELA DE ABERTURA) ================= */
 .splash-screen {
     position: fixed;
@@ -70,6 +73,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden; /* Evita barra de rolagem quando o caminhão passar */
     transition: opacity 0.6s ease-in-out, visibility 0.6s ease-in-out, transform 0.6s ease-in-out;
 }
 
@@ -79,6 +83,33 @@ body { font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(
     transform: translateY(-20px);
 }
 
+/* Container do Caminhão de Fundo */
+.splash-animation-container {
+    position: absolute;
+    bottom: 8%;
+    left: 0;
+    width: 100%;
+    height: 200px;
+    z-index: 1; /* Fica por trás do texto principal */
+    pointer-events: none; /* Ignora cliques */
+}
+
+.tritrem-svg {
+    position: absolute;
+    left: -1000px; /* Começa bem fora da tela pela esquerda */
+    width: 900px;  /* Tamanho grande para dar impacto visual */
+    height: auto;
+    color: var(--primary); /* Puxa o verde padrão do sistema */
+    opacity: 0.12; /* Bem suave para não atrapalhar a leitura do texto */
+    animation: driveTritrem 22s linear infinite; /* Animação constante e suave */
+}
+
+@keyframes driveTritrem {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(calc(100vw + 1000px)); } /* Atravessa a tela inteira */
+}
+
+/* Conteúdo em primeiro plano */
 .splash-content {
     display: flex;
     flex-direction: column;
@@ -87,10 +118,12 @@ body { font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(
     text-align: center;
     animation: fadeInUP 1s ease-out;
     width: 100%;
+    position: relative;
+    z-index: 10; /* Fica na frente do caminhão */
 }
 
 .splash-logo {
-    max-width: 500px; /* Aumentado de 400px para 500px */
+    max-width: 500px; 
     width: 100%;
     margin-bottom: 2.5rem;
     filter: drop-shadow(0 0 25px rgba(16, 185, 129, 0.2));
@@ -101,7 +134,7 @@ body { font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(
     font-weight: 900;
     color: white;
     letter-spacing: 2px;
-    margin-bottom: 2rem; /* Mais espaço abaixo do título */
+    margin-bottom: 2rem; 
     text-transform: uppercase;
 }
 

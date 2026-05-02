@@ -18,11 +18,92 @@
 
     <!-- ================= TELA DE ABERTURA (SPLASH SCREEN) ================= -->
     <div id="splash-screen" class="splash-screen">
+        
+        <!-- Animação do Caminhão Tritrem Florestal (Detalhado) -->
+        <div class="splash-animation-container">
+            <svg class="tritrem-svg" viewBox="0 0 900 150" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <!-- Roda detalhada com aro -->
+                    <g id="roda">
+                        <circle cx="0" cy="0" r="14" fill="currentColor" opacity="0.9"/>
+                        <circle cx="0" cy="0" r="7" fill="#0f172a"/> <!-- Cor do fundo para vazar o aro -->
+                        <circle cx="0" cy="0" r="3" fill="currentColor"/>
+                    </g>
+                    
+                    <!-- Fueiro (Haste lateral) -->
+                    <g id="fueiro">
+                        <rect x="0" y="0" width="4" height="50" fill="currentColor" opacity="0.8"/>
+                    </g>
+
+                    <!-- Conjunto de Toras de Eucalipto -->
+                    <g id="carga-toras">
+                        <!-- Camada fundo (mais clara para profundidade) -->
+                        <rect x="2" y="38" width="146" height="10" rx="4" fill="currentColor" opacity="0.4"/>
+                        <rect x="0" y="28" width="150" height="10" rx="4" fill="currentColor" opacity="0.5"/>
+                        <rect x="4" y="18" width="142" height="10" rx="4" fill="currentColor" opacity="0.3"/>
+                        <!-- Camada frente (mais escura) -->
+                        <rect x="5" y="32" width="140" height="12" rx="5" fill="currentColor" opacity="0.8"/>
+                        <rect x="2" y="20" width="146" height="12" rx="5" fill="currentColor" opacity="0.9"/>
+                        <rect x="8" y="8" width="134" height="12" rx="5" fill="currentColor" opacity="0.7"/>
+                    </g>
+
+                    <!-- Molde de uma Carreta Padrão -->
+                    <g id="carreta">
+                        <use href="#carga-toras" x="5" y="10"/>
+                        <use href="#fueiro" x="15" y="10"/>
+                        <use href="#fueiro" x="55" y="10"/>
+                        <use href="#fueiro" x="95" y="10"/>
+                        <use href="#fueiro" x="135" y="10"/>
+                        <rect x="0" y="60" width="160" height="8" fill="currentColor" opacity="1"/>
+                        <use href="#roda" x="35" y="75"/>
+                        <use href="#roda" x="125" y="75"/>
+                    </g>
+                </defs>
+
+                <g fill="currentColor">
+                    <!-- 3ª Carreta -->
+                    <use href="#carreta" x="10" y="30"/>
+                    <rect x="170" y="94" width="30" height="4" opacity="0.6"/> <!-- Engate -->
+
+                    <!-- 2ª Carreta -->
+                    <use href="#carreta" x="200" y="30"/>
+                    <rect x="360" y="94" width="30" height="4" opacity="0.6"/> <!-- Engate -->
+
+                    <!-- 1ª Carreta -->
+                    <use href="#carreta" x="390" y="30"/>
+                    <rect x="550" y="94" width="20" height="4" opacity="0.6"/> <!-- Engate no Cavalo -->
+
+                    <!-- Cavalo Mecânico (Caminhão Florestal) -->
+                    <g transform="translate(570, 30)">
+                        <rect x="0" y="60" width="130" height="8" opacity="1"/> <!-- Chassi Traseiro -->
+                        
+                        <!-- Cabine Principal -->
+                        <path d="M 50 0 L 80 0 L 80 20 L 50 20 Z" opacity="0.6"/> <!-- Aerofólio -->
+                        <path d="M 50 20 L 85 20 L 105 45 L 130 45 L 135 60 L 50 60 Z" opacity="0.9"/> <!-- Corpo -->
+                        <path d="M 55 25 L 80 25 L 95 42 L 55 42 Z" fill="#0f172a" opacity="0.8"/> <!-- Parabrisa Lateral -->
+                        
+                        <rect x="40" y="-10" width="6" height="70" opacity="0.7"/> <!-- Escapamento Vertical -->
+                        <rect x="125" y="48" width="10" height="10" opacity="0.4"/> <!-- Grade Frontal / Farol -->
+                        
+                        <!-- Eixos do Cavalo (Tração dupla e Direcional) -->
+                        <use href="#roda" x="20" y="75"/>
+                        <use href="#roda" x="55" y="75"/>
+                        <use href="#roda" x="115" y="75"/>
+                    </g>
+
+                    <!-- Efeitos de Linha de Velocidade (Vento) -->
+                    <rect x="800" y="100" width="60" height="2" opacity="0.3"/>
+                    <rect x="750" y="115" width="30" height="2" opacity="0.2"/>
+                    <rect x="850" y="75" width="40" height="2" opacity="0.4"/>
+                </g>
+            </svg>
+        </div>
+
+        <!-- Conteúdo Central -->
         <div class="splash-content">
             <img src="./assets/logo.png" alt="Serrana Florestal" class="splash-logo" onerror="this.src='./assets/logoverde.png'">
             <h1 class="splash-title">REUNIÃO DIÁRIA DE ALINHAMENTO</h1>
             
-            <!-- A data será preenchida automaticamente pelo JavaScript -->
             <div class="splash-date" id="splash-date"></div>
 
             <button class="btn-iniciar-reuniao" onclick="iniciarReuniao()">
