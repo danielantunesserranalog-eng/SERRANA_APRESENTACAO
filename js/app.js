@@ -6,10 +6,10 @@ const menuData = [
         ]
     },
     { 
-        id: 'operacional', title: 'OPERACIONAL', icon: 'fa-truck', mainFile: 'dash_operacional.html', key: 'resp_operacional', def: 'Anderson Lemos',
+        id: 'operacional', title: 'OPERACIONAL', icon: 'fa-truck', mainFile: 'dash_operacional.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos',
         submenus: [
-            { id: 'op_frentes', title: 'Lançar Frentes', file: 'op_frentes.html', key: 'resp_operacional', def: 'Anderson Lemos' },
-            { id: 'op_pbtc', title: 'Indicadores PBTC', file: 'op_pbtc.html', key: 'resp_operacional', def: 'Anderson Lemos' }
+            { id: 'op_frentes', title: 'Lançar Frentes', file: 'op_frentes.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos' },
+            { id: 'op_pbtc', title: 'Indicadores PBTC', file: 'op_pbtc.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos' }
         ]
     },
     { 
@@ -124,7 +124,7 @@ async function sincronizarNomesDoBanco() {
             data.forEach(item => localStorage.setItem(item.chave, item.valor));
             const currentTitle = document.getElementById('current-sector-title').innerText;
             if (currentTitle.includes('OPERACIONAL')) {
-                document.getElementById('presenter-name').innerText = localStorage.getItem('resp_operacional') || 'Anderson Lemos';
+                document.getElementById('presenter-name').innerText = localStorage.getItem('resp_operacional') || 'Jilcleiton / Daniel Lemos';
             }
         }
     } catch (e) { console.log('Erro na sincronização inicial'); }
@@ -137,5 +137,5 @@ document.addEventListener('DOMContentLoaded', () => {
     sincronizarNomesDoBanco();
     setInterval(updateClock, 1000);
     updateClock();
-    loadModule(null, 'OPERACIONAL - INDICADORES GERAIS', 'dash_operacional.html', 'resp_operacional', 'Anderson Lemos');
+    loadModule(null, 'OPERACIONAL - INDICADORES GERAIS', 'dash_operacional.html', 'resp_operacional', 'Jilcleiton / Daniel');
 });
