@@ -93,67 +93,97 @@
 </div>
 
 <script>
-    // Inicializa datas com hoje
-    const hojeIso = new Date().toISOString().split('T')[0];
-    document.getElementById('ssma-data-geral').value = hojeIso;
-    document.getElementById('dna-data').value = hojeIso;
-    document.getElementById('trei-data').value = hojeIso;
+    // Toda a lógica envolta nesta função anônima para evitar que as variáveis colidam com o sistema geral (Resolve o erro do hojeIso)
+    (function() {
+        // Inicializa datas com hoje
+        const hojeIso = new Date().toISOString().split('T')[0];
+        document.getElementById('ssma-data-geral').value = hojeIso;
+        document.getElementById('dna-data').value = hojeIso;
+        document.getElementById('trei-data').value = hojeIso;
 
-    const _supaSSMA = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+        const _supaSSMA = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
 
-    async function salvarIndicadoresGerais() {
-        const msg = document.getElementById('msg-ssma-geral');
-        const dados = {
-            data_registro: document.getElementById('ssma-data-geral').value,
-            dias_sem_acidentes: document.getElementById('ssma-dias-acidente').value || 0,
-            incidentes_sem_afastamento: document.getElementById('ssma-incidentes').value || 0,
-            visitas_campo: document.getElementById('ssma-visitas').value || 0,
-            campanha_mes: document.getElementById('ssma-campanha-mes').value,
-            campanha_tema: document.getElementById('ssma-campanha-tema').value
-        };
-        msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando...';
-        const { error } = await _supaSSMA.from('ssma_indicadores_gerais').insert([dados]);
-        if (error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!'; } 
-        else { msg.style.color = 'var(--verde)'; msg.innerText = 'Salvo com sucesso!'; setTimeout(()=>msg.innerText='', 3000); }
-    }
+        // Funções atreladas ao 'window' para que o botão consiga chamar
+        window.salvarIndicadoresGerais = async function() {
+            const msg = document.getElementById('msg-ssma-geral');
+            
+            // CORREÇÃO DO ERRO 400: Convertendo forçadamente tudo que é número usando parseInt()
+            const dados = {
+                data_registro: document.getElementById('ssma-data-geral').value,
+                dias_sem_acidentes: parseInt(document.getElementById('ssma-dias-acidente').value, 10) || 0,
+                incidentes_sem_afastamento: parseInt(document.getElementById('ssma-incidentes').value, 10) || 0,
+                visitas_campo: parseInt(document.getElementById('ssma-visitas').value, 10) || 0,
+                campanha_mes: document.getElementById('ssma-campanha-mes').value || null,
+                campanha_tema: document.getElementById('ssma-campanha-tema').value || null
+            };
 
-    async function salvarDNA() {
-        const msg = document.getElementById('msg-dna');
-        const dados = {
-            data_abertura: document.getElementById('dna-data').value,
-            setor: document.getElementById('dna-setor').value,
-            descricao: document.getElementById('dna-desc').value
-        };
-        if(!dados.descricao) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Preencha a descrição!'; return; }
-        
-        msg.style.color = 'var(--text-dim)'; msg.innerText = 'Registrando...';
-        const { error } = await _supaSSMA.from('ssma_dnas').insert([dados]);
-        if (error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro!'; } 
-        else { 
-            msg.style.color = 'var(--verde)'; msg.innerText = 'DNA Registrado!'; 
-            document.getElementById('dna-desc').value = '';
-            setTimeout(()=>msg.innerText='', 3000); 
+            msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando...';
+            
+            const { error } = await _supaSSMA.from('ssma_indicadores_gerais').insert([dados]);
+            
+            if (error) { 
+                console.error("Erro no Banco:", error);
+                msg.style.color = 'var(--vermelho)'; 
+                msg.innerText = 'Erro ao salvar!'; 
+            } else { 
+                msg.style.color = 'var(--verde)'; 
+                msg.innerText = 'Salvo com sucesso!'; 
+                setTimeout(() => msg.innerText='', 3000); 
+            }
         }
-    }
 
-    async function salvarTreinamento() {
-        const msg = document.getElementById('msg-trei');
-        const dados = {
-            nome_treinamento: document.getElementById('trei-nome').value,
-            data_previsao: document.getElementById('trei-data').value,
-            status: document.getElementById('trei-status').value,
-            quantidade_colaboradores: document.getElementById('trei-qtd').value || 0,
-            localizacao: document.getElementById('trei-local').value
-        };
-        if(!dados.nome_treinamento) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Preencha o Nome!'; return; }
-        
-        msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando...';
-        const { error } = await _supaSSMA.from('ssma_treinamentos').insert([dados]);
-        if (error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro!'; } 
-        else { 
-            msg.style.color = 'var(--verde)'; msg.innerText = 'Salvo!'; 
-            document.getElementById('trei-nome').value = '';
-            setTimeout(()=>msg.innerText='', 3000); 
+        window.salvarDNA = async function() {
+            const msg = document.getElementById('msg-dna');
+            const dados = {
+                data_abertura: document.getElementById('dna-data').value,
+                setor: document.getElementById('dna-setor').value || null,
+                descricao: document.getElementById('dna-desc').value
+            };
+
+            if(!dados.descricao) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Preencha a descrição!'; return; }
+            
+            msg.style.color = 'var(--text-dim)'; msg.innerText = 'Registrando...';
+            const { error } = await _supaSSMA.from('ssma_dnas').insert([dados]);
+            
+            if (error) { 
+                console.error("Erro no Banco:", error);
+                msg.style.color = 'var(--vermelho)'; 
+                msg.innerText = 'Erro ao salvar!'; 
+            } else { 
+                msg.style.color = 'var(--verde)'; 
+                msg.innerText = 'DNA Registrado!'; 
+                document.getElementById('dna-desc').value = '';
+                setTimeout(() => msg.innerText='', 3000); 
+            }
         }
-    }
+
+        window.salvarTreinamento = async function() {
+            const msg = document.getElementById('msg-trei');
+            
+            // CORREÇÃO DO ERRO 400: Conversão da quantidade de pessoas
+            const dados = {
+                nome_treinamento: document.getElementById('trei-nome').value,
+                data_previsao: document.getElementById('trei-data').value,
+                status: document.getElementById('trei-status').value,
+                quantidade_colaboradores: parseInt(document.getElementById('trei-qtd').value, 10) || 0,
+                localizacao: document.getElementById('trei-local').value || null
+            };
+
+            if(!dados.nome_treinamento) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Preencha o Nome!'; return; }
+            
+            msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando...';
+            const { error } = await _supaSSMA.from('ssma_treinamentos').insert([dados]);
+            
+            if (error) { 
+                console.error("Erro no Banco:", error);
+                msg.style.color = 'var(--vermelho)'; 
+                msg.innerText = 'Erro ao salvar!'; 
+            } else { 
+                msg.style.color = 'var(--verde)'; 
+                msg.innerText = 'Salvo!'; 
+                document.getElementById('trei-nome').value = '';
+                setTimeout(() => msg.innerText='', 3000); 
+            }
+        }
+    })();
 </script>
