@@ -12,6 +12,10 @@
                 <input type="number" id="ssma-meta-dna" class="config-input" placeholder="Ex: 2" style="border-color: #0ea5e9;">
             </div>
             <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">DNAs Concluídos (Total do Mês)</label>
+                <input type="number" id="ssma-dnas-concluidos" class="config-input" placeholder="Ex: 10" style="border-color: #8b5cf6;">
+            </div>
+            <div class="input-group">
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Dias Sem Acidentes (C/ Afastamento)</label>
                 <input type="number" id="ssma-dias-acidente" class="config-input" placeholder="Ex: 342">
             </div>
@@ -112,13 +116,13 @@
 
         async function carregarIndicadoresDeHoje() {
             try {
-                // 1. Puxa a Meta Global de DNA
+                // Puxa a Meta Global de DNA
                 const { data: configData } = await _supa.from('configuracoes').select('valor').eq('chave', 'meta_diaria_dna').limit(1);
                 if (configData && configData.length > 0) {
                     document.getElementById('ssma-meta-dna').value = configData[0].valor;
                 }
 
-                // 2. Puxa os dados do dia
+                // Puxa os dados do dia
                 const dataSelecionada = elDataGeral.value;
                 const { data } = await _supa
                     .from('ssma_indicadores_gerais')
@@ -133,12 +137,14 @@
                     document.getElementById('ssma-visitas').value = ind.visitas_campo !== null ? ind.visitas_campo : '';
                     document.getElementById('ssma-campanha-mes').value = ind.campanha_mes || '';
                     document.getElementById('ssma-campanha-tema').value = ind.campanha_tema || '';
+                    document.getElementById('ssma-dnas-concluidos').value = ind.dnas_concluidos !== null ? ind.dnas_concluidos : '';
                 } else {
                     document.getElementById('ssma-dias-acidente').value = '';
                     document.getElementById('ssma-incidentes').value = '';
                     document.getElementById('ssma-visitas').value = '';
                     document.getElementById('ssma-campanha-mes').value = '';
                     document.getElementById('ssma-campanha-tema').value = '';
+                    document.getElementById('ssma-dnas-concluidos').value = '';
                 }
             } catch (err) {
                 console.error("Erro ao carregar indicadores:", err);
@@ -165,19 +171,18 @@
                 incidentes_sem_afastamento: parseInt(document.getElementById('ssma-incidentes').value, 10) || 0,
                 visitas_campo: parseInt(document.getElementById('ssma-visitas').value, 10) || 0,
                 campanha_mes: document.getElementById('ssma-campanha-mes').value || null,
-                campanha_tema: document.getElementById('ssma-campanha-tema').value || null
+                campanha_tema: document.getElementById('ssma-campanha-tema').value || null,
+                dnas_concluidos: parseInt(document.getElementById('ssma-dnas-concluidos').value, 10) || 0
             };
 
             msg.style.color = 'var(--text-dim)'; 
             msg.innerText = 'Salvando...';
 
             try {
-                // 1. Salva a Meta Global na tabela de configurações
                 if (metaDna) {
                     await _supa.from('configuracoes').upsert([{ chave: 'meta_diaria_dna', valor: metaDna }], { onConflict: 'chave' });
                 }
 
-                // 2. Salva os indicadores diários
                 const { data: existe } = await _supa.from('ssma_indicadores_gerais').select('id').eq('data_registro', dataSelecionada).limit(1);
 
                 let res;

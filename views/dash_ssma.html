@@ -39,10 +39,11 @@
         <p class="status-msg" id="msg-dnas-indice" style="font-size: 0.8rem; font-weight: bold;">-</p>
     </div>
     
+    <!-- CARD DE ÍNDICE DE TRATAMENTO MODIFICADO -->
     <div class="kpi-card" style="padding: 20px; border-left: 4px solid #8b5cf6; display: flex; flex-direction: column; justify-content: space-between;">
         <p class="nav-label" style="color: #8b5cf6; margin-bottom: 5px;">ÍNDICE DE TRATAMENTO</p>
         <div class="kpi-value" style="font-size: 2.8rem; margin: 5px 0; color: #8b5cf6;"><span id="val-indice-dna">0</span><span style="font-size: 1.2rem;">%</span></div>
-        <p class="status-msg"><i class="fas fa-chart-pie"></i> DNAs Fechados / Totais</p>
+        <p class="status-msg" id="msg-dnas-concluidos" style="font-weight: bold;"><i class="fas fa-check-double"></i> Concluídos: 0 / Abertos: 0</p>
     </div>
     
     <div class="kpi-card" style="padding: 20px; border-left: 4px solid #f43f5e; display: flex; flex-direction: column; justify-content: space-between;">
@@ -139,8 +140,9 @@
             document.getElementById('label-meta-diaria').innerText = META_DIARIA_DNA;
 
             // ==========================================
-            // 2. PUXAR INDICADORES GERAIS
+            // 2. PUXAR INDICADORES GERAIS E DNAS CONCLUÍDOS
             // ==========================================
+            let dnasConcluidosMes = 0;
             const { data: indData } = await _supa.from('ssma_indicadores_gerais').select('*').order('data_registro', { ascending: false }).limit(1);
             if (indData && indData.length > 0) {
                 const ind = indData[0];
@@ -149,6 +151,9 @@
                 document.getElementById('val-visitas').innerText = ind.visitas_campo || 0;
                 document.getElementById('val-campanha-titulo').innerText = ind.campanha_mes || 'Não Definido';
                 document.getElementById('val-campanha-tema').innerText = ind.campanha_tema || '-';
+                
+                // Variável nova que pega os DNAS fechados
+                dnasConcluidosMes = ind.dnas_concluidos || 0;
             }
 
             // ==========================================
@@ -167,7 +172,6 @@
 
             const { data: dnasData } = await _supa.from('ssma_dnas').select('*');
             let dnasMesAtual = 0;
-            let dnasFechadosTotais = 0;
             const mapDnasPorDia = {};
 
             if (dnasData) {
@@ -176,14 +180,13 @@
                     if(dData.getMonth() + 1 === mesAtualNum && dData.getFullYear() === anoAtualNum) {
                         dnasMesAtual++;
                     }
-                    if (dna.status !== 'Aberto') dnasFechadosTotais++;
                     
                     const dataStr = dna.data_abertura;
                     mapDnasPorDia[dataStr] = (mapDnasPorDia[dataStr] || 0) + 1;
                 });
             }
             
-            // ATUALIZA UI DO CARD DE DNAS
+            // ATUALIZA UI DO CARD DE DNAS (Abertos / Meta)
             document.getElementById('val-dnas-mes').innerText = dnasMesAtual;
             
             const percentAtingido = metaMesAtual > 0 ? Math.min((dnasMesAtual / metaMesAtual) * 100, 100) : 0;
@@ -203,8 +206,10 @@
                 msgIndice.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: var(--amarelo);"></i> Abaixo do volume esperado (${dnasMesAtual}/${metaProporcionalAteHoje})`;
             }
 
-            const taxaDNA = dnasData && dnasData.length > 0 ? ((dnasFechadosTotais / dnasData.length) * 100).toFixed(1) : 0;
+            // ATUALIZA UI DO NOVO ÍNDICE DE TRATAMENTO
+            const taxaDNA = dnasMesAtual > 0 ? ((dnasConcluidosMes / dnasMesAtual) * 100).toFixed(1) : 0;
             document.getElementById('val-indice-dna').innerText = taxaDNA;
+            document.getElementById('msg-dnas-concluidos').innerHTML = `<i class="fas fa-check-double"></i> Concluídos: ${dnasConcluidosMes} / Abertos: ${dnasMesAtual}`;
 
             // RENDERIZA GRÁFICO
             if (typeof echarts !== 'undefined') {
