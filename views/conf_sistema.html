@@ -1,53 +1,79 @@
 <div class="dashboard-grid">
+    <!-- Configurações de Apresentação (Originais) -->
     <div class="kpi-card" style="grid-column: 1 / -1;">
-        <h3 class="nav-label" style="margin-bottom: 25px; font-size: 1rem;"><i class="fas fa-users-cog"></i> RESPONSÁVEIS PELA APRESENTAÇÃO (SUPABASE)</h3>
+        <h3 class="nav-label" style="margin-bottom: 25px; font-size: 1rem;"><i class="fas fa-users-cog"></i> RESPONSÁVEIS PELA APRESENTAÇÃO GERAL</h3>
         
         <div class="form-grid">
             <div class="input-group">
                 <label>Diretoria / Geral</label>
                 <input type="text" id="resp_geral" class="config-input" placeholder="Carregando...">
             </div>
-
             <div class="input-group">
                 <label>RH</label>
                 <input type="text" id="resp_rh" class="config-input" placeholder="Carregando...">
             </div>
-
             <div class="input-group">
                 <label>Operacional</label>
                 <input type="text" id="resp_operacional" class="config-input" placeholder="Carregando...">
             </div>
-
             <div class="input-group">
                 <label>Manutenção</label>
                 <input type="text" id="resp_manutencao" class="config-input" placeholder="Carregando...">
             </div>
-
             <div class="input-group">
                 <label>SSMA</label>
                 <input type="text" id="resp_ssma" class="config-input" placeholder="Carregando...">
             </div>
         </div>
-
         <button class="btn-salvar" id="btn-salvar-config" onclick="salvarConfiguracoesNoBanco()">
             <i class="fas fa-save"></i> Salvar no Banco de Dados
         </button>
         <span id="msg-status" style="margin-left: 15px; font-weight: bold;"></span>
     </div>
+
+    <!-- NOVA ABA: CADASTRAR MEMBROS KANBAN -->
+    <div class="kpi-card" style="grid-column: 1 / -1; margin-top: 10px; border-left: 5px solid var(--amarelo);">
+        <h3 class="nav-label" style="margin-bottom: 25px; font-size: 1rem; color: var(--amarelo);"><i class="fas fa-id-badge"></i> CADASTRAR MEMBROS E SETORES (PARA O KANBAN)</h3>
+        
+        <div class="form-grid">
+            <div class="input-group">
+                <label>Nome do Colaborador</label>
+                <input type="text" id="novo_nome_kb" class="config-input" placeholder="Ex: João Silva">
+            </div>
+            <div class="input-group">
+                <label>Setor Associado</label>
+                <input type="text" id="novo_setor_kb" class="config-input" placeholder="Ex: Manutenção">
+            </div>
+        </div>
+        <button class="btn-salvar" style="background: var(--amarelo); color: var(--bg-dark);" onclick="adicionarMembroKanban()">
+            <i class="fas fa-plus"></i> Adicionar Membro
+        </button>
+        <span id="msg-kb-status" style="margin-left: 15px; font-weight: bold; color: var(--amarelo);"></span>
+
+        <div class="table-box" style="margin-top: 30px;">
+            <table class="exec-table">
+                <thead>
+                    <tr>
+                        <th style="color: var(--text-dim);">Colaborador</th>
+                        <th style="color: var(--text-dim);">Setor</th>
+                        <th style="color: var(--text-dim); text-align: right;">Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-membros-kb"></tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 <script>
-    // Inicializa o cliente do Supabase declarando com 'var' para permitir 
-    // que a página seja recarregada pelo loadModule sem gerar erro de re-declaração
     var _supabase = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-
+    
+    // ======== LÓGICA DE APRESENTAÇÃO (Original) ========
     async function buscarConfiguracoesDoBanco() {
         const status = document.getElementById('msg-status');
         try {
             const { data, error } = await _supabase.from('configuracoes').select('chave, valor');
-            
             if (error) throw error;
-
             if (data) {
                 data.forEach(item => {
                     const input = document.getElementById(item.chave);
@@ -64,31 +90,20 @@
     async function salvarConfiguracoesNoBanco() {
         const btn = document.getElementById('btn-salvar-config');
         const status = document.getElementById('msg-status');
-        
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
         status.innerText = '';
-
         const chaves = ['resp_geral', 'resp_rh', 'resp_operacional', 'resp_manutencao', 'resp_ssma'];
         const dadosParaSalvar = chaves.map(chave => ({
             chave: chave,
             valor: document.getElementById(chave).value
         }));
-
         try {
-            // Upsert: Atualiza se existir o ID (chave), senão insere
             const { error } = await _supabase.from('configuracoes').upsert(dadosParaSalvar);
-
             if (error) throw error;
-
             status.style.color = 'var(--verde)';
             status.innerText = 'Salvo com sucesso no Supabase!';
-            
-            // Atualiza o cache local para que o menu reflita a mudança sem dar F5
-            chaves.forEach(chave => {
-                localStorage.setItem(chave, document.getElementById(chave).value);
-            });
-
+            chaves.forEach(chave => localStorage.setItem(chave, document.getElementById(chave).value));
         } catch (err) {
             console.error('Erro ao salvar:', err);
             status.style.color = 'var(--vermelho)';
@@ -99,6 +114,61 @@
         }
     }
 
-    // Chama a busca assim que a tela abre
+    // ======== LÓGICA DOS MEMBROS KANBAN ========
+    function carregarTabelaMembros() {
+        const tbody = document.getElementById('tabela-membros-kb');
+        const membros = JSON.parse(localStorage.getItem('membros_kanban') || '[]');
+        
+        if (membros.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--text-dim);">Nenhum membro cadastrado.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = membros.map((m, index) => `
+            <tr>
+                <td style="color: white; font-weight: bold;">${m.nome}</td>
+                <td style="color: var(--primary);">${m.setor}</td>
+                <td style="text-align: right;">
+                    <button class="btn-kanban" style="background: var(--vermelho);" onclick="removerMembroKanban(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    window.adicionarMembroKanban = function() {
+        const nome = document.getElementById('novo_nome_kb').value.trim();
+        const setor = document.getElementById('novo_setor_kb').value.trim();
+        const msg = document.getElementById('msg-kb-status');
+
+        if (!nome || !setor) {
+            msg.style.color = 'var(--vermelho)'; msg.innerText = 'Preencha nome e setor!';
+            return;
+        }
+
+        let membros = JSON.parse(localStorage.getItem('membros_kanban') || '[]');
+        membros.push({ nome, setor });
+        localStorage.setItem('membros_kanban', JSON.stringify(membros));
+
+        document.getElementById('novo_nome_kb').value = '';
+        document.getElementById('novo_setor_kb').value = '';
+        
+        msg.style.color = 'var(--verde)'; msg.innerText = 'Membro Adicionado!';
+        setTimeout(() => msg.innerText = '', 3000);
+        
+        carregarTabelaMembros();
+    };
+
+    window.removerMembroKanban = function(index) {
+        if (!confirm("Remover este membro?")) return;
+        let membros = JSON.parse(localStorage.getItem('membros_kanban') || '[]');
+        membros.splice(index, 1);
+        localStorage.setItem('membros_kanban', JSON.stringify(membros));
+        carregarTabelaMembros();
+    };
+
+    // Chamadas iniciais
     buscarConfiguracoesDoBanco();
+    carregarTabelaMembros();
 </script>

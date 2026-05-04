@@ -1,36 +1,20 @@
 const menuData = [
-    {
-         id: 'ssma', title: 'SSMA', icon: 'fa-shield-alt', mainFile: 'dash_ssma.html', key: 'resp_ssma', def: 'Segurança do Trabalho',
-        submenus: [
-            { id: 'ssma_ocorrencias', title: 'Lançar Ocorrências', file: 'ssma_ocorrencias.html', key: 'resp_ssma', def: 'Segurança do Trabalho' }
-        ]
-    },
-    {
-         id: 'rh', title: 'RH', icon: 'fa-users', mainFile: 'rh.html', key: 'resp_rh', def: 'Responsável RH',
-        submenus: [
-            { id: 'rh_painel', title: 'Lançamentos e Painel', file: 'rh.html', key: 'resp_rh', def: 'Responsável RH' }
-        ]
-    },
-    {
-         id: 'operacional', title: 'OPERACIONAL', icon: 'fa-truck', mainFile: 'dash_operacional.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos',
+    { id: 'ssma', title: 'SSMA', icon: 'fa-shield-alt', mainFile: 'dash_ssma.html', key: 'resp_ssma', def: 'Segurança do Trabalho',
+        submenus: [{ id: 'ssma_ocorrencias', title: 'Lançar Ocorrências', file: 'ssma_ocorrencias.html', key: 'resp_ssma', def: 'Segurança do Trabalho' }] },
+    { id: 'rh', title: 'RH', icon: 'fa-users', mainFile: 'rh.html', key: 'resp_rh', def: 'Responsável RH',
+        submenus: [{ id: 'rh_painel', title: 'Lançamentos e Painel', file: 'rh.html', key: 'resp_rh', def: 'Responsável RH' }] },
+    { id: 'operacional', title: 'OPERACIONAL', icon: 'fa-truck', mainFile: 'dash_operacional.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos',
         submenus: [
             { id: 'op_frentes', title: 'Lançar Frentes', file: 'op_frentes.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos' },
             { id: 'op_pbtc', title: 'Indicadores PBTC', file: 'op_pbtc.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos' }
-        ]
-    },
-    {
-         id: 'manutencao', title: 'MANUTENÇÃO', icon: 'fa-tools', mainFile: 'dash_manutencao.html', key: 'resp_manutencao', def: 'Gestão de Frota',
+        ] },
+    { id: 'manutencao', title: 'MANUTENÇÃO', icon: 'fa-tools', mainFile: 'dash_manutencao.html', key: 'resp_manutencao', def: 'Gestão de Frota',
         submenus: [
             { id: 'man_dm', title: 'Apontamentos DM', file: 'man_dm.html', key: 'resp_manutencao', def: 'Gestão de Frota' },
             { id: 'man_sinistros', title: 'Registrar Sinistros', file: 'man_sinistros.html', key: 'resp_manutencao', def: 'Gestão de Frota' }
-        ]
-    },
-    {
-         id: 'consideracoes', title: 'CONSIDERAÇÕES', icon: 'fa-clipboard-list', mainFile: 'dash_consideracoes.html', key: 'resp_geral', def: 'Diretoria',
-        submenus: [
-            { id: 'cons_resumo', title: 'Resumo da Reunião', file: 'cons_resumo.html', key: 'resp_geral', def: 'Diretoria' }
-        ]
-    }
+        ] },
+    { id: 'consideracoes', title: 'CONSIDERAÇÕES', icon: 'fa-clipboard-list', mainFile: 'dash_consideracoes.html', key: 'resp_geral', def: 'Diretoria',
+        submenus: [{ id: 'cons_resumo', title: 'Resumo da Reunião', file: 'cons_resumo.html', key: 'resp_geral', def: 'Diretoria' }] }
 ];
 
 const configMenuData = [{
@@ -43,7 +27,6 @@ let lastClickTime = 0;
 function renderMenuElements(dataArray, containerId) {
     const list = document.getElementById(containerId);
     list.innerHTML = '';
-    
     dataArray.forEach(menu => {
         const li = document.createElement('li');
         li.className = 'menu-item';
@@ -72,12 +55,9 @@ function handleMenuInteraction(event, element, title, file, key, def) {
     if (event) event.preventDefault();
     const currentTime = new Date().getTime();
     const timeDiff = currentTime - lastClickTime;
-    
     loadModule(null, title, file, key, def);
-    
     document.querySelectorAll('.menu-link, .submenu-link').forEach(l => l.classList.remove('active'));
     element.classList.add('active');
-    
     if (timeDiff < 400 && timeDiff > 0) toggleSubmenu(element);
     lastClickTime = currentTime;
 }
@@ -90,10 +70,8 @@ function toggleSubmenu(element) {
 
 async function loadModule(event, subTitle, fileName, respKey, defName) {
     if(event) event.preventDefault();
-    
     const contentArea = document.getElementById('content-area');
     document.getElementById('current-sector-title').innerText = subTitle;
-    
     let nomeResponsavel = (respKey !== 'none') ? (localStorage.getItem(respKey) || defName) : defName;
     document.getElementById('presenter-name').innerText = nomeResponsavel;
     
@@ -108,7 +86,6 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
     try {
         const resp = await fetch(`./views/${fileName}`);
         if (!resp.ok) throw new Error();
-        
         const html = await resp.text();
         contentArea.innerHTML = html;
         
@@ -119,9 +96,122 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
             document.body.appendChild(newScript);
             document.body.removeChild(newScript);
         });
+
+        // INJEÇÃO AUTOMÁTICA DO FORMULÁRIO DO KANBAN NO FINAL DE CADA TELA
+        if (!['dash_consideracoes.html', 'conf_sistema.html'].includes(fileName)) {
+            injectKanbanLauncher(subTitle);
+        }
+
     } catch (e) {
         contentArea.innerHTML = `<div class="kpi-card" style="border-color: var(--vermelho);"><h3>Erro ao carregar</h3><p>Verifique o arquivo <b>views/${fileName}</b></p></div>`;
     }
+}
+
+// LÓGICA DO KANBAN DE CONSIDERAÇÕES
+function injectKanbanLauncher(setorTitle) {
+    const contentArea = document.getElementById('content-area');
+    const setorNome = setorTitle.split('-')[0].trim();
+    
+    const launcherHtml = `
+    <div class="content-panel kpi-card kanban-form-container" style="margin-top: 40px; border-left: 5px solid var(--primary);">
+        <h3 class="nav-label" style="color: var(--primary); margin-bottom: 20px; font-size: 1rem;">
+            <i class="fas fa-bullseye"></i> METAS A CUMPRIR E CONSIDERAÇÕES DO DIA (KANBAN)
+        </h3>
+        <div class="form-grid">
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Setor</label>
+                <input type="text" id="kb-setor" class="config-input" value="${setorNome}" readonly style="background: rgba(0,0,0,0.2);">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Responsável pela Ação</label>
+                <select id="kb-responsavel" class="config-input"></select>
+            </div>
+            <div class="input-group" style="grid-column: 1 / -1;">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Meta / Ação Principal</label>
+                <input type="text" id="kb-meta" class="config-input" placeholder="Ex: Ajustar o indicador PBTC para cálculo de média até as 14h">
+            </div>
+            <div class="input-group" style="grid-column: 1 / -1;">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Considerações Adicionais (Opcional)</label>
+                <textarea id="kb-consideracao" class="config-input" rows="2" placeholder="Observações do dia..."></textarea>
+            </div>
+        </div>
+        <div style="margin-top: 15px; display: flex; justify-content: flex-end; align-items: center;">
+            <span id="kb-msg" style="margin-right: 20px; font-weight: bold; font-size: 0.9rem;"></span>
+            <button class="btn-salvar" onclick="salvarKanbanItem()">
+                <i class="fas fa-share-square"></i> Enviar para o Quadro
+            </button>
+        </div>
+    </div>`;
+    
+    contentArea.insertAdjacentHTML('beforeend', launcherHtml);
+    carregarDropdownResponsaveis();
+}
+
+function carregarDropdownResponsaveis() {
+    const select = document.getElementById('kb-responsavel');
+    if(!select) return;
+    
+    // Tenta carregar do LocalStorage a lista customizada (feita em conf_sistema)
+    const membrosSalvos = JSON.parse(localStorage.getItem('membros_kanban') || '[]');
+    let options = '<option value="">Selecione...</option>';
+    
+    membrosSalvos.forEach(m => {
+        options += `<option value="${m.nome}">${m.nome} (${m.setor})</option>`;
+    });
+
+    // Se estiver vazio, coloca uma mensagem de fallback
+    if (membrosSalvos.length === 0) {
+        options += `<option value="Não Cadastrado">Cadastre as pessoas no Menu Configurações</option>`;
+    }
+    
+    select.innerHTML = options;
+}
+
+window.salvarKanbanItem = async function() {
+    const setor = document.getElementById('kb-setor').value;
+    const responsavel = document.getElementById('kb-responsavel').value;
+    const meta = document.getElementById('kb-meta').value;
+    const consideracao = document.getElementById('kb-consideracao').value;
+    const msg = document.getElementById('kb-msg');
+
+    if(!meta || !responsavel) { 
+        msg.style.color = 'var(--vermelho)'; 
+        msg.innerText = 'Preencha a Meta e o Responsável!'; 
+        return; 
+    }
+
+    const item = { 
+        id: Date.now(), 
+        setor: setor, 
+        responsavel: responsavel, 
+        meta: meta, 
+        consideracao: consideracao, 
+        status: 'TODO', 
+        data_criacao: new Date().toISOString() 
+    };
+
+    msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando...';
+
+    try {
+        if (typeof supabase !== 'undefined' && SUPABASE_CONFIG) {
+            const _supa = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            const { error } = await _supa.from('kanban_metas').insert([item]);
+            if (error) throw error;
+        } else {
+            throw new Error("Supabase não carregado");
+        }
+    } catch(e) {
+        // FALLBACK: Se o Supabase falhar ou a tabela não existir, salva no LocalStorage para a apresentação não parar!
+        console.warn("Tabela kanban_metas não encontrada ou erro de rede. Usando Fallback LocalStorage.");
+        let localKanban = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');
+        localKanban.push(item);
+        localStorage.setItem('kanban_metas_local', JSON.stringify(localKanban));
+    }
+
+    msg.style.color = 'var(--verde)'; msg.innerText = 'Enviado para o Quadro de Considerações!';
+    document.getElementById('kb-meta').value = '';
+    document.getElementById('kb-consideracao').value = '';
+    setTimeout(() => msg.innerText = '', 4000);
 }
 
 async function sincronizarNomesDoBanco() {
@@ -129,36 +219,23 @@ async function sincronizarNomesDoBanco() {
         const { createClient } = supabase;
         const _supa = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
         const { data } = await _supa.from('configuracoes').select('chave, valor');
-        
         if (data) {
             data.forEach(item => localStorage.setItem(item.chave, item.valor));
         }
-    } catch (e) { 
-        console.log('Erro na sincronização inicial'); 
+    } catch (e) {
+         console.log('Erro na sincronização inicial'); 
     }
 }
 
-function updateClock() { 
-    document.getElementById('clock').innerText = new Date().toLocaleTimeString('pt-BR'); 
+function updateClock() {
+    document.getElementById('clock').innerText = new Date().toLocaleTimeString('pt-BR');
 }
 
-// ==========================================================
-// FUNÇÃO PARA INICIAR A REUNIÃO A PARTIR DA SPLASH SCREEN
-// ==========================================================
 function iniciarReuniao() {
-    // Esconde a tela de Splash com animação
     const splash = document.getElementById('splash-screen');
     splash.classList.add('hidden');
-    
-    // Oculta completamente após a animação CSS (600ms)
-    setTimeout(() => {
-        splash.style.display = 'none';
-    }, 600);
-
-    // Carrega o módulo do SSMA diretamente (Mudança principal aqui)
+    setTimeout(() => { splash.style.display = 'none'; }, 600);
     loadModule(null, 'SSMA - INDICADORES GERAIS', 'dash_ssma.html', 'resp_ssma', 'Segurança do Trabalho');
-
-    // Destaca o menu do SSMA visualmente na barra lateral
     const ssmaLink = document.getElementById('link-ssma');
     if (ssmaLink) {
         document.querySelectorAll('.menu-link, .submenu-link').forEach(l => l.classList.remove('active'));
@@ -171,8 +248,6 @@ document.addEventListener('DOMContentLoaded', () => {
     sincronizarNomesDoBanco();
     setInterval(updateClock, 1000);
     updateClock();
-    
-    // Define a Data atual na Splash Screen
     const splashDate = document.getElementById('splash-date');
     if (splashDate) {
         const opcoesData = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };

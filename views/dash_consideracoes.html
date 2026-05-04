@@ -5,14 +5,12 @@
         <div class="kpi-value status-verde">0 <span class="kpi-unit">%</span></div>
         <p class="status-msg">Global Serrana Florestal</p>
     </div>
-
     <div class="kpi-card">
         <div class="farol-indicator bg-verde"></div>
         <p class="nav-label">EFETIVIDADE DE PRAZOS</p>
         <div class="kpi-value status-verde">0 <span class="kpi-unit">%</span></div>
         <p class="status-msg">Aderência aos compromissos firmados</p>
     </div>
-    
     <div class="kpi-card">
         <div class="farol-indicator bg-amarelo"></div>
         <p class="nav-label">PONTOS DE ATENÇÃO PARA O PERÍODO</p>
@@ -21,21 +19,110 @@
     </div>
 </div>
 
-<div class="table-box">
-    <h3 class="nav-label">PAUTA E PLANO DE AÇÃO PÓS-REUNIÃO</h3>
-    <table class="exec-table">
-        <thead>
-            <tr>
-                <th>Ação / Encaminhamento</th>
-                <th>Setor Envolvido</th>
-                <th>Prazo Estipulado</th>
-                <th>Nível de Prioridade</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td colspan="4" style="text-align: center; color: var(--text-dim); padding: 20px;">Nenhum plano de ação definido.</td>
-            </tr>
-        </tbody>
-    </table>
+<!-- ================= QUADRO KANBAN ================= -->
+<div class="content-panel kanban-container" style="margin-top: 30px;">
+    <h3 class="nav-label" style="font-size: 1rem; color: white;"><i class="fas fa-columns" style="color: var(--primary);"></i> QUADRO KANBAN - METAS E AÇÕES DIÁRIAS</h3>
+    
+    <div class="kanban-board">
+        <div class="kanban-col">
+            <div class="kanban-col-header todo">A CUMPRIR</div>
+            <div class="kanban-cards" id="kb-col-todo"></div>
+        </div>
+        <div class="kanban-col">
+            <div class="kanban-col-header doing">EM ANDAMENTO</div>
+            <div class="kanban-cards" id="kb-col-doing"></div>
+        </div>
+        <div class="kanban-col">
+            <div class="kanban-col-header done">CONCLUÍDO</div>
+            <div class="kanban-cards" id="kb-col-done"></div>
+        </div>
+    </div>
 </div>
+
+<script>
+    async function carregarKanbanDash() {
+        const colTodo = document.getElementById('kb-col-todo');
+        const colDoing = document.getElementById('kb-col-doing');
+        const colDone = document.getElementById('kb-col-done');
+
+        colTodo.innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i></div>';
+        colDoing.innerHTML = '';
+        colDone.innerHTML = '';
+
+        let dadosKanban = [];
+
+        try {
+            // Tenta puxar do Supabase primeiro
+            const _supa = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            const { data, error } = await _supa.from('kanban_metas').select('*').order('data_criacao', { ascending: false });
+            if (error) throw error;
+            dadosKanban = data || [];
+        } catch(e) {
+            // FALLBACK LocalStorage (Garante a apresentação perfeita)
+            console.warn("Puxando dados do LocalStorage Kanban");
+            dadosKanban = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');
+            // Ordena pelo mais recente
+            dadosKanban.sort((a,b) => new Date(b.data_criacao) - new Date(a.data_criacao));
+        }
+
+        colTodo.innerHTML = '';
+
+        dadosKanban.forEach(item => {
+            const card = `
+            <div class="kanban-card">
+                <div class="kanban-card-title">${item.meta}</div>
+                ${item.consideracao ? `<div class="kanban-card-desc">${item.consideracao}</div>` : ''}
+                <div class="kanban-card-meta">
+                    <span class="badge-setor"><i class="fas fa-building"></i> ${item.setor}</span>
+                    <span style="color: var(--primary);"><i class="fas fa-user"></i> ${item.responsavel}</span>
+                </div>
+                <div class="kanban-actions">
+                    ${item.status !== 'TODO' ? `<button class="btn-kanban" onclick="moverKanban('${item.id}', 'TODO')"><i class="fas fa-arrow-left"></i> A Fazer</button>` : ''}
+                    ${item.status !== 'DOING' ? `<button class="btn-kanban" onclick="moverKanban('${item.id}', 'DOING')">${item.status==='TODO' ? 'Iniciar <i class="fas fa-arrow-right"></i>' : 'Voltar'}</button>` : ''}
+                    ${item.status !== 'DONE' ? `<button class="btn-kanban" onclick="moverKanban('${item.id}', 'DONE')"><i class="fas fa-check"></i> Concluir</button>` : ''}
+                    <button class="btn-kanban delete" onclick="excluirKanban('${item.id}')"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>`;
+
+            if(item.status === 'TODO') colTodo.insertAdjacentHTML('beforeend', card);
+            else if(item.status === 'DOING') colDoing.insertAdjacentHTML('beforeend', card);
+            else if(item.status === 'DONE') colDone.insertAdjacentHTML('beforeend', card);
+        });
+
+        if(!colTodo.innerHTML) colTodo.innerHTML = '<p style="color:var(--text-dim);text-align:center;font-size:0.85rem;">Nenhuma ação pendente</p>';
+        if(!colDoing.innerHTML) colDoing.innerHTML = '<p style="color:var(--text-dim);text-align:center;font-size:0.85rem;">Nenhuma ação em andamento</p>';
+        if(!colDone.innerHTML) colDone.innerHTML = '<p style="color:var(--text-dim);text-align:center;font-size:0.85rem;">Nenhuma ação concluída</p>';
+    }
+
+    window.moverKanban = async function(id, novoStatus) {
+        try {
+            const _supa = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            const { error } = await _supa.from('kanban_metas').update({ status: novoStatus }).eq('id', id);
+            if (error) throw error;
+        } catch(e) {
+            // Fallback LocalStorage
+            let local = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');
+            const index = local.findIndex(i => String(i.id) === String(id));
+            if (index > -1) { local[index].status = novoStatus; localStorage.setItem('kanban_metas_local', JSON.stringify(local)); }
+        }
+        carregarKanbanDash();
+    }
+
+    window.excluirKanban = async function(id) {
+        if(!confirm('Excluir esta meta do painel?')) return;
+        try {
+            const _supa = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            const { error } = await _supa.from('kanban_metas').delete().eq('id', id);
+            if (error) throw error;
+        } catch(e) {
+            // Fallback LocalStorage
+            let local = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');
+            local = local.filter(i => String(i.id) !== String(id));
+            localStorage.setItem('kanban_metas_local', JSON.stringify(local));
+        }
+        carregarKanbanDash();
+    }
+
+    // Inicializa
+    setTimeout(carregarKanbanDash, 300);
+</script>
