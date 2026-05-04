@@ -14,7 +14,10 @@ const menuData = [
             { id: 'man_sinistros', title: 'Registrar Sinistros', file: 'man_sinistros.html', key: 'resp_manutencao', def: 'Gestão de Frota' }
         ] },
     { id: 'consideracoes', title: 'CONSIDERAÇÕES', icon: 'fa-clipboard-list', mainFile: 'dash_consideracoes.html', key: 'resp_geral', def: 'Diretoria',
-        submenus: [{ id: 'cons_resumo', title: 'Resumo da Reunião', file: 'cons_resumo.html', key: 'resp_geral', def: 'Diretoria' }] }
+        submenus: [
+            { id: 'cons_resumo', title: 'Resumo da Reunião', file: 'cons_resumo.html', key: 'resp_geral', def: 'Diretoria' },
+            { id: 'cons_historico', title: 'Histórico de Metas', file: 'cons_historico.html', key: 'resp_geral', def: 'Diretoria' }
+        ] }
 ];
 
 const configMenuData = [{
@@ -89,7 +92,6 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
         const html = await resp.text();
         contentArea.innerHTML = html;
         
-        // Remonta os scripts para executarem novamente ao mudar de página
         contentArea.querySelectorAll('script').forEach(s => {
             const newScript = document.createElement('script');
             newScript.textContent = s.innerHTML;
@@ -98,7 +100,7 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
         });
 
         // INJEÇÃO AUTOMÁTICA DO FORMULÁRIO DO KANBAN NO FINAL DE CADA TELA
-        if (!['dash_consideracoes.html', 'conf_sistema.html'].includes(fileName)) {
+        if (!['dash_consideracoes.html', 'cons_historico.html', 'conf_sistema.html'].includes(fileName)) {
             injectKanbanLauncher(subTitle);
         }
 
@@ -107,10 +109,12 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
     }
 }
 
-// LÓGICA DO KANBAN DE CONSIDERAÇÕES
 function injectKanbanLauncher(setorTitle) {
     const contentArea = document.getElementById('content-area');
     const setorNome = setorTitle.split('-')[0].trim();
+    
+    // Pegando a data de hoje para sugerir no input type="date"
+    const hoje = new Date().toISOString().split('T')[0];
     
     const launcherHtml = `
     <div class="content-panel kpi-card kanban-form-container" style="margin-top: 40px; border-left: 5px solid var(--primary);">
@@ -125,6 +129,10 @@ function injectKanbanLauncher(setorTitle) {
             <div class="input-group">
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Responsável pela Ação</label>
                 <select id="kb-responsavel" class="config-input"></select>
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Previsão de Conclusão</label>
+                <input type="date" id="kb-data" class="config-input" value="${hoje}">
             </div>
             <div class="input-group" style="grid-column: 1 / -1;">
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Meta / Ação Principal</label>
@@ -151,7 +159,6 @@ function carregarDropdownResponsaveis() {
     const select = document.getElementById('kb-responsavel');
     if(!select) return;
     
-    // Tenta carregar do LocalStorage a lista customizada (feita em conf_sistema)
     const membrosSalvos = JSON.parse(localStorage.getItem('membros_kanban') || '[]');
     let options = '<option value="">Selecione...</option>';
     
@@ -159,7 +166,6 @@ function carregarDropdownResponsaveis() {
         options += `<option value="${m.nome}">${m.nome} (${m.setor})</option>`;
     });
 
-    // Se estiver vazio, coloca uma mensagem de fallback
     if (membrosSalvos.length === 0) {
         options += `<option value="Não Cadastrado">Cadastre as pessoas no Menu Configurações</option>`;
     }
@@ -171,6 +177,7 @@ window.salvarKanbanItem = async function() {
     const setor = document.getElementById('kb-setor').value;
     const responsavel = document.getElementById('kb-responsavel').value;
     const meta = document.getElementById('kb-meta').value;
+    const data_previsao = document.getElementById('kb-data').value;
     const consideracao = document.getElementById('kb-consideracao').value;
     const msg = document.getElementById('kb-msg');
 
@@ -186,6 +193,7 @@ window.salvarKanbanItem = async function() {
         responsavel: responsavel, 
         meta: meta, 
         consideracao: consideracao, 
+        data_previsao: data_previsao,
         status: 'TODO', 
         data_criacao: new Date().toISOString() 
     };
@@ -201,8 +209,7 @@ window.salvarKanbanItem = async function() {
             throw new Error("Supabase não carregado");
         }
     } catch(e) {
-        // FALLBACK: Se o Supabase falhar ou a tabela não existir, salva no LocalStorage para a apresentação não parar!
-        console.warn("Tabela kanban_metas não encontrada ou erro de rede. Usando Fallback LocalStorage.");
+        console.warn("Tabela kanban_metas não encontrada. Usando Fallback LocalStorage.");
         let localKanban = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');
         localKanban.push(item);
         localStorage.setItem('kanban_metas_local', JSON.stringify(localKanban));
