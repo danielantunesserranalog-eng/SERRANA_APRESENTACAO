@@ -1,6 +1,6 @@
 // ARQUIVO: js/rh.js
 
-function salvarDadosRH() {
+window.salvarDadosRH = function() {
     // Puxa os dados que já existem para não sobrescrever os apagados por acidente
     const dadosSalvos = JSON.parse(localStorage.getItem('dados_rh') || '{}');
     
@@ -25,10 +25,10 @@ function salvarDadosRH() {
     }
     
     // Atualiza a tela imediatamente
-    carregarDadosRH();
+    window.carregarDadosRH();
 }
 
-function carregarDadosRH() {
+window.carregarDadosRH = function() {
     const dadosSalvos = localStorage.getItem('dados_rh');
     
     if (dadosSalvos) {
@@ -53,4 +53,4 @@ function carregarDadosRH() {
 }
 
 // Executa assim que a tela abre
-carregarDadosRH();
+window.carregarDadosRH();

@@ -107,7 +107,8 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
             document.body.removeChild(newScript);
         });
         
-        if (!['dash_consideracoes.html', 'cons_historico.html', 'conf_sistema.html'].includes(fileName)) {
+        // Aqui removemos o Kanban da tela de Lançamentos do RH, além de outros arquivos
+        if (!['dash_consideracoes.html', 'cons_historico.html', 'conf_sistema.html', 'rh_lancamentos.html'].includes(fileName)) {
             injectKanbanLauncher(subTitle);
         }
     } catch (e) {
