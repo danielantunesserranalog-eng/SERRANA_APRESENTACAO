@@ -93,15 +93,20 @@
 
 <script>
     (async function initSSMADashReal() {
-        const _supa = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-        const statusEl = document.getElementById('status-att-ssma');
+        // Instância GLOBAL ÚNICA para parar os avisos no terminal
+        if (!window.supabaseClientGlobal) {
+            window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+        }
+        const _supa = window.supabaseClientGlobal;
 
+        const statusEl = document.getElementById('status-att-ssma');
+        
         function formatarData(dataIso) {
             if(!dataIso) return '-';
             const [a, m, d] = dataIso.split('-');
             return `${d}/${m}/${a}`;
         }
-
+        
         try {
             // 1. PUXAR INDICADORES GERAIS (Pega o mais recente salvo)
             const { data: indData } = await _supa.from('ssma_indicadores_gerais').select('*').order('data_registro', { ascending: false }).limit(1);
@@ -139,7 +144,6 @@
                     mapDnasPorDia[dataStr] = (mapDnasPorDia[dataStr] || 0) + 1;
                 });
             }
-
             document.getElementById('val-dnas-mes').innerText = dnasMesAtual;
             
             // Calculo Índice de Fechamento de DNA
@@ -214,7 +218,6 @@
             }
 
             statusEl.innerHTML = '<i class="fas fa-check-circle" style="color: var(--verde);"></i> Atualizado agora';
-
         } catch (e) {
             console.error("Erro ao puxar SSMA:", e);
             statusEl.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: var(--vermelho);"></i> Erro na conexão';

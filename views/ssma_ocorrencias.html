@@ -93,23 +93,67 @@
 </div>
 
 <script>
-    // Toda a lógica envolta nesta função anônima para evitar que as variáveis colidam com o sistema geral (Resolve o erro do hojeIso)
-    (function() {
-        // Inicializa datas com hoje
+    setTimeout(() => {
+        // Instância GLOBAL ÚNICA do Supabase para parar o aviso "Multiple GoTrueClient"
+        if (!window.supabaseClientGlobal) {
+            window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+        }
+        const _supa = window.supabaseClientGlobal;
+
+        const elDataGeral = document.getElementById('ssma-data-geral');
+        const elDnaData = document.getElementById('dna-data');
+        const elTreiData = document.getElementById('trei-data');
+
+        if (!elDataGeral || !elDnaData || !elTreiData) return;
+
         const hojeIso = new Date().toISOString().split('T')[0];
-        document.getElementById('ssma-data-geral').value = hojeIso;
-        document.getElementById('dna-data').value = hojeIso;
-        document.getElementById('trei-data').value = hojeIso;
+        elDataGeral.value = hojeIso;
+        elDnaData.value = hojeIso;
+        elTreiData.value = hojeIso;
 
-        const _supaSSMA = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+        async function carregarIndicadoresDeHoje() {
+            try {
+                const dataSelecionada = elDataGeral.value;
+                const { data } = await _supa
+                    .from('ssma_indicadores_gerais')
+                    .select('*')
+                    .eq('data_registro', dataSelecionada)
+                    .limit(1);
 
-        // Funções atreladas ao 'window' para que o botão consiga chamar
+                if (data && data.length > 0) {
+                    const ind = data[0];
+                    document.getElementById('ssma-dias-acidente').value = ind.dias_sem_acidentes !== null ? ind.dias_sem_acidentes : '';
+                    document.getElementById('ssma-incidentes').value = ind.incidentes_sem_afastamento !== null ? ind.incidentes_sem_afastamento : '';
+                    document.getElementById('ssma-visitas').value = ind.visitas_campo !== null ? ind.visitas_campo : '';
+                    document.getElementById('ssma-campanha-mes').value = ind.campanha_mes || '';
+                    document.getElementById('ssma-campanha-tema').value = ind.campanha_tema || '';
+                } else {
+                    document.getElementById('ssma-dias-acidente').value = '';
+                    document.getElementById('ssma-incidentes').value = '';
+                    document.getElementById('ssma-visitas').value = '';
+                    document.getElementById('ssma-campanha-mes').value = '';
+                    document.getElementById('ssma-campanha-tema').value = '';
+                }
+            } catch (err) {
+                console.error("Erro ao carregar indicadores:", err);
+            }
+        }
+        
+        carregarIndicadoresDeHoje();
+        elDataGeral.addEventListener('change', carregarIndicadoresDeHoje);
+
         window.salvarIndicadoresGerais = async function() {
             const msg = document.getElementById('msg-ssma-geral');
+            const dataSelecionada = document.getElementById('ssma-data-geral').value;
             
-            // CORREÇÃO DO ERRO 400: Convertendo forçadamente tudo que é número usando parseInt()
+            if(!dataSelecionada) {
+                msg.style.color = 'var(--vermelho)';
+                msg.innerText = 'Selecione uma data!';
+                return;
+            }
+
             const dados = {
-                data_registro: document.getElementById('ssma-data-geral').value,
+                data_registro: dataSelecionada,
                 dias_sem_acidentes: parseInt(document.getElementById('ssma-dias-acidente').value, 10) || 0,
                 incidentes_sem_afastamento: parseInt(document.getElementById('ssma-incidentes').value, 10) || 0,
                 visitas_campo: parseInt(document.getElementById('ssma-visitas').value, 10) || 0,
@@ -117,18 +161,31 @@
                 campanha_tema: document.getElementById('ssma-campanha-tema').value || null
             };
 
-            msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando...';
-            
-            const { error } = await _supaSSMA.from('ssma_indicadores_gerais').insert([dados]);
-            
-            if (error) { 
-                console.error("Erro no Banco:", error);
-                msg.style.color = 'var(--vermelho)'; 
-                msg.innerText = 'Erro ao salvar!'; 
-            } else { 
-                msg.style.color = 'var(--verde)'; 
-                msg.innerText = 'Salvo com sucesso!'; 
-                setTimeout(() => msg.innerText='', 3000); 
+            msg.style.color = 'var(--text-dim)'; 
+            msg.innerText = 'Salvando...';
+
+            try {
+                // VERIFICA SE EXISTE NO MOMENTO EXATO DE SALVAR (Previne falha no salvamento)
+                const { data: existe } = await _supa.from('ssma_indicadores_gerais').select('id').eq('data_registro', dataSelecionada).limit(1);
+
+                let res;
+                if (existe && existe.length > 0) {
+                    res = await _supa.from('ssma_indicadores_gerais').update(dados).eq('data_registro', dataSelecionada);
+                } else {
+                    res = await _supa.from('ssma_indicadores_gerais').insert([dados]);
+                }
+                
+                if (res.error) { 
+                    console.error("Erro no Banco:", res.error);
+                    msg.style.color = 'var(--vermelho)'; 
+                    msg.innerText = 'Erro ao salvar!'; 
+                } else { 
+                    msg.style.color = 'var(--verde)'; 
+                    msg.innerText = 'Salvo com sucesso!'; 
+                    setTimeout(() => msg.innerText='', 3000); 
+                }
+            } catch (err) {
+                console.error("Erro Crítico:", err);
             }
         }
 
@@ -143,10 +200,9 @@
             if(!dados.descricao) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Preencha a descrição!'; return; }
             
             msg.style.color = 'var(--text-dim)'; msg.innerText = 'Registrando...';
-            const { error } = await _supaSSMA.from('ssma_dnas').insert([dados]);
+            const { error } = await _supa.from('ssma_dnas').insert([dados]);
             
             if (error) { 
-                console.error("Erro no Banco:", error);
                 msg.style.color = 'var(--vermelho)'; 
                 msg.innerText = 'Erro ao salvar!'; 
             } else { 
@@ -160,7 +216,6 @@
         window.salvarTreinamento = async function() {
             const msg = document.getElementById('msg-trei');
             
-            // CORREÇÃO DO ERRO 400: Conversão da quantidade de pessoas
             const dados = {
                 nome_treinamento: document.getElementById('trei-nome').value,
                 data_previsao: document.getElementById('trei-data').value,
@@ -172,10 +227,9 @@
             if(!dados.nome_treinamento) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Preencha o Nome!'; return; }
             
             msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando...';
-            const { error } = await _supaSSMA.from('ssma_treinamentos').insert([dados]);
+            const { error } = await _supa.from('ssma_treinamentos').insert([dados]);
             
             if (error) { 
-                console.error("Erro no Banco:", error);
                 msg.style.color = 'var(--vermelho)'; 
                 msg.innerText = 'Erro ao salvar!'; 
             } else { 
@@ -185,5 +239,6 @@
                 setTimeout(() => msg.innerText='', 3000); 
             }
         }
-    })();
+
+    }, 50); 
 </script>
