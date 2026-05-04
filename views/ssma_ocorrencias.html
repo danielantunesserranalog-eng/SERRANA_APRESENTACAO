@@ -27,13 +27,18 @@
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Visitas de Campo</label>
                 <input type="number" id="ssma-visitas" class="config-input" placeholder="Ex: 8">
             </div>
-            <div class="input-group">
+            <div class="input-group" style="grid-column: span 1;">
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Campanha do Mês (Título)</label>
                 <input type="text" id="ssma-campanha-mes" class="config-input" placeholder="Ex: Maio Amarelo">
             </div>
-            <div class="input-group">
+            <div class="input-group" style="grid-column: span 1;">
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Tema da Campanha</label>
                 <input type="text" id="ssma-campanha-tema" class="config-input" placeholder="Ex: Atenção pela Vida no Trânsito">
+            </div>
+            <div class="input-group" style="grid-column: span 1;">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Cor da Campanha</label>
+                <!-- Seletor de cores nativo -->
+                <input type="color" id="ssma-campanha-cor" class="config-input" value="#f59e0b" style="padding: 5px; height: 50px; cursor: pointer;">
             </div>
         </div>
         <button class="btn-salvar" style="background: var(--verde);" onclick="salvarIndicadoresGerais()">
@@ -137,6 +142,7 @@
                     document.getElementById('ssma-visitas').value = ind.visitas_campo !== null ? ind.visitas_campo : '';
                     document.getElementById('ssma-campanha-mes').value = ind.campanha_mes || '';
                     document.getElementById('ssma-campanha-tema').value = ind.campanha_tema || '';
+                    document.getElementById('ssma-campanha-cor').value = ind.campanha_cor || '#f59e0b';
                     document.getElementById('ssma-dnas-concluidos').value = ind.dnas_concluidos !== null ? ind.dnas_concluidos : '';
                 } else {
                     document.getElementById('ssma-dias-acidente').value = '';
@@ -144,6 +150,7 @@
                     document.getElementById('ssma-visitas').value = '';
                     document.getElementById('ssma-campanha-mes').value = '';
                     document.getElementById('ssma-campanha-tema').value = '';
+                    document.getElementById('ssma-campanha-cor').value = '#f59e0b';
                     document.getElementById('ssma-dnas-concluidos').value = '';
                 }
             } catch (err) {
@@ -172,6 +179,7 @@
                 visitas_campo: parseInt(document.getElementById('ssma-visitas').value, 10) || 0,
                 campanha_mes: document.getElementById('ssma-campanha-mes').value || null,
                 campanha_tema: document.getElementById('ssma-campanha-tema').value || null,
+                campanha_cor: document.getElementById('ssma-campanha-cor').value || '#f59e0b',
                 dnas_concluidos: parseInt(document.getElementById('ssma-dnas-concluidos').value, 10) || 0
             };
 

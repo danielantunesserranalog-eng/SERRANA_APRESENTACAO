@@ -39,7 +39,7 @@
         <p class="status-msg" id="msg-dnas-indice" style="font-size: 0.8rem; font-weight: bold;">-</p>
     </div>
     
-    <!-- CARD DE ÍNDICE DE TRATAMENTO MODIFICADO -->
+    <!-- CARD DE ÍNDICE DE TRATAMENTO -->
     <div class="kpi-card" style="padding: 20px; border-left: 4px solid #8b5cf6; display: flex; flex-direction: column; justify-content: space-between;">
         <p class="nav-label" style="color: #8b5cf6; margin-bottom: 5px;">ÍNDICE DE TRATAMENTO</p>
         <div class="kpi-value" style="font-size: 2.8rem; margin: 5px 0; color: #8b5cf6;"><span id="val-indice-dna">0</span><span style="font-size: 1.2rem;">%</span></div>
@@ -60,7 +60,8 @@
         <div id="chart-dna" style="width: 100%; height: 280px; margin-top: 15px;"></div>
     </div>
     <div style="display: flex; flex-direction: column; gap: 20px;">
-        <div class="content-panel" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 16px; padding: 25px; color: white; display: flex; align-items: center; gap: 20px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); position: relative; overflow: hidden;">
+        <!-- Card de Campanha com ID para mudar a cor pelo JS -->
+        <div id="card-campanha-mes" class="content-panel" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 16px; padding: 25px; color: white; display: flex; align-items: center; gap: 20px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); position: relative; overflow: hidden;">
             <i class="fas fa-ribbon" style="font-size: 4rem; opacity: 0.2; position: absolute; right: 20px; top: 15px;"></i>
             <div style="z-index: 2;">
                 <h4 style="margin: 0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; font-weight: 800;"><i class="fas fa-bullhorn"></i> Campanha do Mês</h4>
@@ -140,7 +141,7 @@
             document.getElementById('label-meta-diaria').innerText = META_DIARIA_DNA;
 
             // ==========================================
-            // 2. PUXAR INDICADORES GERAIS E DNAS CONCLUÍDOS
+            // 2. PUXAR INDICADORES GERAIS E COR DA CAMPANHA
             // ==========================================
             let dnasConcluidosMes = 0;
             const { data: indData } = await _supa.from('ssma_indicadores_gerais').select('*').order('data_registro', { ascending: false }).limit(1);
@@ -152,7 +153,10 @@
                 document.getElementById('val-campanha-titulo').innerText = ind.campanha_mes || 'Não Definido';
                 document.getElementById('val-campanha-tema').innerText = ind.campanha_tema || '-';
                 
-                // Variável nova que pega os DNAS fechados
+                // Aplica a cor da campanha escolhida
+                const corCampanha = ind.campanha_cor || '#f59e0b';
+                document.getElementById('card-campanha-mes').style.background = `linear-gradient(135deg, ${corCampanha}cc 0%, ${corCampanha} 100%)`;
+                
                 dnasConcluidosMes = ind.dnas_concluidos || 0;
             }
 
@@ -206,7 +210,7 @@
                 msgIndice.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: var(--amarelo);"></i> Abaixo do volume esperado (${dnasMesAtual}/${metaProporcionalAteHoje})`;
             }
 
-            // ATUALIZA UI DO NOVO ÍNDICE DE TRATAMENTO
+            // ATUALIZA UI DO ÍNDICE DE TRATAMENTO
             const taxaDNA = dnasMesAtual > 0 ? ((dnasConcluidosMes / dnasMesAtual) * 100).toFixed(1) : 0;
             document.getElementById('val-indice-dna').innerText = taxaDNA;
             document.getElementById('msg-dnas-concluidos').innerHTML = `<i class="fas fa-check-double"></i> Concluídos: ${dnasConcluidosMes} / Abertos: ${dnasMesAtual}`;
