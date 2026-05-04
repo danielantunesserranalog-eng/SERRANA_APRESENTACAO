@@ -1,24 +1,30 @@
 // ARQUIVO: js/rh.js
 
 function salvarDadosRH() {
-    // Coleta os valores digitados no formulário
+    // Puxa os dados que já existem para não sobrescrever os apagados por acidente
+    const dadosSalvos = JSON.parse(localStorage.getItem('dados_rh') || '{}');
+    
+    // Coleta os valores digitados no formulário (caso a pessoa esteja na tela de lançamento)
     const dados = {
-        headcount: document.getElementById('input-headcount').value || 0,
-        abs: document.getElementById('input-abs').value || 0,
-        turnover: document.getElementById('input-turnover').value || 0,
-        vagas: document.getElementById('input-vagas').value || 0,
-        he: document.getElementById('input-he').value || 0
+        headcount: document.getElementById('input-headcount') ? document.getElementById('input-headcount').value : (dadosSalvos.headcount || 0),
+        atestados: document.getElementById('input-atestados') ? document.getElementById('input-atestados').value : (dadosSalvos.atestados || 0),
+        afastamentos: document.getElementById('input-afastamentos') ? document.getElementById('input-afastamentos').value : (dadosSalvos.afastamentos || 0),
+        admissoes: document.getElementById('input-admissoes') ? document.getElementById('input-admissoes').value : (dadosSalvos.admissoes || 0),
+        integracoes: document.getElementById('input-integracoes') ? document.getElementById('input-integracoes').value : (dadosSalvos.integracoes || 0),
+        vagas: document.getElementById('input-vagas') ? document.getElementById('input-vagas').value : (dadosSalvos.vagas || 0)
     };
     
-    // Salva os dados para que persistam localmente no navegador
+    // Salva os dados localmente
     localStorage.setItem('dados_rh', JSON.stringify(dados));
     
     // Exibe a mensagem de sucesso
     const msg = document.getElementById('msg-rh');
-    msg.innerText = "Painel atualizado localmente com sucesso!";
-    setTimeout(() => msg.innerText = "", 3000);
+    if (msg) {
+        msg.innerText = "Indicadores atualizados com sucesso!";
+        setTimeout(() => msg.innerText = "", 3000);
+    }
     
-    // Chama a função para renderizar os cards com as cores e números novos
+    // Atualiza a tela imediatamente
     carregarDadosRH();
 }
 
@@ -28,53 +34,23 @@ function carregarDadosRH() {
     if (dadosSalvos) {
         const dados = JSON.parse(dadosSalvos);
         
-        // 1. Repreencher os inputs para não aparecerem vazios
-        document.getElementById('input-headcount').value = dados.headcount;
-        document.getElementById('input-abs').value = dados.abs;
-        document.getElementById('input-turnover').value = dados.turnover;
-        document.getElementById('input-vagas').value = dados.vagas;
-        document.getElementById('input-he').value = dados.he;
+        // 1. Repreencher os inputs na tela de Lançamento
+        if(document.getElementById('input-headcount')) document.getElementById('input-headcount').value = dados.headcount || '';
+        if(document.getElementById('input-atestados')) document.getElementById('input-atestados').value = dados.atestados || '';
+        if(document.getElementById('input-afastamentos')) document.getElementById('input-afastamentos').value = dados.afastamentos || '';
+        if(document.getElementById('input-admissoes')) document.getElementById('input-admissoes').value = dados.admissoes || '';
+        if(document.getElementById('input-integracoes')) document.getElementById('input-integracoes').value = dados.integracoes || '';
+        if(document.getElementById('input-vagas')) document.getElementById('input-vagas').value = dados.vagas || '';
         
-        // 2. Atualizar o Painel (Dashboard)
-        // Headcount
-        document.getElementById('val-headcount').innerText = dados.headcount;
-        
-        // Absenteísmo (Muda de cor se passar da meta de 3.5%)
-        const valAbs = parseFloat(dados.abs);
-        const elAbs = document.getElementById('val-abs');
-        const farolAbs = document.getElementById('farol-abs');
-        elAbs.innerText = valAbs.toFixed(1) + "%";
-        
-        if (valAbs > 3.5) {
-            elAbs.className = "kpi-value status-vermelho";
-            farolAbs.className = "farol-indicator bg-vermelho";
-        } else {
-            elAbs.className = "kpi-value status-verde";
-            farolAbs.className = "farol-indicator bg-verde";
-        }
-
-        // Turnover (Muda de cor se passar da meta de 3.0%)
-        const valTurnover = parseFloat(dados.turnover);
-        const elTurnover = document.getElementById('val-turnover');
-        const farolTurnover = document.getElementById('farol-turnover');
-        elTurnover.innerText = valTurnover.toFixed(1) + "%";
-        
-        if (valTurnover > 3.0) {
-            elTurnover.className = "kpi-value status-vermelho";
-            farolTurnover.className = "farol-indicator bg-vermelho";
-        } else {
-            elTurnover.className = "kpi-value status-verde";
-            farolTurnover.className = "farol-indicator bg-verde";
-        }
-        
-        // Vagas
-        document.getElementById('val-vagas').innerText = dados.vagas;
-        
-        // Horas Extras (Formatar como Moeda Brasileira)
-        const valorHe = parseFloat(dados.he);
-        document.getElementById('val-he').innerText = valorHe.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        // 2. Atualizar os Cards no Dashboard (Painel)
+        if(document.getElementById('val-headcount')) document.getElementById('val-headcount').innerText = dados.headcount || 0;
+        if(document.getElementById('val-atestados')) document.getElementById('val-atestados').innerText = dados.atestados || 0;
+        if(document.getElementById('val-afastamentos')) document.getElementById('val-afastamentos').innerText = dados.afastamentos || 0;
+        if(document.getElementById('val-admissoes')) document.getElementById('val-admissoes').innerText = dados.admissoes || 0;
+        if(document.getElementById('val-integracoes')) document.getElementById('val-integracoes').innerText = dados.integracoes || 0;
+        if(document.getElementById('val-vagas')) document.getElementById('val-vagas').innerText = dados.vagas || 0;
     }
 }
 
-// Quando a tela carregar, ele busca os últimos dados salvos
+// Executa assim que a tela abre
 carregarDadosRH();

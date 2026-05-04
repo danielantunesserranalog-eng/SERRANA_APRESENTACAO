@@ -1,34 +1,54 @@
 <div class="dashboard-grid">
-    <div class="kpi-card" style="grid-column: 1 / -1; border-color: var(--primary);">
-        <h3 class="nav-label" style="margin-bottom: 20px;"><i class="fas fa-edit"></i> LANÇAMENTO DIÁRIO DE INDICADORES - RH</h3>
+    <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid var(--primary);">
+        <h3 class="nav-label" style="margin-bottom: 20px; color: var(--primary);"><i class="fas fa-edit"></i> LANÇAMENTO DIÁRIO DE INDICADORES - RH</h3>
         
         <div class="form-grid">
             <div class="input-group">
-                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Headcount Atual</label>
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Total de Colaboradores (Headcount)</label>
                 <input type="number" id="input-headcount" class="config-input" placeholder="Ex: 250">
             </div>
             
             <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Total de Atestados</label>
+                <input type="number" id="input-atestados" class="config-input" placeholder="Ex: 5">
+            </div>
+
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Total de Afastamentos</label>
+                <input type="number" id="input-afastamentos" class="config-input" placeholder="Ex: 2">
+            </div>
+
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Processos de Admissão</label>
+                <input type="number" id="input-admissoes" class="config-input" placeholder="Ex: 3">
+            </div>
+
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Integrações Realizadas</label>
+                <input type="number" id="input-integracoes" class="config-input" placeholder="Ex: 4">
+            </div>
+
+            <div class="input-group">
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Taxa de Absenteísmo (%)</label>
                 <input type="number" id="input-abs" class="config-input" step="0.1" placeholder="Ex: 3.5">
             </div>
-
+            
             <div class="input-group">
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Turnover Acumulado (%)</label>
                 <input type="number" id="input-turnover" class="config-input" step="0.1" placeholder="Ex: 1.2">
             </div>
-
+            
             <div class="input-group">
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Total Vagas Abertas</label>
                 <input type="number" id="input-vagas" class="config-input" placeholder="Ex: 8">
             </div>
-
+            
             <div class="input-group">
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Custo Horas Extras (R$)</label>
                 <input type="number" id="input-he" class="config-input" placeholder="Ex: 12450">
             </div>
         </div>
-
+        
         <button class="btn-salvar" onclick="salvarDadosRH()" style="margin-top: 20px;">
             <i class="fas fa-save"></i> Atualizar Painel
         </button>
@@ -37,11 +57,34 @@
 </div>
 
 <div class="dashboard-grid" style="margin-top: 30px;">
-    <div class="kpi-card">
-        <div class="farol-indicator bg-verde" id="farol-headcount"></div>
-        <p class="nav-label">HEADCOUNT ATUAL</p>
+    <div class="kpi-card" style="border-left: 4px solid var(--verde);">
+        <p class="nav-label" style="color: var(--verde);">TOTAL COLABORADORES</p>
         <div class="kpi-value status-verde" id="val-headcount">0</div>
-        <p class="status-msg">Total de colaboradores ativos</p>
+        <p class="status-msg"><i class="fas fa-users"></i> Headcount atual</p>
+    </div>
+
+    <div class="kpi-card" style="border-left: 4px solid #f59e0b;">
+        <p class="nav-label" style="color: #f59e0b;">TOTAL DE ATESTADOS</p>
+        <div class="kpi-value status-amarelo" id="val-atestados">0</div>
+        <p class="status-msg"><i class="fas fa-file-medical"></i> Entregues no mês</p>
+    </div>
+
+    <div class="kpi-card" style="border-left: 4px solid #ef4444;">
+        <p class="nav-label" style="color: #ef4444;">AFASTAMENTOS</p>
+        <div class="kpi-value status-vermelho" id="val-afastamentos">0</div>
+        <p class="status-msg"><i class="fas fa-user-injured"></i> INSS / Acidentes</p>
+    </div>
+
+    <div class="kpi-card" style="border-left: 4px solid #0ea5e9;">
+        <p class="nav-label" style="color: #0ea5e9;">PROCESSOS DE ADMISSÃO</p>
+        <div class="kpi-value" id="val-admissoes" style="color: #0ea5e9;">0</div>
+        <p class="status-msg"><i class="fas fa-user-plus"></i> Em andamento</p>
+    </div>
+
+    <div class="kpi-card" style="border-left: 4px solid #8b5cf6;">
+        <p class="nav-label" style="color: #8b5cf6;">INTEGRAÇÕES</p>
+        <div class="kpi-value" id="val-integracoes" style="color: #8b5cf6;">0</div>
+        <p class="status-msg"><i class="fas fa-chalkboard-teacher"></i> Realizadas no mês</p>
     </div>
 
     <div class="kpi-card">
@@ -50,21 +93,21 @@
         <div class="kpi-value status-verde" id="val-abs">0.0%</div>
         <p class="status-msg">Meta tolerável: 3.5%</p>
     </div>
-
+    
     <div class="kpi-card">
         <div class="farol-indicator bg-verde" id="farol-turnover"></div>
         <p class="nav-label">TURNOVER ACUMULADO</p>
         <div class="kpi-value status-verde" id="val-turnover">0.0%</div>
         <p class="status-msg">Meta: < 3.0%</p>
     </div>
-
+    
     <div class="kpi-card">
         <div class="farol-indicator bg-amarelo"></div>
         <p class="nav-label">RECRUTAMENTO & SELEÇÃO</p>
         <div class="kpi-value status-amarelo" id="val-vagas">0</div>
         <p class="status-msg">Vagas Abertas em Andamento</p>
     </div>
-
+    
     <div class="kpi-card">
         <div class="farol-indicator bg-vermelho"></div>
         <p class="nav-label">CUSTO HORAS EXTRAS</p>
