@@ -2,71 +2,53 @@
     <h2 style="color: #fff; margin: 0; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
         <i class="fas fa-shield-alt" style="color: var(--primary); margin-right: 10px;"></i> Painel Executivo - SSMA
     </h2>
+    <div style="color: var(--text-dim); font-size: 0.85rem;" id="status-att-ssma">Sincronizando dados com o banco...</div>
 </div>
 
 <!-- ================= ROW 1: KPIs PRINCIPAIS ================= -->
 <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 25px; gap: 15px;">
-    
-    <!-- Dias Sem Acidentes -->
     <div class="kpi-card" style="padding: 20px; border-left: 4px solid var(--verde); display: flex; flex-direction: column; justify-content: space-between;">
         <p class="nav-label" style="color: var(--verde); margin-bottom: 5px;">DIAS SEM ACIDENTES</p>
-        <div class="kpi-value status-verde" style="font-size: 2.8rem; margin: 5px 0;">342</div>
+        <div class="kpi-value status-verde" id="val-dias-sem-acidentes" style="font-size: 2.8rem; margin: 5px 0;">0</div>
         <p class="status-msg" style="font-weight: bold;"><i class="fas fa-hard-hat"></i> Com afastamento</p>
     </div>
-
-    <!-- Incidentes Sem Afastamento -->
     <div class="kpi-card" style="padding: 20px; border-left: 4px solid var(--amarelo); display: flex; flex-direction: column; justify-content: space-between;">
         <p class="nav-label" style="color: var(--amarelo); margin-bottom: 5px;">INCIDENTES RECENTES</p>
-        <div class="kpi-value status-amarelo" style="font-size: 2.8rem; margin: 5px 0;">02</div>
-        <p class="status-msg"><i class="fas fa-user-injured"></i> Sem afastamento (Mês)</p>
+        <div class="kpi-value status-amarelo" id="val-incidentes" style="font-size: 2.8rem; margin: 5px 0;">0</div>
+        <p class="status-msg"><i class="fas fa-user-injured"></i> Sem afastamento (Geral)</p>
     </div>
-
-    <!-- DNAs Mês Atual -->
     <div class="kpi-card" style="padding: 20px; border-left: 4px solid #0ea5e9; display: flex; flex-direction: column; justify-content: space-between;">
         <p class="nav-label" style="color: #0ea5e9; margin-bottom: 5px;">DNAs ABERTOS</p>
-        <div class="kpi-value" style="font-size: 2.8rem; margin: 5px 0; color: #0ea5e9;">15</div>
+        <div class="kpi-value" id="val-dnas-mes" style="font-size: 2.8rem; margin: 5px 0; color: #0ea5e9;">0</div>
         <p class="status-msg"><i class="fas fa-clipboard-list"></i> No mês atual</p>
     </div>
-
-    <!-- Índice de Abertura DNA -->
     <div class="kpi-card" style="padding: 20px; border-left: 4px solid #8b5cf6; display: flex; flex-direction: column; justify-content: space-between;">
         <p class="nav-label" style="color: #8b5cf6; margin-bottom: 5px;">ÍNDICE DE ABERTURA (DNA)</p>
-        <div class="kpi-value" style="font-size: 2.8rem; margin: 5px 0; color: #8b5cf6;">1.2<span style="font-size: 1.2rem;">%</span></div>
-        <p class="status-msg"><i class="fas fa-chart-pie"></i> Taxa de desvios</p>
+        <div class="kpi-value" style="font-size: 2.8rem; margin: 5px 0; color: #8b5cf6;"><span id="val-indice-dna">0</span><span style="font-size: 1.2rem;">%</span></div>
+        <p class="status-msg"><i class="fas fa-chart-pie"></i> DNAs Fechados / Totais</p>
     </div>
-
-    <!-- Visitas de Campo -->
     <div class="kpi-card" style="padding: 20px; border-left: 4px solid #f43f5e; display: flex; flex-direction: column; justify-content: space-between;">
         <p class="nav-label" style="color: #f43f5e; margin-bottom: 5px;">VISITAS DE CAMPO</p>
-        <div class="kpi-value" style="font-size: 2.8rem; margin: 5px 0; color: #f43f5e;">08</div>
-        <p class="status-msg"><i class="fas fa-search-location"></i> Realizadas (Mês)</p>
+        <div class="kpi-value" id="val-visitas" style="font-size: 2.8rem; margin: 5px 0; color: #f43f5e;">0</div>
+        <p class="status-msg"><i class="fas fa-search-location"></i> Realizadas</p>
     </div>
-
 </div>
 
-<!-- ================= ROW 2: GRÁFICO 30 DIAS + CAMPANHA + METAS ================= -->
+<!-- ================= ROW 2: GRÁFICO 30 DIAS + CAMPANHA ================= -->
 <div class="dashboard-grid" style="grid-template-columns: 2fr 1fr; margin-bottom: 25px;">
-    
-    <!-- Gráfico Evolução DNA (Echarts) -->
     <div class="content-panel" style="border: 1px solid rgba(14, 165, 233, 0.3); background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(10px); border-radius: 16px; padding: 20px;">
         <h3 class="nav-label" style="color: #0ea5e9; margin: 0;"><i class="fas fa-chart-area"></i> EVOLUÇÃO DE ABERTURA DE DNA (ÚLTIMOS 30 DIAS)</h3>
         <div id="chart-dna" style="width: 100%; height: 280px; margin-top: 15px;"></div>
     </div>
-
-    <!-- Coluna Direita: Campanha e Metas -->
     <div style="display: flex; flex-direction: column; gap: 20px;">
-        
-        <!-- Campanha do Mês -->
         <div class="content-panel" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 16px; padding: 25px; color: white; display: flex; align-items: center; gap: 20px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); position: relative; overflow: hidden;">
             <i class="fas fa-ribbon" style="font-size: 4rem; opacity: 0.2; position: absolute; right: 20px; top: 15px;"></i>
             <div style="z-index: 2;">
                 <h4 style="margin: 0; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; font-weight: 800;"><i class="fas fa-bullhorn"></i> Campanha do Mês</h4>
-                <h2 style="margin: 5px 0 0 0; font-size: 2rem; font-weight: 900; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">Maio Amarelo</h2>
-                <p style="margin: 5px 0 0 0; font-size: 0.95rem; opacity: 0.9; font-weight: 600;">Atenção pela Vida no Trânsito</p>
+                <h2 id="val-campanha-titulo" style="margin: 5px 0 0 0; font-size: 2rem; font-weight: 900; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);">Aguardando...</h2>
+                <p id="val-campanha-tema" style="margin: 5px 0 0 0; font-size: 0.95rem; opacity: 0.9; font-weight: 600;">-</p>
             </div>
         </div>
-
-        <!-- Metas Programadas -->
         <div class="content-panel" style="border: 1px solid var(--border); background: rgba(15, 23, 42, 0.6); border-radius: 16px; padding: 20px; flex: 1;">
             <h3 class="nav-label" style="color: var(--primary); margin: 0;"><i class="fas fa-flag-checkered"></i> METAS PROGRAMADAS SSMA</h3>
             <ul style="list-style: none; padding: 0; margin-top: 20px; display: flex; flex-direction: column; gap: 18px;">
@@ -76,11 +58,7 @@
                 </li>
                 <li style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(255,255,255,0.05); padding-bottom: 8px;">
                     <span style="color: white; font-size: 0.9rem; font-weight: 600;"><i class="fas fa-exclamation-triangle" style="color: var(--amarelo); margin-right: 8px;"></i> 100% Tratamento DNAs</span>
-                    <span class="badge bg-amarelo">92%</span>
-                </li>
-                <li style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="color: white; font-size: 0.9rem; font-weight: 600;"><i class="fas fa-route" style="color: var(--verde); margin-right: 8px;"></i> Meta: 12 Visitas de Campo</span>
-                    <span class="badge bg-verde">08 / 12</span>
+                    <span class="badge bg-amarelo">Apurando</span>
                 </li>
             </ul>
         </div>
@@ -89,147 +67,157 @@
 
 <!-- ================= ROW 3: TREINAMENTOS ================= -->
 <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 50px;">
-    
-    <!-- Treinamentos Realizados -->
     <div class="table-box">
         <h3 class="nav-label"><i class="fas fa-user-graduate" style="color: var(--verde);"></i> TREINAMENTOS REALIZADOS (HISTÓRICO RECENTE)</h3>
         <table class="exec-table">
             <thead>
-                <tr>
-                    <th>Treinamento</th>
-                    <th>Data</th>
-                    <th>Localização</th>
-                    <th style="text-align: center;">Colab.</th>
-                </tr>
+                <tr><th>Treinamento</th><th>Data</th><th>Localização</th><th style="text-align: center;">Colab.</th></tr>
             </thead>
             <tbody id="lista-treinamentos-realizados">
-                <tr style="background: rgba(255,255,255,0.02);">
-                    <td><strong style="color: white;">NR-35 Trabalho em Altura</strong></td>
-                    <td style="color: var(--text-dim);">15/04/2026</td>
-                    <td style="color: var(--text-dim);"><i class="fas fa-map-marker-alt"></i> Sede Itabatã</td>
-                    <td style="text-align: center;"><span style="color: var(--verde); font-weight: bold; background: rgba(16, 185, 129, 0.1); padding: 4px 10px; border-radius: 20px;">12</span></td>
-                </tr>
-                <tr>
-                    <td><strong style="color: white;">Direção Defensiva</strong></td>
-                    <td style="color: var(--text-dim);">22/04/2026</td>
-                    <td style="color: var(--text-dim);"><i class="fas fa-map-marker-alt"></i> Base Operacional</td>
-                    <td style="text-align: center;"><span style="color: var(--verde); font-weight: bold; background: rgba(16, 185, 129, 0.1); padding: 4px 10px; border-radius: 20px;">25</span></td>
-                </tr>
+                <tr><td colspan="4" style="text-align:center; color: var(--text-dim);">Carregando...</td></tr>
             </tbody>
         </table>
     </div>
-
-    <!-- Treinamentos Programados -->
     <div class="table-box">
         <h3 class="nav-label"><i class="fas fa-calendar-alt" style="color: #38bdf8;"></i> TREINAMENTOS PROGRAMADOS (PRÓXIMOS)</h3>
         <table class="exec-table">
             <thead>
-                <tr>
-                    <th>Treinamento</th>
-                    <th>Previsão</th>
-                    <th>Localização</th>
-                    <th style="text-align: right;">Status</th>
-                </tr>
+                <tr><th>Treinamento</th><th>Previsão</th><th>Localização</th><th style="text-align: right;">Status</th></tr>
             </thead>
             <tbody id="lista-treinamentos-programados">
-                <tr style="background: rgba(255,255,255,0.02);">
-                    <td><strong style="color: white;">NR-11 Op. Empilhadeira</strong></td>
-                    <td style="color: var(--amarelo); font-weight: bold;">12/05/2026</td>
-                    <td style="color: var(--text-dim);"><i class="fas fa-map-marker-alt"></i> Pátio Logística</td>
-                    <td style="text-align: right;"><span class="badge bg-amarelo"><i class="far fa-clock"></i> Agendado</span></td>
-                </tr>
-                <tr>
-                    <td><strong style="color: white;">Integração SSMA (Novatos)</strong></td>
-                    <td style="color: var(--amarelo); font-weight: bold;">20/05/2026</td>
-                    <td style="color: var(--text-dim);"><i class="fas fa-map-marker-alt"></i> Auditório Central</td>
-                    <td style="text-align: right;"><span class="badge" style="background: var(--border);">A Confirmar</span></td>
-                </tr>
+                <tr><td colspan="4" style="text-align:center; color: var(--text-dim);">Carregando...</td></tr>
             </tbody>
         </table>
     </div>
 </div>
 
-<!-- ================= SCRIPT GRÁFICO ECHARTS ================= -->
 <script>
-    (function initSSMADash() {
-        // Verifica se a biblioteca echarts está carregada (ela vem do index.html)
-        if (typeof echarts === 'undefined') {
-            console.error("Echarts não foi carregado!");
-            return;
-        }
-        
-        const chartDom = document.getElementById('chart-dna');
-        if (chartDom) {
-            let myChart = echarts.getInstanceByDom(chartDom);
-            if (!myChart) myChart = echarts.init(chartDom);
+    (async function initSSMADashReal() {
+        const _supa = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+        const statusEl = document.getElementById('status-att-ssma');
 
-            // Gerando labels dos últimos 30 dias (Simulação Visual)
-            const dataLabels = [];
-            const dataValues = [];
-            let d = new Date();
-            d.setDate(d.getDate() - 30);
-            
-            for(let i = 0; i < 30; i++) {
-                d.setDate(d.getDate() + 1);
-                dataLabels.push(String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth()+1).padStart(2, '0'));
-                
-                // Simulação: Cria picos aleatórios realistas entre 0 e 4 aberturas de DNA por dia
-                const isPico = Math.random() > 0.8;
-                dataValues.push(isPico ? Math.floor(Math.random() * 3) + 2 : Math.floor(Math.random() * 2));
+        function formatarData(dataIso) {
+            if(!dataIso) return '-';
+            const [a, m, d] = dataIso.split('-');
+            return `${d}/${m}/${a}`;
+        }
+
+        try {
+            // 1. PUXAR INDICADORES GERAIS (Pega o mais recente salvo)
+            const { data: indData } = await _supa.from('ssma_indicadores_gerais').select('*').order('data_registro', { ascending: false }).limit(1);
+            if (indData && indData.length > 0) {
+                const ind = indData[0];
+                document.getElementById('val-dias-sem-acidentes').innerText = ind.dias_sem_acidentes || 0;
+                document.getElementById('val-incidentes').innerText = ind.incidentes_sem_afastamento || 0;
+                document.getElementById('val-visitas').innerText = ind.visitas_campo || 0;
+                document.getElementById('val-campanha-titulo').innerText = ind.campanha_mes || 'Não Definido';
+                document.getElementById('val-campanha-tema').innerText = ind.campanha_tema || '-';
             }
 
-            const option = {
-                backgroundColor: 'transparent',
-                tooltip: {
-                    trigger: 'axis',
-                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                    borderColor: '#0ea5e9',
-                    textStyle: { color: '#fff', fontWeight: 'bold' },
-                    formatter: function (params) {
-                        return `<div style="font-size: 14px;">${params[0].name}</div>
-                                <div style="color: #0ea5e9; font-weight: bold; margin-top: 5px;">
-                                    <i class="fas fa-clipboard-list"></i> ${params[0].value} DNAs Abertos
-                                </div>`;
-                    }
-                },
-                grid: { left: '2%', right: '4%', bottom: '5%', top: '10%', containLabel: true },
-                xAxis: {
-                    type: 'category',
-                    boundaryGap: false,
-                    data: dataLabels,
-                    axisLabel: { color: '#94a3b8', fontSize: 10, fontWeight: 'bold' }
-                },
-                yAxis: {
-                    type: 'value',
-                    minInterval: 1, // Impede números quebrados (ex: 1.5 DNAs)
-                    axisLabel: { color: '#94a3b8', fontWeight: 'bold' },
-                    splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)', type: 'dashed' } }
-                },
-                series: [{
-                    name: 'DNAs Abertos',
-                    type: 'line',
-                    data: dataValues,
-                    smooth: true,
-                    symbol: 'circle',
-                    symbolSize: 8,
-                    itemStyle: { color: '#0ea5e9' },
-                    lineStyle: { width: 3, shadowColor: 'rgba(14, 165, 233, 0.5)', shadowBlur: 10 },
-                    areaStyle: {
-                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                            { offset: 0, color: 'rgba(14, 165, 233, 0.4)' },
-                            { offset: 1, color: 'rgba(14, 165, 233, 0)' }
-                        ])
-                    }
-                }]
-            };
+            // 2. PUXAR DNAS E GRÁFICO DE 30 DIAS
+            const hoje = new Date();
+            const mesAtualNum = hoje.getMonth() + 1;
+            const anoAtualNum = hoje.getFullYear();
+            
+            const { data: dnasData } = await _supa.from('ssma_dnas').select('*');
+            let dnasMesAtual = 0;
+            let dnasFechadosTotais = 0;
+            const mapDnasPorDia = {};
 
-            myChart.setOption(option);
+            if (dnasData) {
+                dnasData.forEach(dna => {
+                    // Contagem Mês Atual
+                    const dData = new Date(dna.data_abertura + 'T00:00:00');
+                    if(dData.getMonth() + 1 === mesAtualNum && dData.getFullYear() === anoAtualNum) {
+                        dnasMesAtual++;
+                    }
+                    // Índice
+                    if (dna.status !== 'Aberto') dnasFechadosTotais++;
+                    
+                    // Mapa para o Gráfico
+                    const dataStr = dna.data_abertura;
+                    mapDnasPorDia[dataStr] = (mapDnasPorDia[dataStr] || 0) + 1;
+                });
+            }
+
+            document.getElementById('val-dnas-mes').innerText = dnasMesAtual;
             
-            // Garante que o gráfico seja responsivo se a tela redimensionar
-            window.addEventListener('resize', () => myChart.resize());
+            // Calculo Índice de Fechamento de DNA
+            const taxaDNA = dnasData && dnasData.length > 0 ? ((dnasFechadosTotais / dnasData.length) * 100).toFixed(1) : 0;
+            document.getElementById('val-indice-dna').innerText = taxaDNA;
+
+            // RENDERIZA GRÁFICO (Últimos 30 Dias)
+            if (typeof echarts !== 'undefined') {
+                const chartDom = document.getElementById('chart-dna');
+                let myChart = echarts.getInstanceByDom(chartDom) || echarts.init(chartDom);
+                
+                const dataLabels = [];
+                const dataValues = [];
+                let dCalc = new Date();
+                dCalc.setDate(dCalc.getDate() - 30);
+                
+                for(let i = 0; i < 30; i++) {
+                    dCalc.setDate(dCalc.getDate() + 1);
+                    const isoKey = dCalc.toISOString().split('T')[0];
+                    dataLabels.push(String(dCalc.getDate()).padStart(2, '0') + '/' + String(dCalc.getMonth()+1).padStart(2, '0'));
+                    dataValues.push(mapDnasPorDia[isoKey] || 0); // Pega do banco, se não existir é 0
+                }
+
+                myChart.setOption({
+                    backgroundColor: 'transparent',
+                    tooltip: { trigger: 'axis' },
+                    grid: { left: '2%', right: '4%', bottom: '5%', top: '10%', containLabel: true },
+                    xAxis: { type: 'category', boundaryGap: false, data: dataLabels, axisLabel: { color: '#94a3b8' } },
+                    yAxis: { type: 'value', minInterval: 1, axisLabel: { color: '#94a3b8' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } } },
+                    series: [{
+                        name: 'DNAs Abertos', type: 'line', data: dataValues, smooth: true, symbolSize: 8, itemStyle: { color: '#0ea5e9' },
+                        areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(14, 165, 233, 0.4)' }, { offset: 1, color: 'rgba(14, 165, 233, 0)' }]) }
+                    }]
+                });
+                setTimeout(() => myChart.resize(), 100);
+            }
+
+            // 3. PUXAR TREINAMENTOS
+            const { data: treiData } = await _supa.from('ssma_treinamentos').select('*').order('data_previsao', { ascending: false });
             
-            // Força um resize inicial pequeno atraso para ajustar na div renderizada
-            setTimeout(() => myChart.resize(), 100);
+            const tbodyRealizado = document.getElementById('lista-treinamentos-realizados');
+            const tbodyProgramado = document.getElementById('lista-treinamentos-programados');
+            tbodyRealizado.innerHTML = ''; tbodyProgramado.innerHTML = '';
+
+            if (treiData) {
+                const realizados = treiData.filter(t => t.status === 'Realizado');
+                const programados = treiData.filter(t => t.status === 'Programado');
+
+                if(realizados.length === 0) tbodyRealizado.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--text-dim);">Nenhum recente.</td></tr>';
+                realizados.forEach(t => {
+                    tbodyRealizado.insertAdjacentHTML('beforeend', `
+                        <tr style="background: rgba(255,255,255,0.02);">
+                            <td><strong style="color: white;">${t.nome_treinamento}</strong></td>
+                            <td style="color: var(--text-dim);">${formatarData(t.data_previsao)}</td>
+                            <td style="color: var(--text-dim);"><i class="fas fa-map-marker-alt"></i> ${t.localizacao}</td>
+                            <td style="text-align: center;"><span style="color: var(--verde); font-weight: bold; background: rgba(16, 185, 129, 0.1); padding: 4px 10px; border-radius: 20px;">${t.quantidade_colaboradores}</span></td>
+                        </tr>
+                    `);
+                });
+
+                if(programados.length === 0) tbodyProgramado.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--text-dim);">Nenhum programado.</td></tr>';
+                programados.forEach(t => {
+                    tbodyProgramado.insertAdjacentHTML('beforeend', `
+                        <tr style="background: rgba(255,255,255,0.02);">
+                            <td><strong style="color: white;">${t.nome_treinamento}</strong></td>
+                            <td style="color: var(--amarelo); font-weight: bold;">${formatarData(t.data_previsao)}</td>
+                            <td style="color: var(--text-dim);"><i class="fas fa-map-marker-alt"></i> ${t.localizacao}</td>
+                            <td style="text-align: right;"><span class="badge bg-amarelo"><i class="far fa-clock"></i> Agendado</span></td>
+                        </tr>
+                    `);
+                });
+            }
+
+            statusEl.innerHTML = '<i class="fas fa-check-circle" style="color: var(--verde);"></i> Atualizado agora';
+
+        } catch (e) {
+            console.error("Erro ao puxar SSMA:", e);
+            statusEl.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: var(--vermelho);"></i> Erro na conexão';
         }
     })();
 </script>

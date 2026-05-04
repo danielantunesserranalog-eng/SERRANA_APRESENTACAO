@@ -1,0 +1,159 @@
+<div class="dashboard-grid">
+    <!-- LANÇAMENTO DIÁRIO DE INDICADORES -->
+    <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid var(--verde);">
+        <h3 class="nav-label" style="margin-bottom: 20px; color: var(--verde);"><i class="fas fa-clipboard-check"></i> LANÇAMENTO DIÁRIO DE INDICADORES GERAIS</h3>
+        <div class="form-grid">
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Data do Registro</label>
+                <input type="date" id="ssma-data-geral" class="config-input">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Dias Sem Acidentes (C/ Afastamento)</label>
+                <input type="number" id="ssma-dias-acidente" class="config-input" placeholder="Ex: 342">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Incidentes (Sem Afastamento)</label>
+                <input type="number" id="ssma-incidentes" class="config-input" placeholder="Ex: 2">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Visitas de Campo</label>
+                <input type="number" id="ssma-visitas" class="config-input" placeholder="Ex: 8">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Campanha do Mês (Título)</label>
+                <input type="text" id="ssma-campanha-mes" class="config-input" placeholder="Ex: Maio Amarelo">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Tema da Campanha</label>
+                <input type="text" id="ssma-campanha-tema" class="config-input" placeholder="Ex: Atenção pela Vida no Trânsito">
+            </div>
+        </div>
+        <button class="btn-salvar" style="background: var(--verde);" onclick="salvarIndicadoresGerais()">
+            <i class="fas fa-save"></i> Salvar Indicadores do Dia
+        </button>
+        <span id="msg-ssma-geral" style="margin-left: 15px; font-weight: bold;"></span>
+    </div>
+
+    <!-- LANÇAR NOVO DNA -->
+    <div class="kpi-card" style="border-left: 5px solid #0ea5e9;">
+        <h3 class="nav-label" style="margin-bottom: 20px; color: #0ea5e9;"><i class="fas fa-exclamation-circle"></i> ABERTURA DE DNA (DESVIO)</h3>
+        <div class="form-grid" style="grid-template-columns: 1fr;">
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Data de Abertura</label>
+                <input type="date" id="dna-data" class="config-input">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Setor Responsável</label>
+                <input type="text" id="dna-setor" class="config-input" placeholder="Ex: Manutenção">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Descrição do DNA</label>
+                <textarea id="dna-desc" class="config-input" rows="2" placeholder="Descreva o desvio..."></textarea>
+            </div>
+        </div>
+        <button class="btn-salvar" style="background: #0ea5e9; width: 100%; margin-top: 15px;" onclick="salvarDNA()">
+            <i class="fas fa-plus"></i> Registrar DNA
+        </button>
+        <span id="msg-dna" style="display: block; margin-top: 10px; font-weight: bold;"></span>
+    </div>
+
+    <!-- LANÇAR TREINAMENTO -->
+    <div class="kpi-card" style="border-left: 5px solid var(--amarelo);">
+        <h3 class="nav-label" style="margin-bottom: 20px; color: var(--amarelo);"><i class="fas fa-graduation-cap"></i> GESTÃO DE TREINAMENTOS</h3>
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="input-group" style="grid-column: 1 / -1;">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Nome do Treinamento</label>
+                <input type="text" id="trei-nome" class="config-input" placeholder="Ex: NR-35">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Data Previsão / Realização</label>
+                <input type="date" id="trei-data" class="config-input">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Status</label>
+                <select id="trei-status" class="config-input">
+                    <option value="Programado">Programado</option>
+                    <option value="Realizado">Realizado</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Qtd. Pessoas</label>
+                <input type="number" id="trei-qtd" class="config-input" value="0">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Local</label>
+                <input type="text" id="trei-local" class="config-input" placeholder="Ex: Sede Itabatã">
+            </div>
+        </div>
+        <button class="btn-salvar" style="background: var(--amarelo); color: var(--bg-dark); width: 100%; margin-top: 15px;" onclick="salvarTreinamento()">
+            <i class="fas fa-save"></i> Salvar Treinamento
+        </button>
+        <span id="msg-trei" style="display: block; margin-top: 10px; font-weight: bold;"></span>
+    </div>
+</div>
+
+<script>
+    // Inicializa datas com hoje
+    const hojeIso = new Date().toISOString().split('T')[0];
+    document.getElementById('ssma-data-geral').value = hojeIso;
+    document.getElementById('dna-data').value = hojeIso;
+    document.getElementById('trei-data').value = hojeIso;
+
+    const _supaSSMA = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+
+    async function salvarIndicadoresGerais() {
+        const msg = document.getElementById('msg-ssma-geral');
+        const dados = {
+            data_registro: document.getElementById('ssma-data-geral').value,
+            dias_sem_acidentes: document.getElementById('ssma-dias-acidente').value || 0,
+            incidentes_sem_afastamento: document.getElementById('ssma-incidentes').value || 0,
+            visitas_campo: document.getElementById('ssma-visitas').value || 0,
+            campanha_mes: document.getElementById('ssma-campanha-mes').value,
+            campanha_tema: document.getElementById('ssma-campanha-tema').value
+        };
+        msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando...';
+        const { error } = await _supaSSMA.from('ssma_indicadores_gerais').insert([dados]);
+        if (error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!'; } 
+        else { msg.style.color = 'var(--verde)'; msg.innerText = 'Salvo com sucesso!'; setTimeout(()=>msg.innerText='', 3000); }
+    }
+
+    async function salvarDNA() {
+        const msg = document.getElementById('msg-dna');
+        const dados = {
+            data_abertura: document.getElementById('dna-data').value,
+            setor: document.getElementById('dna-setor').value,
+            descricao: document.getElementById('dna-desc').value
+        };
+        if(!dados.descricao) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Preencha a descrição!'; return; }
+        
+        msg.style.color = 'var(--text-dim)'; msg.innerText = 'Registrando...';
+        const { error } = await _supaSSMA.from('ssma_dnas').insert([dados]);
+        if (error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro!'; } 
+        else { 
+            msg.style.color = 'var(--verde)'; msg.innerText = 'DNA Registrado!'; 
+            document.getElementById('dna-desc').value = '';
+            setTimeout(()=>msg.innerText='', 3000); 
+        }
+    }
+
+    async function salvarTreinamento() {
+        const msg = document.getElementById('msg-trei');
+        const dados = {
+            nome_treinamento: document.getElementById('trei-nome').value,
+            data_previsao: document.getElementById('trei-data').value,
+            status: document.getElementById('trei-status').value,
+            quantidade_colaboradores: document.getElementById('trei-qtd').value || 0,
+            localizacao: document.getElementById('trei-local').value
+        };
+        if(!dados.nome_treinamento) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Preencha o Nome!'; return; }
+        
+        msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando...';
+        const { error } = await _supaSSMA.from('ssma_treinamentos').insert([dados]);
+        if (error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro!'; } 
+        else { 
+            msg.style.color = 'var(--verde)'; msg.innerText = 'Salvo!'; 
+            document.getElementById('trei-nome').value = '';
+            setTimeout(()=>msg.innerText='', 3000); 
+        }
+    }
+</script>
