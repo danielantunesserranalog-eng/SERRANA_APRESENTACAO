@@ -99,7 +99,6 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
             document.body.removeChild(newScript);
         });
 
-        // INJEÇÃO AUTOMÁTICA DO FORMULÁRIO DO KANBAN NO FINAL DE CADA TELA
         if (!['dash_consideracoes.html', 'cons_historico.html', 'conf_sistema.html'].includes(fileName)) {
             injectKanbanLauncher(subTitle);
         }
@@ -109,11 +108,10 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
     }
 }
 
+// INJEÇÃO DO KANBAN LAUNCHER COM MÚLTIPLOS RESPONSÁVEIS
 function injectKanbanLauncher(setorTitle) {
     const contentArea = document.getElementById('content-area');
     const setorNome = setorTitle.split('-')[0].trim();
-    
-    // Pegando a data de hoje para sugerir no input type="date"
     const hoje = new Date().toISOString().split('T')[0];
     
     const launcherHtml = `
@@ -126,10 +124,18 @@ function injectKanbanLauncher(setorTitle) {
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Setor</label>
                 <input type="text" id="kb-setor" class="config-input" value="${setorNome}" readonly style="background: rgba(0,0,0,0.2);">
             </div>
+            
             <div class="input-group">
-                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Responsável pela Ação</label>
-                <select id="kb-responsavel" class="config-input"></select>
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Responsável(is) pela Ação</label>
+                <div style="display: flex; gap: 10px;">
+                    <select id="kb-responsavel" class="config-input" style="flex: 1;"></select>
+                    <button type="button" class="btn-salvar" style="padding: 10px 15px;" onclick="adicionarResponsavelKb()"><i class="fas fa-plus"></i></button>
+                </div>
+                <!-- Div onde as "Tags" de pessoas selecionadas vão aparecer -->
+                <div id="kb-responsaveis-list" style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px;"></div>
+                <input type="hidden" id="kb-responsavel-final" value="">
             </div>
+
             <div class="input-group">
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Previsão de Conclusão</label>
                 <input type="date" id="kb-data" class="config-input" value="${hoje}">
@@ -160,22 +166,58 @@ function carregarDropdownResponsaveis() {
     if(!select) return;
     
     const membrosSalvos = JSON.parse(localStorage.getItem('membros_kanban') || '[]');
-    let options = '<option value="">Selecione...</option>';
+    let options = '<option value="">Selecione para adicionar...</option>';
     
     membrosSalvos.forEach(m => {
         options += `<option value="${m.nome}">${m.nome} (${m.setor})</option>`;
     });
 
     if (membrosSalvos.length === 0) {
-        options += `<option value="Não Cadastrado">Cadastre as pessoas no Menu Configurações</option>`;
+        options += `<option value="">Cadastre as pessoas no Menu Configurações</option>`;
     }
     
     select.innerHTML = options;
 }
 
+window.adicionarResponsavelKb = function() {
+    const select = document.getElementById('kb-responsavel');
+    const nome = select.value;
+    if (!nome) return;
+    
+    let finalInput = document.getElementById('kb-responsavel-final');
+    let lista = finalInput.value ? finalInput.value.split(' | ') : [];
+    
+    if (!lista.includes(nome)) {
+        lista.push(nome);
+        finalInput.value = lista.join(' | ');
+        renderResponsaveisKb();
+    }
+}
+
+window.removerResponsavelKb = function(nome) {
+    let finalInput = document.getElementById('kb-responsavel-final');
+    let lista = finalInput.value.split(' | ').filter(n => n !== nome);
+    finalInput.value = lista.join(' | ');
+    renderResponsaveisKb();
+}
+
+window.renderResponsaveisKb = function() {
+    const container = document.getElementById('kb-responsaveis-list');
+    const finalInput = document.getElementById('kb-responsavel-final');
+    if (!finalInput.value) { container.innerHTML = ''; return; }
+    
+    const lista = finalInput.value.split(' | ');
+    container.innerHTML = lista.map(nome => 
+        `<span class="badge-setor" style="background: var(--primary); color: white; display: flex; align-items: center; gap: 8px; padding: 6px 12px;">
+            <i class="fas fa-user-circle"></i> ${nome} 
+            <i class="fas fa-times" style="cursor:pointer; color: #f43f5e;" onclick="removerResponsavelKb('${nome}')" title="Remover"></i>
+        </span>`
+    ).join('');
+}
+
 window.salvarKanbanItem = async function() {
     const setor = document.getElementById('kb-setor').value;
-    const responsavel = document.getElementById('kb-responsavel').value;
+    const responsavel = document.getElementById('kb-responsavel-final').value;
     const meta = document.getElementById('kb-meta').value;
     const data_previsao = document.getElementById('kb-data').value;
     const consideracao = document.getElementById('kb-consideracao').value;
@@ -183,7 +225,7 @@ window.salvarKanbanItem = async function() {
 
     if(!meta || !responsavel) { 
         msg.style.color = 'var(--vermelho)'; 
-        msg.innerText = 'Preencha a Meta e o Responsável!'; 
+        msg.innerText = 'Preencha a Meta e adicione ao menos um Responsável no botão (+) !'; 
         return; 
     }
 
@@ -209,7 +251,6 @@ window.salvarKanbanItem = async function() {
             throw new Error("Supabase não carregado");
         }
     } catch(e) {
-        console.warn("Tabela kanban_metas não encontrada. Usando Fallback LocalStorage.");
         let localKanban = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');
         localKanban.push(item);
         localStorage.setItem('kanban_metas_local', JSON.stringify(localKanban));
@@ -218,6 +259,8 @@ window.salvarKanbanItem = async function() {
     msg.style.color = 'var(--verde)'; msg.innerText = 'Enviado para o Quadro de Considerações!';
     document.getElementById('kb-meta').value = '';
     document.getElementById('kb-consideracao').value = '';
+    document.getElementById('kb-responsavel-final').value = '';
+    renderResponsaveisKb(); // Limpa as tags
     setTimeout(() => msg.innerText = '', 4000);
 }
 
@@ -229,9 +272,7 @@ async function sincronizarNomesDoBanco() {
         if (data) {
             data.forEach(item => localStorage.setItem(item.chave, item.valor));
         }
-    } catch (e) {
-         console.log('Erro na sincronização inicial'); 
-    }
+    } catch (e) {}
 }
 
 function updateClock() {
