@@ -34,25 +34,21 @@
         <span id="msg-ssma-geral" style="margin-left: 15px; font-weight: bold;"></span>
     </div>
 
-    <!-- LANÇAR NOVO DNA -->
+    <!-- LANÇAR DNAS EM LOTE (MODIFICADO) -->
     <div class="kpi-card" style="border-left: 5px solid #0ea5e9;">
-        <h3 class="nav-label" style="margin-bottom: 20px; color: #0ea5e9;"><i class="fas fa-exclamation-circle"></i> ABERTURA DE DNA (DESVIO)</h3>
-        <div class="form-grid" style="grid-template-columns: 1fr;">
+        <h3 class="nav-label" style="margin-bottom: 20px; color: #0ea5e9;"><i class="fas fa-exclamation-circle"></i> LANÇAMENTO DE DNAS ABERTOS</h3>
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
             <div class="input-group">
-                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Data de Abertura</label>
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Data de Referência (Retroativa ou Atual)</label>
                 <input type="date" id="dna-data" class="config-input">
             </div>
             <div class="input-group">
-                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Setor Responsável</label>
-                <input type="text" id="dna-setor" class="config-input" placeholder="Ex: Manutenção">
-            </div>
-            <div class="input-group">
-                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Descrição do DNA</label>
-                <textarea id="dna-desc" class="config-input" rows="2" placeholder="Descreva o desvio..."></textarea>
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Quantidade de DNAs</label>
+                <input type="number" id="dna-qtd" class="config-input" placeholder="Ex: 5" min="1">
             </div>
         </div>
         <button class="btn-salvar" style="background: #0ea5e9; width: 100%; margin-top: 15px;" onclick="salvarDNA()">
-            <i class="fas fa-plus"></i> Registrar DNA
+            <i class="fas fa-plus"></i> Registrar DNAs
         </button>
         <span id="msg-dna" style="display: block; margin-top: 10px; font-weight: bold;"></span>
     </div>
@@ -165,7 +161,7 @@
             msg.innerText = 'Salvando...';
 
             try {
-                // VERIFICA SE EXISTE NO MOMENTO EXATO DE SALVAR (Previne falha no salvamento)
+                // VERIFICA SE EXISTE NO MOMENTO EXATO DE SALVAR
                 const { data: existe } = await _supa.from('ssma_indicadores_gerais').select('id').eq('data_registro', dataSelecionada).limit(1);
 
                 let res;
@@ -189,26 +185,39 @@
             }
         }
 
+        // LÓGICA DE DNAS MODIFICADA PARA LANÇAMENTO EM LOTE (QUANTIDADE)
         window.salvarDNA = async function() {
             const msg = document.getElementById('msg-dna');
-            const dados = {
-                data_abertura: document.getElementById('dna-data').value,
-                setor: document.getElementById('dna-setor').value || null,
-                descricao: document.getElementById('dna-desc').value
-            };
+            const dataDNA = document.getElementById('dna-data').value;
+            const qtdDNA = parseInt(document.getElementById('dna-qtd').value, 10);
 
-            if(!dados.descricao) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Preencha a descrição!'; return; }
+            if(!dataDNA) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Selecione a data!'; return; }
+            if(!qtdDNA || qtdDNA <= 0) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Insira uma quantidade válida!'; return; }
             
             msg.style.color = 'var(--text-dim)'; msg.innerText = 'Registrando...';
-            const { error } = await _supa.from('ssma_dnas').insert([dados]);
+
+            // Cria um Array de registros com base no número que você digitou
+            const registrosEmLote = [];
+            for(let i = 0; i < qtdDNA; i++) {
+                registrosEmLote.push({
+                    data_abertura: dataDNA,
+                    setor: 'Lançamento em Lote',
+                    descricao: 'DNA registrado por quantidade via painel executivo',
+                    status: 'Aberto'
+                });
+            }
+
+            // O Supabase consegue fazer múltiplos inserts de uma vez só passando o Array
+            const { error } = await _supa.from('ssma_dnas').insert(registrosEmLote);
             
             if (error) { 
+                console.error("Erro no Banco:", error);
                 msg.style.color = 'var(--vermelho)'; 
                 msg.innerText = 'Erro ao salvar!'; 
             } else { 
                 msg.style.color = 'var(--verde)'; 
-                msg.innerText = 'DNA Registrado!'; 
-                document.getElementById('dna-desc').value = '';
+                msg.innerText = `${qtdDNA} DNA(s) Registrado(s)!`; 
+                document.getElementById('dna-qtd').value = '';
                 setTimeout(() => msg.innerText='', 3000); 
             }
         }
