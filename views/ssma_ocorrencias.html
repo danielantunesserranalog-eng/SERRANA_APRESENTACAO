@@ -1,11 +1,15 @@
 <div class="dashboard-grid">
     <!-- LANÇAMENTO DIÁRIO DE INDICADORES -->
     <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid var(--verde);">
-        <h3 class="nav-label" style="margin-bottom: 20px; color: var(--verde);"><i class="fas fa-clipboard-check"></i> LANÇAMENTO DIÁRIO DE INDICADORES GERAIS</h3>
+        <h3 class="nav-label" style="margin-bottom: 20px; color: var(--verde);"><i class="fas fa-clipboard-check"></i> LANÇAMENTO DIÁRIO E METAS GERAIS</h3>
         <div class="form-grid">
             <div class="input-group">
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Data do Registro</label>
                 <input type="date" id="ssma-data-geral" class="config-input">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Meta Diária (Abertura de DNAs)</label>
+                <input type="number" id="ssma-meta-dna" class="config-input" placeholder="Ex: 2" style="border-color: #0ea5e9;">
             </div>
             <div class="input-group">
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Dias Sem Acidentes (C/ Afastamento)</label>
@@ -29,12 +33,12 @@
             </div>
         </div>
         <button class="btn-salvar" style="background: var(--verde);" onclick="salvarIndicadoresGerais()">
-            <i class="fas fa-save"></i> Salvar Indicadores do Dia
+            <i class="fas fa-save"></i> Salvar Indicadores e Meta
         </button>
         <span id="msg-ssma-geral" style="margin-left: 15px; font-weight: bold;"></span>
     </div>
 
-    <!-- LANÇAR DNAS EM LOTE (MODIFICADO) -->
+    <!-- LANÇAR DNAS EM LOTE -->
     <div class="kpi-card" style="border-left: 5px solid #0ea5e9;">
         <h3 class="nav-label" style="margin-bottom: 20px; color: #0ea5e9;"><i class="fas fa-exclamation-circle"></i> LANÇAMENTO DE DNAS ABERTOS</h3>
         <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
@@ -90,7 +94,6 @@
 
 <script>
     setTimeout(() => {
-        // Instância GLOBAL ÚNICA do Supabase para parar o aviso "Multiple GoTrueClient"
         if (!window.supabaseClientGlobal) {
             window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
         }
@@ -109,6 +112,13 @@
 
         async function carregarIndicadoresDeHoje() {
             try {
+                // 1. Puxa a Meta Global de DNA
+                const { data: configData } = await _supa.from('configuracoes').select('valor').eq('chave', 'meta_diaria_dna').limit(1);
+                if (configData && configData.length > 0) {
+                    document.getElementById('ssma-meta-dna').value = configData[0].valor;
+                }
+
+                // 2. Puxa os dados do dia
                 const dataSelecionada = elDataGeral.value;
                 const { data } = await _supa
                     .from('ssma_indicadores_gerais')
@@ -141,6 +151,7 @@
         window.salvarIndicadoresGerais = async function() {
             const msg = document.getElementById('msg-ssma-geral');
             const dataSelecionada = document.getElementById('ssma-data-geral').value;
+            const metaDna = document.getElementById('ssma-meta-dna').value;
             
             if(!dataSelecionada) {
                 msg.style.color = 'var(--vermelho)';
@@ -161,7 +172,12 @@
             msg.innerText = 'Salvando...';
 
             try {
-                // VERIFICA SE EXISTE NO MOMENTO EXATO DE SALVAR
+                // 1. Salva a Meta Global na tabela de configurações
+                if (metaDna) {
+                    await _supa.from('configuracoes').upsert([{ chave: 'meta_diaria_dna', valor: metaDna }], { onConflict: 'chave' });
+                }
+
+                // 2. Salva os indicadores diários
                 const { data: existe } = await _supa.from('ssma_indicadores_gerais').select('id').eq('data_registro', dataSelecionada).limit(1);
 
                 let res;
@@ -185,7 +201,6 @@
             }
         }
 
-        // LÓGICA DE DNAS MODIFICADA PARA LANÇAMENTO EM LOTE (QUANTIDADE)
         window.salvarDNA = async function() {
             const msg = document.getElementById('msg-dna');
             const dataDNA = document.getElementById('dna-data').value;
@@ -196,7 +211,6 @@
             
             msg.style.color = 'var(--text-dim)'; msg.innerText = 'Registrando...';
 
-            // Cria um Array de registros com base no número que você digitou
             const registrosEmLote = [];
             for(let i = 0; i < qtdDNA; i++) {
                 registrosEmLote.push({
@@ -207,7 +221,6 @@
                 });
             }
 
-            // O Supabase consegue fazer múltiplos inserts de uma vez só passando o Array
             const { error } = await _supa.from('ssma_dnas').insert(registrosEmLote);
             
             if (error) { 

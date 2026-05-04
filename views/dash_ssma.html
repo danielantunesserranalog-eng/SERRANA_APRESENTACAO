@@ -7,26 +7,44 @@
 
 <!-- ================= ROW 1: KPIs PRINCIPAIS ================= -->
 <div class="dashboard-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 25px; gap: 15px;">
+    
     <div class="kpi-card" style="padding: 20px; border-left: 4px solid var(--verde); display: flex; flex-direction: column; justify-content: space-between;">
         <p class="nav-label" style="color: var(--verde); margin-bottom: 5px;">DIAS SEM ACIDENTES</p>
         <div class="kpi-value status-verde" id="val-dias-sem-acidentes" style="font-size: 2.8rem; margin: 5px 0;">0</div>
         <p class="status-msg" style="font-weight: bold;"><i class="fas fa-hard-hat"></i> Com afastamento</p>
     </div>
+    
     <div class="kpi-card" style="padding: 20px; border-left: 4px solid var(--amarelo); display: flex; flex-direction: column; justify-content: space-between;">
         <p class="nav-label" style="color: var(--amarelo); margin-bottom: 5px;">INCIDENTES RECENTES</p>
         <div class="kpi-value status-amarelo" id="val-incidentes" style="font-size: 2.8rem; margin: 5px 0;">0</div>
         <p class="status-msg"><i class="fas fa-user-injured"></i> Sem afastamento (Geral)</p>
     </div>
+    
+    <!-- CARD DE DNAS -->
     <div class="kpi-card" style="padding: 20px; border-left: 4px solid #0ea5e9; display: flex; flex-direction: column; justify-content: space-between;">
-        <p class="nav-label" style="color: #0ea5e9; margin-bottom: 5px;">DNAs ABERTOS</p>
-        <div class="kpi-value" id="val-dnas-mes" style="font-size: 2.8rem; margin: 5px 0; color: #0ea5e9;">0</div>
-        <p class="status-msg"><i class="fas fa-clipboard-list"></i> No mês atual</p>
+        <p class="nav-label" style="color: #0ea5e9; margin-bottom: 5px;">DNAs ABERTOS (META: <span id="label-meta-diaria">0</span>/DIA)</p>
+        
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin: 5px 0;">
+            <div class="kpi-value" id="val-dnas-mes" style="font-size: 2.8rem; margin: 0; color: #0ea5e9;">0</div>
+            <div style="text-align: right;">
+                <p style="font-size: 0.75rem; color: var(--text-dim); font-weight: bold; margin-bottom: 2px;">META DO MÊS</p>
+                <p id="val-meta-mes" style="font-size: 1.2rem; font-weight: 800; color: white; margin: 0;">0</p>
+            </div>
+        </div>
+        
+        <div style="width: 100%; height: 6px; background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; margin-top: 10px; margin-bottom: 8px;">
+            <div id="bar-dnas" style="height: 100%; width: 0%; background: #0ea5e9; transition: 0.5s;"></div>
+        </div>
+        
+        <p class="status-msg" id="msg-dnas-indice" style="font-size: 0.8rem; font-weight: bold;">-</p>
     </div>
+    
     <div class="kpi-card" style="padding: 20px; border-left: 4px solid #8b5cf6; display: flex; flex-direction: column; justify-content: space-between;">
-        <p class="nav-label" style="color: #8b5cf6; margin-bottom: 5px;">ÍNDICE DE ABERTURA (DNA)</p>
+        <p class="nav-label" style="color: #8b5cf6; margin-bottom: 5px;">ÍNDICE DE TRATAMENTO</p>
         <div class="kpi-value" style="font-size: 2.8rem; margin: 5px 0; color: #8b5cf6;"><span id="val-indice-dna">0</span><span style="font-size: 1.2rem;">%</span></div>
         <p class="status-msg"><i class="fas fa-chart-pie"></i> DNAs Fechados / Totais</p>
     </div>
+    
     <div class="kpi-card" style="padding: 20px; border-left: 4px solid #f43f5e; display: flex; flex-direction: column; justify-content: space-between;">
         <p class="nav-label" style="color: #f43f5e; margin-bottom: 5px;">VISITAS DE CAMPO</p>
         <div class="kpi-value" id="val-visitas" style="font-size: 2.8rem; margin: 5px 0; color: #f43f5e;">0</div>
@@ -93,12 +111,10 @@
 
 <script>
     (async function initSSMADashReal() {
-        // Instância GLOBAL ÚNICA para parar os avisos no terminal
         if (!window.supabaseClientGlobal) {
             window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
         }
         const _supa = window.supabaseClientGlobal;
-
         const statusEl = document.getElementById('status-att-ssma');
         
         function formatarData(dataIso) {
@@ -108,7 +124,23 @@
         }
         
         try {
-            // 1. PUXAR INDICADORES GERAIS (Pega o mais recente salvo)
+            // ==========================================
+            // 1. PUXAR META GLOBAL DO BANCO
+            // ==========================================
+            let META_DIARIA_DNA = 2; // Valor Padrão
+            try {
+                const { data: confData } = await _supa.from('configuracoes').select('valor').eq('chave', 'meta_diaria_dna').limit(1);
+                if (confData && confData.length > 0) {
+                    META_DIARIA_DNA = parseInt(confData[0].valor, 10) || 2;
+                }
+            } catch(e) {
+                console.log("Meta diária não encontrada, usando o padrão 2.");
+            }
+            document.getElementById('label-meta-diaria').innerText = META_DIARIA_DNA;
+
+            // ==========================================
+            // 2. PUXAR INDICADORES GERAIS
+            // ==========================================
             const { data: indData } = await _supa.from('ssma_indicadores_gerais').select('*').order('data_registro', { ascending: false }).limit(1);
             if (indData && indData.length > 0) {
                 const ind = indData[0];
@@ -119,14 +151,20 @@
                 document.getElementById('val-campanha-tema').innerText = ind.campanha_tema || '-';
             }
 
-            // 2. PUXAR DNAS E GRÁFICO DO MÊS ATUAL
+            // ==========================================
+            // 3. PUXAR DNAS, CALCULAR METAS E GRÁFICO
+            // ==========================================
             const hoje = new Date();
             const mesAtualNum = hoje.getMonth() + 1;
             const anoAtualNum = hoje.getFullYear();
+            const diaAtualNum = hoje.getDate();
             
-            // Descobre quantos dias tem o mês atual
             const ultimoDiaDoMes = new Date(anoAtualNum, mesAtualNum, 0).getDate();
+            const metaMesAtual = META_DIARIA_DNA * ultimoDiaDoMes;
+            const metaProporcionalAteHoje = META_DIARIA_DNA * diaAtualNum;
             
+            document.getElementById('val-meta-mes').innerText = metaMesAtual;
+
             const { data: dnasData } = await _supa.from('ssma_dnas').select('*');
             let dnasMesAtual = 0;
             let dnasFechadosTotais = 0;
@@ -134,26 +172,41 @@
 
             if (dnasData) {
                 dnasData.forEach(dna => {
-                    // Contagem Mês Atual
                     const dData = new Date(dna.data_abertura + 'T00:00:00');
                     if(dData.getMonth() + 1 === mesAtualNum && dData.getFullYear() === anoAtualNum) {
                         dnasMesAtual++;
                     }
-                    // Índice
                     if (dna.status !== 'Aberto') dnasFechadosTotais++;
                     
-                    // Mapa para o Gráfico
                     const dataStr = dna.data_abertura;
                     mapDnasPorDia[dataStr] = (mapDnasPorDia[dataStr] || 0) + 1;
                 });
             }
+            
+            // ATUALIZA UI DO CARD DE DNAS
             document.getElementById('val-dnas-mes').innerText = dnasMesAtual;
             
-            // Calculo Índice de Fechamento de DNA
+            const percentAtingido = metaMesAtual > 0 ? Math.min((dnasMesAtual / metaMesAtual) * 100, 100) : 0;
+            const barDna = document.getElementById('bar-dnas');
+            const msgIndice = document.getElementById('msg-dnas-indice');
+            const txtValDnas = document.getElementById('val-dnas-mes');
+            
+            barDna.style.width = `${percentAtingido}%`;
+
+            if (dnasMesAtual >= metaProporcionalAteHoje) {
+                barDna.style.background = 'var(--verde)';
+                txtValDnas.style.color = 'var(--verde)';
+                msgIndice.innerHTML = `<i class="fas fa-check-circle" style="color: var(--verde);"></i> Meta Atingida (Esperado até hoje: ${metaProporcionalAteHoje})`;
+            } else {
+                barDna.style.background = 'var(--amarelo)';
+                txtValDnas.style.color = 'var(--amarelo)';
+                msgIndice.innerHTML = `<i class="fas fa-exclamation-triangle" style="color: var(--amarelo);"></i> Abaixo do volume esperado (${dnasMesAtual}/${metaProporcionalAteHoje})`;
+            }
+
             const taxaDNA = dnasData && dnasData.length > 0 ? ((dnasFechadosTotais / dnasData.length) * 100).toFixed(1) : 0;
             document.getElementById('val-indice-dna').innerText = taxaDNA;
 
-            // RENDERIZA GRÁFICO (Mês Atual)
+            // RENDERIZA GRÁFICO
             if (typeof echarts !== 'undefined') {
                 const chartDom = document.getElementById('chart-dna');
                 let myChart = echarts.getInstanceByDom(chartDom) || echarts.init(chartDom);
@@ -161,11 +214,10 @@
                 const dataLabels = [];
                 const dataValues = [];
                 
-                // Monta o eixo X do dia 1 até o último dia do mês
                 for(let dia = 1; dia <= ultimoDiaDoMes; dia++) {
                     const mesStr = String(mesAtualNum).padStart(2, '0');
                     const diaStr = String(dia).padStart(2, '0');
-                    const isoKey = `${anoAtualNum}-${mesStr}-${diaStr}`; // Ex: 2026-05-01
+                    const isoKey = `${anoAtualNum}-${mesStr}-${diaStr}`; 
 
                     dataLabels.push(`${diaStr}/${mesStr}`);
                     dataValues.push(mapDnasPorDia[isoKey] || 0);
@@ -174,7 +226,7 @@
                 myChart.setOption({
                     backgroundColor: 'transparent',
                     tooltip: { trigger: 'axis' },
-                    grid: { left: '2%', right: '4%', bottom: '5%', top: '15%', containLabel: true },
+                    grid: { left: '2%', right: '5%', bottom: '5%', top: '15%', containLabel: true },
                     xAxis: { type: 'category', boundaryGap: false, data: dataLabels, axisLabel: { color: '#94a3b8' } },
                     yAxis: { type: 'value', minInterval: 1, axisLabel: { color: '#94a3b8' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } } },
                     series: [{
@@ -191,17 +243,27 @@
                             fontWeight: 'bold',
                             fontSize: 12,
                             formatter: function(params) {
-                                // Mostra o número apenas se for maior que zero (para não poluir a linha)
                                 return params.value > 0 ? params.value : '';
                             }
                         },
-                        areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(14, 165, 233, 0.4)' }, { offset: 1, color: 'rgba(14, 165, 233, 0)' }]) }
+                        areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(14, 165, 233, 0.4)' }, { offset: 1, color: 'rgba(14, 165, 233, 0)' }]) },
+                        markLine: {
+                            silent: true,
+                            symbol: 'none',
+                            data: [{
+                                yAxis: META_DIARIA_DNA,
+                                lineStyle: { color: 'var(--verde)', type: 'dashed', width: 2 },
+                                label: { show: true, position: 'end', formatter: 'Meta ({value})', color: 'var(--verde)', fontWeight: 'bold' }
+                            }]
+                        }
                     }]
                 });
                 setTimeout(() => myChart.resize(), 100);
             }
 
-            // 3. PUXAR TREINAMENTOS
+            // ==========================================
+            // 4. PUXAR TREINAMENTOS
+            // ==========================================
             const { data: treiData } = await _supa.from('ssma_treinamentos').select('*').order('data_previsao', { ascending: false });
             
             const tbodyRealizado = document.getElementById('lista-treinamentos-realizados');
