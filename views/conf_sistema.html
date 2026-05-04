@@ -42,14 +42,16 @@
             </div>
             <div class="input-group">
                 <label>Setor Associado</label>
+                <!-- FIX: Tag devidamente fechada -->
                 <input type="text" id="novo_setor_kb" class="config-input" placeholder="Ex: Manutenção">
             </div>
         </div>
+        
         <button class="btn-salvar" style="background: var(--amarelo); color: var(--bg-dark);" onclick="adicionarMembroKanban()">
             <i class="fas fa-plus"></i> Adicionar Membro
         </button>
         <span id="msg-kb-status" style="margin-left: 15px; font-weight: bold; color: var(--amarelo);"></span>
-
+        
         <div class="table-box" style="margin-top: 30px;">
             <table class="exec-table">
                 <thead>
@@ -90,19 +92,24 @@
     async function salvarConfiguracoesNoBanco() {
         const btn = document.getElementById('btn-salvar-config');
         const status = document.getElementById('msg-status');
+        
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
         status.innerText = '';
+        
         const chaves = ['resp_geral', 'resp_rh', 'resp_operacional', 'resp_manutencao', 'resp_ssma'];
         const dadosParaSalvar = chaves.map(chave => ({
             chave: chave,
             valor: document.getElementById(chave).value
         }));
+
         try {
             const { error } = await _supabase.from('configuracoes').upsert(dadosParaSalvar);
             if (error) throw error;
+            
             status.style.color = 'var(--verde)';
             status.innerText = 'Salvo com sucesso no Supabase!';
+            
             chaves.forEach(chave => localStorage.setItem(chave, document.getElementById(chave).value));
         } catch (err) {
             console.error('Erro ao salvar:', err);
@@ -123,7 +130,7 @@
             tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--text-dim);">Nenhum membro cadastrado.</td></tr>';
             return;
         }
-
+        
         tbody.innerHTML = membros.map((m, index) => `
             <tr>
                 <td style="color: white; font-weight: bold;">${m.nome}</td>
@@ -141,20 +148,22 @@
         const nome = document.getElementById('novo_nome_kb').value.trim();
         const setor = document.getElementById('novo_setor_kb').value.trim();
         const msg = document.getElementById('msg-kb-status');
-
+        
         if (!nome || !setor) {
-            msg.style.color = 'var(--vermelho)'; msg.innerText = 'Preencha nome e setor!';
+            msg.style.color = 'var(--vermelho)'; 
+            msg.innerText = 'Preencha nome e setor!';
             return;
         }
-
+        
         let membros = JSON.parse(localStorage.getItem('membros_kanban') || '[]');
         membros.push({ nome, setor });
         localStorage.setItem('membros_kanban', JSON.stringify(membros));
-
+        
         document.getElementById('novo_nome_kb').value = '';
         document.getElementById('novo_setor_kb').value = '';
         
-        msg.style.color = 'var(--verde)'; msg.innerText = 'Membro Adicionado!';
+        msg.style.color = 'var(--verde)'; 
+        msg.innerText = 'Membro Adicionado!';
         setTimeout(() => msg.innerText = '', 3000);
         
         carregarTabelaMembros();
