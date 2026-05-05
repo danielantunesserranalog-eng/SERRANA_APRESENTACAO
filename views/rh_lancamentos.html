@@ -25,14 +25,21 @@
                 <input type="number" id="input-integracoes" class="config-input" placeholder="Ex: 4">
             </div>
         </div>
+
+        <div style="margin-top: 20px; display: flex; align-items: center;">
+            <button class="btn-salvar" onclick="salvarDadosRH('msg-rh-1')" style="background: var(--primary);">
+                <i class="fas fa-save"></i> Salvar Indicadores Básicos
+            </button>
+            <span id="msg-rh-1" style="margin-left: 15px; font-weight: bold;"></span>
+        </div>
     </div>
 
     <!-- Bloco 1.5: Murais de Comunicação RH e Calendário -->
     <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid #8b5cf6; margin-top: 10px;">
         <h3 class="nav-label" style="margin-bottom: 20px; color: #8b5cf6;"><i class="fas fa-chalkboard"></i> MURAIS DE COMUNICAÇÃO E EVENTOS</h3>
 
-        <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
-            <!-- Caixas de Texto (Avisos, Liberações, Aniversariantes) -->
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+            <!-- Caixas de Texto (Avisos, Liberações) -->
             <div class="input-group">
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Avisos</label>
                 <textarea id="input-avisos-rh" class="config-input" rows="3" placeholder="Avisos gerais do RH..."></textarea>
@@ -41,12 +48,34 @@
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Liberações Destra x Prazos</label>
                 <textarea id="input-liberacoes-rh" class="config-input" rows="3" placeholder="Status das liberações e prazos do RH..."></textarea>
             </div>
-            <div class="input-group">
-                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Aniversariantes do Mês</label>
-                <textarea id="input-aniversariantes-rh" class="config-input" rows="3" placeholder="Ex: Dia 05 - João, Dia 12 - Maria..."></textarea>
+
+            <!-- GERADOR DE ANIVERSARIANTES -->
+            <div class="input-group" style="grid-column: 1 / -1; background: rgba(236, 72, 153, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(236, 72, 153, 0.3);">
+                <label style="display:block; margin-bottom: 12px; font-size: 0.9rem; color: #ec4899; font-weight: bold;"><i class="fas fa-birthday-cake"></i> Gerenciar Aniversariantes do Mês</label>
+                
+                <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 15px;">
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Nome do Colaborador</label>
+                        <input type="text" id="novo-aniv-nome" class="config-input" placeholder="Ex: João Silva">
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Setor</label>
+                        <input type="text" id="novo-aniv-setor" class="config-input" placeholder="Ex: Operacional">
+                    </div>
+                    <div style="width: 120px;">
+                        <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Dia (Ex: 15)</label>
+                        <input type="number" id="novo-aniv-dia" class="config-input" min="1" max="31" placeholder="Dia">
+                    </div>
+                    <button type="button" class="btn-salvar" style="padding: 14px 20px; background: #ec4899;" onclick="adicionarAniversariante()">
+                        <i class="fas fa-plus"></i> Adicionar
+                    </button>
+                </div>
+                
+                <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Lista Final de Aniversariantes (Pode ser editada manualmente)</label>
+                <textarea id="input-aniversariantes-rh" class="config-input" rows="3" placeholder="Os aniversariantes aparecerão aqui..."></textarea>
             </div>
-            
-            <!-- NOVO CONTROLE: GERADOR DE EVENTOS PARA O CALENDÁRIO -->
+
+            <!-- GERADOR DE EVENTOS DO CALENDÁRIO -->
             <div class="input-group" style="grid-column: 1 / -1; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
                 <label style="display:block; margin-bottom: 12px; font-size: 0.9rem; color: var(--verde); font-weight: bold;"><i class="fas fa-calendar-plus"></i> Gerenciar Calendário de Eventos / Pagamentos</label>
                 
@@ -70,15 +99,17 @@
                     </button>
                 </div>
                 
-                <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Lista Final de Eventos (Pode ser editada/apagada manualmente)</label>
+                <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Lista Final de Eventos (Pode ser editada manualmente)</label>
                 <textarea id="input-calendario-rh" class="config-input" rows="3" placeholder="Os eventos adicionados aparecerão aqui..."></textarea>
             </div>
         </div>
 
-        <button class="btn-salvar" onclick="salvarDadosRH()" style="margin-top: 20px; background: #8b5cf6;">
-            <i class="fas fa-save"></i> Salvar Indicadores e Murais no Banco
-        </button>
-        <span id="msg-rh" style="margin-left: 15px; font-weight: bold;"></span>
+        <div style="margin-top: 20px; display: flex; align-items: center;">
+            <button class="btn-salvar" onclick="salvarDadosRH('msg-rh-2')" style="background: #8b5cf6;">
+                <i class="fas fa-save"></i> Salvar Murais e Calendário
+            </button>
+            <span id="msg-rh-2" style="margin-left: 15px; font-weight: bold;"></span>
+        </div>
     </div>
 
     <!-- Bloco 2: Gestão de Vagas -->
@@ -100,8 +131,9 @@
             </div>
         </div>
         
+        <!-- Botão das vagas é independente, ele salva direto no banco a vaga clicada -->
         <button class="btn-salvar" style="background: var(--amarelo); color: var(--bg-dark); margin-top: 15px;" onclick="adicionarVaga()">
-            <i class="fas fa-plus"></i> Adicionar Vaga
+            <i class="fas fa-plus"></i> Adicionar Vaga no Banco
         </button>
 
         <div class="table-box" style="margin-top: 30px;">
@@ -121,7 +153,33 @@
 </div>
 
 <script>
-    // Função acionada pelo botão "Incluir no Calendário"
+    // Função para adicionar Aniversariante
+    window.adicionarAniversariante = function() {
+        const nome = document.getElementById('novo-aniv-nome').value;
+        const setor = document.getElementById('novo-aniv-setor').value;
+        const dia = document.getElementById('novo-aniv-dia').value;
+        const textarea = document.getElementById('input-aniversariantes-rh');
+
+        if (!nome || !setor || !dia) {
+            alert("Preencha o Nome, Setor e o Dia do aniversário!");
+            return;
+        }
+
+        const diaFormatado = String(dia).padStart(2, '0');
+        const novoTexto = `Dia ${diaFormatado} | ${nome} | ${setor}`;
+
+        if (textarea.value.trim() === '') {
+            textarea.value = novoTexto;
+        } else {
+            textarea.value += '\n' + novoTexto;
+        }
+
+        document.getElementById('novo-aniv-nome').value = '';
+        document.getElementById('novo-aniv-setor').value = '';
+        document.getElementById('novo-aniv-dia').value = '';
+    };
+
+    // Função para adicionar Evento ao Calendário
     window.adicionarEventoCalendario = function() {
         const selectTipo = document.getElementById('novo-evento-tipo');
         let tipo = selectTipo.value;
@@ -133,7 +191,6 @@
             return;
         }
 
-        // Lógica de personalização do nome do evento/feriado
         if (tipo === 'EVENTO') {
             const nomePersonalizado = prompt("Digite o nome do evento (Ex: Festa Junina, Treinamento, etc):");
             if (!nomePersonalizado || nomePersonalizado.trim() === '') return; 
@@ -147,20 +204,17 @@
             }
         }
 
-        // O valor do input date vem no formato "YYYY-MM-DD"
         const partes = dataStr.split('-');
-        const dia = partes[2]; // Pega apenas o dia (ex: 05)
+        const dia = partes[2]; 
         
         const novoTexto = `Dia ${dia} - ${tipo}`;
 
-        // Insere o texto na caixa
         if (textarea.value.trim() === '') {
             textarea.value = novoTexto;
         } else {
-            textarea.value += '\n' + novoTexto; // Quebra de linha para não juntar
+            textarea.value += '\n' + novoTexto;
         }
 
-        // Limpa o campo de data para o próximo lançamento
         document.getElementById('novo-evento-data').value = '';
     };
 

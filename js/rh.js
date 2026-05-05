@@ -13,13 +13,15 @@ function obterDataHoje() {
     return localISOTime.split('T')[0];
 }
 
-window.salvarDadosRH = async function() {
-    const msg = document.getElementById('msg-rh');
+// Passamos o ID da mensagem para saber qual botão disparou o salvamento
+window.salvarDadosRH = async function(msgId = 'msg-rh-1') {
+    const msg = document.getElementById(msgId);
     if (msg) {
         msg.style.color = 'var(--text-dim)';
         msg.innerText = "Salvando no banco de dados...";
     }
     
+    // Puxa TODOS os dados da tela de uma vez, garantindo que nada se perca no banco
     const dados = {
         data_registro: obterDataHoje(),
         headcount: parseInt(document.getElementById('input-headcount')?.value || 0),
@@ -49,7 +51,7 @@ window.salvarDadosRH = async function() {
         
         if (msg) {
             msg.style.color = 'var(--verde)';
-            msg.innerText = "Indicadores e Murais salvos no banco com sucesso!";
+            msg.innerText = "Salvo no banco com sucesso!";
             setTimeout(() => msg.innerText = "", 4000);
         }
         
@@ -147,9 +149,13 @@ window.carregarDadosRH = async function() {
 
             if(document.getElementById('mural-avisos-rh')) document.getElementById('mural-avisos-rh').innerText = dados.mural_avisos || 'Sem avisos no momento.';
             if(document.getElementById('mural-liberacoes-rh')) document.getElementById('mural-liberacoes-rh').innerText = dados.mural_liberacoes || 'Sem atualizações.';
-            if(document.getElementById('mural-aniversariantes-rh')) document.getElementById('mural-aniversariantes-rh').innerText = dados.mural_aniversariantes || 'Nenhum aniversariante registrado.';
             
-            // 3. Povoar o Calendário
+            if(typeof window.gerarAniversariantesVisual === 'function') {
+                window.gerarAniversariantesVisual(dados.mural_aniversariantes || '');
+            } else if (document.getElementById('mural-aniversariantes-rh')) {
+                document.getElementById('mural-aniversariantes-rh').innerText = dados.mural_aniversariantes || 'Nenhum aniversariante registrado.';
+            }
+
             if(typeof window.gerarCalendarioVisual === 'function') {
                 window.gerarCalendarioVisual(dados.mural_calendario || '');
             } else if (document.getElementById('mural-calendario-rh')) {
@@ -157,10 +163,8 @@ window.carregarDadosRH = async function() {
             }
 
         } else {
-            // Limpa o calendário se não houver registros
-            if (typeof window.gerarCalendarioVisual === 'function') {
-                window.gerarCalendarioVisual('');
-            }
+            if (typeof window.gerarCalendarioVisual === 'function') window.gerarCalendarioVisual('');
+            if (typeof window.gerarAniversariantesVisual === 'function') window.gerarAniversariantesVisual('');
         }
         
         // Puxa as vagas que estão com status 'Aberta'
