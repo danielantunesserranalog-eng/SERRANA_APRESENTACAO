@@ -6,9 +6,11 @@ if (!window.supabaseClientGlobal && typeof supabase !== 'undefined' && typeof SU
 }
 const _supa = window.supabaseClientGlobal;
 
-// Pega a data de hoje no formato YYYY-MM-DD para atrelar aos indicadores
+// Pega a data de hoje garantindo o fuso horário do Brasil (evita virar o dia antecipadamente)
 function obterDataHoje() {
-    return new Date().toISOString().split('T')[0];
+    const tzOffset = (new Date()).getTimezoneOffset() * 60000;
+    const localISOTime = (new Date(Date.now() - tzOffset)).toISOString().slice(0, -1);
+    return localISOTime.split('T')[0];
 }
 
 window.salvarDadosRH = async function() {
@@ -18,7 +20,6 @@ window.salvarDadosRH = async function() {
         msg.innerText = "Salvando no banco de dados...";
     }
     
-    // Coleta os valores digitados no formulário, incluindo os novos murais
     const dados = {
         data_registro: obterDataHoje(),
         headcount: parseInt(document.getElementById('input-headcount')?.value || 0),
@@ -35,10 +36,8 @@ window.salvarDadosRH = async function() {
     try {
         if (!_supa) throw new Error("Conexão com Supabase não estabelecida.");
 
-        // Usa upsert: se já tiver registro hoje, ele atualiza. Se não tiver, ele cria novo.
         const { error } = await _supa.from('rh_indicadores').upsert([dados], { onConflict: 'data_registro' });
         
-        // SE O BANCO RECUSAR, MOSTRA O ERRO EXATO NA TELA
         if (error) {
             console.error("Erro detalhado do Supabase:", error);
             if (msg) {
@@ -122,13 +121,12 @@ window.carregarDadosRH = async function() {
     if (!_supa) return;
     
     try {
-        // 1. Puxa os indicadores e murais 100% DO BANCO DE DADOS
         const { data: indData, error: indError } = await _supa.from('rh_indicadores').select('*').order('data_registro', { ascending: false }).limit(1);
         
         if (!indError && indData && indData.length > 0) {
             const dados = indData[0];
             
-            // Repreencher os inputs de lançamento (Tela de Lançamento)
+            // 1. Povoar Inputs (Tela de Lançamento)
             if(document.getElementById('input-headcount')) document.getElementById('input-headcount').value = dados.headcount || '';
             if(document.getElementById('input-atestados')) document.getElementById('input-atestados').value = dados.atestados || '';
             if(document.getElementById('input-afastamentos')) document.getElementById('input-afastamentos').value = dados.afastamentos || '';
@@ -140,7 +138,7 @@ window.carregarDadosRH = async function() {
             if(document.getElementById('input-aniversariantes-rh')) document.getElementById('input-aniversariantes-rh').value = dados.mural_aniversariantes || '';
             if(document.getElementById('input-calendario-rh')) document.getElementById('input-calendario-rh').value = dados.mural_calendario || '';
             
-            // Atualizar os Cards e Murais no Dashboard (Painel)
+            // 2. Povoar o Dashboard (Tela de Apresentação)
             if(document.getElementById('val-headcount')) document.getElementById('val-headcount').innerText = dados.headcount || 0;
             if(document.getElementById('val-atestados')) document.getElementById('val-atestados').innerText = dados.atestados || 0;
             if(document.getElementById('val-afastamentos')) document.getElementById('val-afastamentos').innerText = dados.afastamentos || 0;
@@ -151,18 +149,21 @@ window.carregarDadosRH = async function() {
             if(document.getElementById('mural-liberacoes-rh')) document.getElementById('mural-liberacoes-rh').innerText = dados.mural_liberacoes || 'Sem atualizações.';
             if(document.getElementById('mural-aniversariantes-rh')) document.getElementById('mural-aniversariantes-rh').innerText = dados.mural_aniversariantes || 'Nenhum aniversariante registrado.';
             
-            // Caso o calendário esteja sendo lido pela função gerarCalendarioVisual, ela faz o tratamento
+            // 3. Povoar o Calendário
             if(typeof window.gerarCalendarioVisual === 'function') {
                 window.gerarCalendarioVisual(dados.mural_calendario || '');
             } else if (document.getElementById('mural-calendario-rh')) {
                 document.getElementById('mural-calendario-rh').innerText = dados.mural_calendario || 'Sem eventos programados.';
             }
 
-        } else if (typeof window.gerarCalendarioVisual === 'function') {
-            window.gerarCalendarioVisual('');
+        } else {
+            // Limpa o calendário se não houver registros
+            if (typeof window.gerarCalendarioVisual === 'function') {
+                window.gerarCalendarioVisual('');
+            }
         }
         
-        // 2. Puxa as vagas que estão com status 'Aberta'
+        // Puxa as vagas que estão com status 'Aberta'
         const { data: vagas, error: vagasError } = await _supa.from('rh_vagas').select('*').eq('status', 'Aberta').order('data_criacao', { ascending: false });
         
         let totalVagas = 0;
@@ -177,7 +178,6 @@ window.carregarDadosRH = async function() {
         
         if(document.getElementById('val-vagas')) document.getElementById('val-vagas').innerText = totalVagas;
         
-        // Tabela de Lançamento
         const tbodyLancamento = document.getElementById('tabela-vagas-lancamento');
         if (tbodyLancamento) {
             if (listaVagas.length === 0) {
@@ -198,7 +198,6 @@ window.carregarDadosRH = async function() {
             }
         }
         
-        // Tabela do Dashboard
         const tbodyDash = document.getElementById('tabela-vagas-dash');
         if (tbodyDash) {
             if (listaVagas.length === 0) {

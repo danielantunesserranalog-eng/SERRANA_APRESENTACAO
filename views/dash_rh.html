@@ -38,14 +38,11 @@
     </div>
     
     <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px; align-items: start;">
-        <!-- Grid do Calendário -->
         <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid var(--border);">
             <div id="calendario-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center;">
-                <!-- Renderizado via JavaScript -->
             </div>
         </div>
         
-        <!-- Legenda e Eventos Extraídos -->
         <div style="display: flex; flex-direction: column; gap: 15px;">
             <h4 style="color: var(--text-dim); font-size: 0.85rem; text-transform: uppercase; font-weight: bold; margin: 0;"><i class="fas fa-list-ul"></i> Eventos Programados</h4>
             <div id="calendario-legenda" style="display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto;">
@@ -57,14 +54,12 @@
 
 <!-- ================= MURAIS DE COMUNICAÇÃO RH ================= -->
 <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; margin-top: 25px;">
-    <!-- AVISOS -->
     <div class="content-panel kpi-card" style="border-left: 4px solid var(--amarelo); padding: 20px;">
         <h3 class="nav-label" style="color: var(--amarelo); margin-bottom: 15px;"><i class="fas fa-bullhorn"></i> AVISOS GERAIS</h3>
         <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; min-height: 120px;">
             <p id="mural-avisos-rh" style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap;">Carregando...</p>
         </div>
     </div>
-    <!-- LIBERAÇÕES DESTRA -->
     <div class="content-panel kpi-card" style="border-left: 4px solid #0ea5e9; padding: 20px;">
         <h3 class="nav-label" style="color: #0ea5e9; margin-bottom: 15px;"><i class="fas fa-id-card"></i> LIBERAÇÕES DESTRA X PRAZOS</h3>
         <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; min-height: 120px;">
@@ -74,7 +69,6 @@
 </div>
 
 <div class="dashboard-grid" style="grid-template-columns: 1fr; margin-top: 25px;">
-    <!-- ANIVERSARIANTES -->
     <div class="content-panel kpi-card" style="border-left: 4px solid #ec4899; padding: 20px;">
         <h3 class="nav-label" style="color: #ec4899; margin-bottom: 15px;"><i class="fas fa-birthday-cake"></i> ANIVERSARIANTES DO MÊS</h3>
         <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; min-height: 100px;">
@@ -104,7 +98,7 @@
 
 <script>
     // FUNÇÃO QUE GERA O CALENDÁRIO INTELIGENTE
-    function gerarCalendarioVisual(textoEventos) {
+    window.gerarCalendarioVisual = function(textoEventos) {
         const grid = document.getElementById('calendario-grid');
         const titulo = document.getElementById('mes-ano-calendario');
         const legenda = document.getElementById('calendario-legenda');
@@ -117,7 +111,6 @@
         const nomesMeses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
         titulo.innerText = `${nomesMeses[mes].toUpperCase()} ${ano}`;
 
-        // Lógica de Inteligência: Extrair dias do texto livre digitado
         const eventosMap = {};
         if (textoEventos && textoEventos.trim() !== '') {
             const linhas = textoEventos.split(/[\n,]+/);
@@ -137,12 +130,10 @@
         
         let html = '';
         
-        // Cabeçalho dos dias da semana
         diasSemana.forEach(d => {
             html += `<div style="font-weight: 800; color: var(--text-dim); padding: 5px 0; font-size: 0.75rem; text-transform: uppercase;">${d}</div>`;
         });
 
-        // Espaços vazios antes do dia 1
         for (let i = 0; i < primeiroDia; i++) {
             html += `<div style="padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.01);"></div>`;
         }
@@ -150,7 +141,6 @@
         let legendaHtml = '';
         let temAlgumEvento = false;
 
-        // Dias do mês
         for (let dia = 1; dia <= diasNoMes; dia++) {
             const ehHoje = dia === hoje.getDate();
             const eventosDoDia = eventosMap[dia];
@@ -159,30 +149,26 @@
             let color = 'var(--text-dim)';
             let border = '1px solid transparent';
             
-            // Destaque do dia atual
             if (ehHoje) {
                 border = '1px solid var(--text-dim)';
                 color = 'white';
             }
 
-            // Destaque de dias com eventos ou feriados
             if (eventosDoDia) {
-                // Checa se algum dos eventos deste dia é um FERIADO
                 const temFeriado = eventosDoDia.some(ev => ev.toUpperCase().includes('FERIADO'));
                 
                 if (temFeriado) {
-                    bg = 'rgba(245, 158, 11, 0.15)'; // Amarelo Transparente
+                    bg = 'rgba(245, 158, 11, 0.15)'; 
                     color = 'var(--amarelo)';
                     border = '1px solid var(--amarelo)';
                 } else {
-                    bg = 'rgba(16, 185, 129, 0.15)'; // Verde Transparente
+                    bg = 'rgba(16, 185, 129, 0.15)'; 
                     color = 'var(--verde)';
                     border = '1px solid var(--verde)';
                 }
                 
                 temAlgumEvento = true;
                 
-                // Monta a legenda daquele dia
                 eventosDoDia.forEach(ev => {
                     const isFeriadoEv = ev.toUpperCase().includes('FERIADO');
                     const corLegenda = isFeriadoEv ? 'var(--amarelo)' : 'var(--verde)';
@@ -210,79 +196,11 @@
                 Nenhum evento ou feriado registrado.
             </div>`;
         }
-    }
+    };
 
     setTimeout(function() {
-        // Redefinimos a função carregarDadosRH dentro deste script local para garantir que ela acione o calendário.
-        window.carregarDadosRH = async function() {
-            if (typeof _supa === 'undefined') {
-                if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-                window._supaLocal = window.supabaseClientGlobal;
-            } else {
-                window._supaLocal = _supa;
-            }
-            
-            try {
-                // 1. Puxa os indicadores e murais
-                const { data: indData, error: indError } = await window._supaLocal.from('rh_indicadores').select('*').order('data_registro', { ascending: false }).limit(1);
-                
-                if (!indError && indData && indData.length > 0) {
-                    const dados = indData[0];
-                    
-                    // Atualiza os Cards
-                    if(document.getElementById('val-headcount')) document.getElementById('val-headcount').innerText = dados.headcount || 0;
-                    if(document.getElementById('val-atestados')) document.getElementById('val-atestados').innerText = dados.atestados || 0;
-                    if(document.getElementById('val-afastamentos')) document.getElementById('val-afastamentos').innerText = dados.afastamentos || 0;
-                    if(document.getElementById('val-admissoes')) document.getElementById('val-admissoes').innerText = dados.admissoes || 0;
-                    if(document.getElementById('val-integracoes')) document.getElementById('val-integracoes').innerText = dados.integracoes || 0;
-
-                    // Atualiza Murais
-                    if(document.getElementById('mural-avisos-rh')) document.getElementById('mural-avisos-rh').innerText = dados.mural_avisos || 'Sem avisos no momento.';
-                    if(document.getElementById('mural-liberacoes-rh')) document.getElementById('mural-liberacoes-rh').innerText = dados.mural_liberacoes || 'Sem atualizações.';
-                    if(document.getElementById('mural-aniversariantes-rh')) document.getElementById('mural-aniversariantes-rh').innerText = dados.mural_aniversariantes || 'Nenhum aniversariante registrado.';
-                    
-                    // GERA O CALENDÁRIO COM O TEXTO DIGITADO
-                    gerarCalendarioVisual(dados.mural_calendario || '');
-                } else {
-                    gerarCalendarioVisual('');
-                }
-                
-                // 2. Puxa as vagas que estão com status 'Aberta'
-                const { data: vagas, error: vagasError } = await window._supaLocal.from('rh_vagas').select('*').eq('status', 'Aberta').order('data_criacao', { ascending: false });
-                
-                let totalVagas = 0;
-                let listaVagas = [];
-                
-                if (!vagasError && vagas) {
-                    listaVagas = vagas;
-                    vagas.forEach(v => { totalVagas += parseInt(v.quantidade || 0); });
-                }
-                
-                if(document.getElementById('val-vagas')) document.getElementById('val-vagas').innerText = totalVagas;
-                
-                // Tabela do Dashboard
-                const tbodyDash = document.getElementById('tabela-vagas-dash');
-                if (tbodyDash) {
-                    if (listaVagas.length === 0) {
-                        tbodyDash.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px; color: var(--text-dim);">Todas as vagas foram preenchidas!</td></tr>';
-                    } else {
-                        tbodyDash.innerHTML = listaVagas.map(v => `
-                            <tr style="background: rgba(255,255,255,0.02);">
-                                <td style="color: white; font-weight: bold; border-bottom: 1px solid var(--border); padding: 12px;">${v.cargo}</td>
-                                <td style="color: var(--text-dim); border-bottom: 1px solid var(--border); padding: 12px;"><i class="fas fa-building"></i> ${v.setor}</td>
-                                <td style="text-align: center; border-bottom: 1px solid var(--border); padding: 12px;">
-                                    <span class="badge bg-amarelo">${v.quantidade} Vaga(s)</span>
-                                </td>
-                            </tr>
-                        `).join('');
-                    }
-                }
-            } catch (err) {
-                console.error("Erro ao puxar dados do banco:", err);
-            }
-        };
-
-        // Roda a função principal
-        window.carregarDadosRH();
+        if (typeof window.carregarDadosRH === 'function') {
+            window.carregarDadosRH();
+        }
     }, 150);
 </script>
