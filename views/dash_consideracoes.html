@@ -35,10 +35,11 @@
 </div>
 
 <script>
-    // --- LÓGICA DO DRAG AND DROP ---
-    let draggedItemId = null;
+    // --- LÓGICA DO DRAG AND DROP CORRIGIDA PARA NÃO DAR ERRO DE REDECLARAÇÃO ---
+    window.draggedItemId = null; // Trocado 'let' por 'window.'
+
     window.dragStart = function(event) {
-        draggedItemId = event.currentTarget.getAttribute('data-id');
+        window.draggedItemId = event.currentTarget.getAttribute('data-id');
         event.currentTarget.classList.add('dragging');
     };
     window.dragEnd = function(event) {
@@ -58,27 +59,27 @@
         coluna.classList.remove('drag-over');
         const novoStatus = coluna.getAttribute('data-status');
         
-        if (draggedItemId && novoStatus) {
-            window.moverKanban(draggedItemId, novoStatus);
+        if (window.draggedItemId && novoStatus) {
+            window.moverKanban(window.draggedItemId, novoStatus);
         }
     };
 
-    function formatarDataBR(dataIso) {
+    window.formatarDataBR = function(dataIso) {
         if (!dataIso) return '';
         const [ano, mes, dia] = dataIso.split('-');
         return `${dia}/${mes}/${ano}`;
-    }
+    };
 
-    async function carregarKanbanDash() {
+    window.carregarKanbanDash = async function() {
         const colTodo = document.getElementById('kb-col-todo');
         const colDoing = document.getElementById('kb-col-doing');
         const colDone = document.getElementById('kb-col-done');
         const resumoDia = document.getElementById('resumo-dia-lista');
 
-        colTodo.innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i></div>';
-        colDoing.innerHTML = '';
-        colDone.innerHTML = '';
-        resumoDia.innerHTML = '';
+        if(colTodo) colTodo.innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i></div>';
+        if(colDoing) colDoing.innerHTML = '';
+        if(colDone) colDone.innerHTML = '';
+        if(resumoDia) resumoDia.innerHTML = '';
 
         let dadosKanban = [];
         try {
@@ -94,7 +95,7 @@
             dadosKanban.sort((a,b) => new Date(b.data_criacao) - new Date(a.data_criacao));
         }
 
-        colTodo.innerHTML = '';
+        if(colTodo) colTodo.innerHTML = '';
         
         const hojeStr = new Date().toISOString().split('T')[0];
         let itensCriadosHoje = 0;
@@ -102,7 +103,7 @@
         dadosKanban.forEach(item => {
             
             // --- POPULA O RESUMO DO DIA ---
-            if (item.data_criacao && item.data_criacao.startsWith(hojeStr)) {
+            if (item.data_criacao && item.data_criacao.startsWith(hojeStr) && resumoDia) {
                 itensCriadosHoje++;
                 let badgeStatus = '';
                 if(item.status === 'TODO') badgeStatus = '<span style="color:#f43f5e; font-weight:bold;">[A CUMPRIR]</span>';
@@ -122,37 +123,37 @@
 
             // --- CRIA OS CARTÕES DO KANBAN ---
             const card = `
-            <div class="kanban-card" draggable="true" data-id="${item.id}" ondragstart="dragStart(event)" ondragend="dragEnd(event)">
+            <div class="kanban-card" draggable="true" data-id="${item.id}" ondragstart="window.dragStart(event)" ondragend="window.dragEnd(event)">
                 <div class="kanban-card-title">${item.meta}</div>
                 ${item.consideracao ? `<div class="kanban-card-desc">${item.consideracao}</div>` : ''}
                 <div class="kanban-card-meta">
                     <span class="badge-setor"><i class="fas fa-building"></i> ${item.setor}</span>
                     <span style="color: var(--primary);"><i class="fas fa-users"></i> ${item.responsavel}</span>
-                    ${item.data_previsao ? `<span class="badge-data"><i class="fas fa-calendar-alt"></i> ${formatarDataBR(item.data_previsao)}</span>` : ''}
+                    ${item.data_previsao ? `<span class="badge-data"><i class="fas fa-calendar-alt"></i> ${window.formatarDataBR(item.data_previsao)}</span>` : ''}
                 </div>
                 
                 <div class="kanban-actions">
-                    ${item.status !== 'TODO' ? `<button class="btn-kanban" onclick="moverKanban('${item.id}', 'TODO')"><i class="fas fa-arrow-left"></i> A Fazer</button>` : ''}
-                    ${item.status !== 'DOING' ? `<button class="btn-kanban" onclick="moverKanban('${item.id}', 'DOING')">${item.status==='TODO' ? 'Iniciar <i class="fas fa-arrow-right"></i>' : 'Voltar'}</button>` : ''}
-                    ${item.status !== 'DONE' ? `<button class="btn-kanban" onclick="moverKanban('${item.id}', 'DONE')"><i class="fas fa-check"></i> Concluir</button>` : ''}
-                    ${item.status === 'DONE' ? `<button class="btn-kanban archive" onclick="arquivarKanban('${item.id}')"><i class="fas fa-archive"></i> Arquivar</button>` : ''}
-                    <button class="btn-kanban delete" onclick="excluirKanban('${item.id}')"><i class="fas fa-trash"></i></button>
+                    ${item.status !== 'TODO' ? `<button class="btn-kanban" onclick="window.moverKanban('${item.id}', 'TODO')"><i class="fas fa-arrow-left"></i> A Fazer</button>` : ''}
+                    ${item.status !== 'DOING' ? `<button class="btn-kanban" onclick="window.moverKanban('${item.id}', 'DOING')">${item.status==='TODO' ? 'Iniciar <i class="fas fa-arrow-right"></i>' : 'Voltar'}</button>` : ''}
+                    ${item.status !== 'DONE' ? `<button class="btn-kanban" onclick="window.moverKanban('${item.id}', 'DONE')"><i class="fas fa-check"></i> Concluir</button>` : ''}
+                    ${item.status === 'DONE' ? `<button class="btn-kanban archive" onclick="window.arquivarKanban('${item.id}')"><i class="fas fa-archive"></i> Arquivar</button>` : ''}
+                    <button class="btn-kanban delete" onclick="window.excluirKanban('${item.id}')"><i class="fas fa-trash"></i></button>
                 </div>
             </div>`;
 
-            if(item.status === 'TODO') colTodo.insertAdjacentHTML('beforeend', card);
-            else if(item.status === 'DOING') colDoing.insertAdjacentHTML('beforeend', card);
-            else if(item.status === 'DONE') colDone.insertAdjacentHTML('beforeend', card);
+            if(item.status === 'TODO' && colTodo) colTodo.insertAdjacentHTML('beforeend', card);
+            else if(item.status === 'DOING' && colDoing) colDoing.insertAdjacentHTML('beforeend', card);
+            else if(item.status === 'DONE' && colDone) colDone.insertAdjacentHTML('beforeend', card);
         });
 
-        if (itensCriadosHoje === 0) {
+        if (itensCriadosHoje === 0 && resumoDia) {
             resumoDia.innerHTML = '<p style="color: var(--text-dim); font-size: 0.85rem;"><i class="fas fa-info-circle"></i> Nenhuma meta ou ação foi lançada hoje até o momento.</p>';
         }
 
-        if(!colTodo.innerHTML) colTodo.innerHTML = '<p style="color:var(--text-dim);text-align:center;font-size:0.85rem;">Solte cartões aqui</p>';
-        if(!colDoing.innerHTML) colDoing.innerHTML = '<p style="color:var(--text-dim);text-align:center;font-size:0.85rem;">Solte cartões aqui</p>';
-        if(!colDone.innerHTML) colDone.innerHTML = '<p style="color:var(--text-dim);text-align:center;font-size:0.85rem;">Solte cartões aqui</p>';
-    }
+        if(colTodo && !colTodo.innerHTML) colTodo.innerHTML = '<p style="color:var(--text-dim);text-align:center;font-size:0.85rem;">Solte cartões aqui</p>';
+        if(colDoing && !colDoing.innerHTML) colDoing.innerHTML = '<p style="color:var(--text-dim);text-align:center;font-size:0.85rem;">Solte cartões aqui</p>';
+        if(colDone && !colDone.innerHTML) colDone.innerHTML = '<p style="color:var(--text-dim);text-align:center;font-size:0.85rem;">Solte cartões aqui</p>';
+    };
 
     window.moverKanban = async function(id, novoStatus) {
         try {
@@ -166,13 +167,13 @@
             const index = local.findIndex(i => String(i.id) === String(id));
             if (index > -1) { local[index].status = novoStatus; localStorage.setItem('kanban_metas_local', JSON.stringify(local)); }
         }
-        carregarKanbanDash();
-    }
+        window.carregarKanbanDash();
+    };
 
     window.arquivarKanban = async function(id) {
         if(!confirm('Deseja arquivar esta meta? Ela irá para o Histórico.')) return;
         window.moverKanban(id, 'ARCHIVED');
-    }
+    };
 
     window.excluirKanban = async function(id) {
         if(!confirm('Excluir definitivamente esta meta?')) return;
@@ -187,8 +188,8 @@
             local = local.filter(i => String(i.id) !== String(id));
             localStorage.setItem('kanban_metas_local', JSON.stringify(local));
         }
-        carregarKanbanDash();
-    }
+        window.carregarKanbanDash();
+    };
 
     // --- LÓGICA DE GERAÇÃO DO PDF ---
     window.gerarPDFConsideracoes = async function(event) {
@@ -236,5 +237,5 @@
     };
 
     // Inicializa
-    setTimeout(carregarKanbanDash, 300);
+    setTimeout(window.carregarKanbanDash, 300);
 </script>
