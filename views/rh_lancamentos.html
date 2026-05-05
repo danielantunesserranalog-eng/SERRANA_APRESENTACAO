@@ -27,11 +27,12 @@
         </div>
     </div>
 
-    <!-- Bloco 1.5: Murais de Comunicação RH -->
+    <!-- Bloco 1.5: Murais de Comunicação RH e Calendário -->
     <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid #8b5cf6; margin-top: 10px;">
-        <h3 class="nav-label" style="margin-bottom: 20px; color: #8b5cf6;"><i class="fas fa-chalkboard"></i> MURAIS DE COMUNICAÇÃO (TEXTO LIVRE)</h3>
+        <h3 class="nav-label" style="margin-bottom: 20px; color: #8b5cf6;"><i class="fas fa-chalkboard"></i> MURAIS DE COMUNICAÇÃO E EVENTOS</h3>
 
-        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+            <!-- Caixas de Texto (Avisos, Liberações, Aniversariantes) -->
             <div class="input-group">
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Avisos</label>
                 <textarea id="input-avisos-rh" class="config-input" rows="3" placeholder="Avisos gerais do RH..."></textarea>
@@ -44,9 +45,32 @@
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Aniversariantes do Mês</label>
                 <textarea id="input-aniversariantes-rh" class="config-input" rows="3" placeholder="Ex: Dia 05 - João, Dia 12 - Maria..."></textarea>
             </div>
-            <div class="input-group">
-                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Calendário de Eventos / Pagamentos</label>
-                <textarea id="input-calendario-rh" class="config-input" rows="3" placeholder="Ex: Pagamento dia 05, Vale dia 20..."></textarea>
+            
+            <!-- NOVO CONTROLE: GERADOR DE EVENTOS PARA O CALENDÁRIO -->
+            <div class="input-group" style="grid-column: 1 / -1; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                <label style="display:block; margin-bottom: 12px; font-size: 0.9rem; color: var(--verde); font-weight: bold;"><i class="fas fa-calendar-plus"></i> Gerenciar Calendário de Eventos / Pagamentos</label>
+                
+                <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 15px;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Selecione o Evento</label>
+                        <select id="novo-evento-tipo" class="config-input">
+                            <option value="PAGAMENTO MENSAL">PAGAMENTO MENSAL</option>
+                            <option value="TICKET">TICKET</option>
+                            <option value="ADIANTAMENTO">ADIANTAMENTO</option>
+                            <option value="OUTRO">OUTRO (Digitar nome...)</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Data do Evento</label>
+                        <input type="date" id="novo-evento-data" class="config-input">
+                    </div>
+                    <button type="button" class="btn-salvar" style="padding: 14px 20px; background: var(--verde);" onclick="adicionarEventoCalendario()">
+                        <i class="fas fa-plus"></i> Incluir no Calendário
+                    </button>
+                </div>
+                
+                <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Lista Final de Eventos (Pode ser editada/apagada manualmente)</label>
+                <textarea id="input-calendario-rh" class="config-input" rows="3" placeholder="Os eventos adicionados aparecerão aqui..."></textarea>
             </div>
         </div>
 
@@ -96,6 +120,42 @@
 </div>
 
 <script>
+    // Função acionada pelo botão "Incluir no Calendário"
+    window.adicionarEventoCalendario = function() {
+        const selectTipo = document.getElementById('novo-evento-tipo');
+        let tipo = selectTipo.value;
+        const dataStr = document.getElementById('novo-evento-data').value;
+        const textarea = document.getElementById('input-calendario-rh');
+
+        if (!dataStr) {
+            alert("Por favor, selecione a data do evento!");
+            return;
+        }
+
+        // Se o usuário selecionar "OUTRO", pede para digitar o nome
+        if (tipo === 'OUTRO') {
+            const nomePersonalizado = prompt("Digite o nome do evento:");
+            if (!nomePersonalizado || nomePersonalizado.trim() === '') return; 
+            tipo = nomePersonalizado.toUpperCase();
+        }
+
+        // O valor do input date vem no formato "YYYY-MM-DD"
+        const partes = dataStr.split('-');
+        const dia = partes[2]; // Pega apenas o dia (ex: 05)
+        
+        const novoTexto = `Dia ${dia} - ${tipo}`;
+
+        // Insere o texto na caixa
+        if (textarea.value.trim() === '') {
+            textarea.value = novoTexto;
+        } else {
+            textarea.value += '\n' + novoTexto; // Quebra de linha para não juntar
+        }
+
+        // Limpa o campo de data para o próximo lançamento
+        document.getElementById('novo-evento-data').value = '';
+    };
+
     setTimeout(function() {
         if (typeof window.carregarDadosRH === 'function') {
             window.carregarDadosRH();
