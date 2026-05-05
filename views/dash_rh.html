@@ -34,7 +34,7 @@
 <!-- ================= CALENDÁRIO VISUAL INTERATIVO ================= -->
 <div class="content-panel kpi-card" style="margin-top: 25px; border-left: 5px solid var(--primary); padding: 25px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;">
-        <h3 class="nav-label" style="color: var(--primary); margin: 0; font-size: 1rem;"><i class="fas fa-calendar-alt"></i> CALENDÁRIO DE EVENTOS - <span id="mes-ano-calendario" style="color: white;"></span></h3>
+        <h3 class="nav-label" style="color: var(--primary); margin: 0; font-size: 1rem;"><i class="fas fa-calendar-alt"></i> CALENDÁRIO DE EVENTOS E FERIADOS - <span id="mes-ano-calendario" style="color: white;"></span></h3>
     </div>
     
     <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 30px; align-items: start;">
@@ -120,15 +120,12 @@
         // Lógica de Inteligência: Extrair dias do texto livre digitado
         const eventosMap = {};
         if (textoEventos && textoEventos.trim() !== '') {
-            // Divide o texto por quebras de linha ou vírgulas
             const linhas = textoEventos.split(/[\n,]+/);
             linhas.forEach(linha => {
-                // Procura números de 01 a 31 soltos na frase
                 const match = linha.match(/\b(0?[1-9]|[12][0-9]|3[01])\b/);
                 if (match) {
                     const dia = parseInt(match[1], 10);
                     if (!eventosMap[dia]) eventosMap[dia] = [];
-                    // Adiciona o texto sem traços inúteis no início
                     eventosMap[dia].push(linha.replace(/^[\s-]+/, '').trim());
                 }
             });
@@ -168,24 +165,39 @@
                 color = 'white';
             }
 
-            // Destaque de dias com eventos
+            // Destaque de dias com eventos ou feriados
             if (eventosDoDia) {
-                bg = 'rgba(16, 185, 129, 0.15)'; // Fundo verde transparente
-                color = 'var(--verde)';
-                border = '1px solid var(--verde)';
+                // Checa se algum dos eventos deste dia é um FERIADO
+                const temFeriado = eventosDoDia.some(ev => ev.toUpperCase().includes('FERIADO'));
+                
+                if (temFeriado) {
+                    bg = 'rgba(245, 158, 11, 0.15)'; // Amarelo Transparente
+                    color = 'var(--amarelo)';
+                    border = '1px solid var(--amarelo)';
+                } else {
+                    bg = 'rgba(16, 185, 129, 0.15)'; // Verde Transparente
+                    color = 'var(--verde)';
+                    border = '1px solid var(--verde)';
+                }
+                
                 temAlgumEvento = true;
                 
+                // Monta a legenda daquele dia
                 eventosDoDia.forEach(ev => {
+                    const isFeriadoEv = ev.toUpperCase().includes('FERIADO');
+                    const corLegenda = isFeriadoEv ? 'var(--amarelo)' : 'var(--verde)';
+                    const bgLegenda = isFeriadoEv ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)';
+                    
                     legendaHtml += `
-                        <div style="background: rgba(16, 185, 129, 0.1); padding: 10px 15px; border-radius: 8px; border-left: 4px solid var(--verde); display: flex; align-items: center; gap: 10px;">
-                            <span style="background: var(--verde); color: #0f172a; font-weight: 900; font-size: 0.8rem; padding: 4px 8px; border-radius: 6px; min-width: 45px; text-align: center;">DIA ${String(dia).padStart(2, '0')}</span>
+                        <div style="background: ${bgLegenda}; padding: 10px 15px; border-radius: 8px; border-left: 4px solid ${corLegenda}; display: flex; align-items: center; gap: 10px;">
+                            <span style="background: ${corLegenda}; color: #0f172a; font-weight: 900; font-size: 0.8rem; padding: 4px 8px; border-radius: 6px; min-width: 45px; text-align: center;">DIA ${String(dia).padStart(2, '0')}</span>
                             <span style="color: white; font-size: 0.9rem; font-weight: 600;">${ev}</span>
                         </div>
                     `;
                 });
             }
 
-            html += `<div style="padding: 8px 0; background: ${bg}; color: ${color}; border: ${border}; border-radius: 6px; font-weight: bold; font-size: 0.9rem; transition: 0.2s; ${eventosDoDia ? 'transform: scale(1.05); box-shadow: 0 0 10px rgba(16,185,129,0.2);' : ''}">${dia}</div>`;
+            html += `<div style="padding: 8px 0; background: ${bg}; color: ${color}; border: ${border}; border-radius: 6px; font-weight: bold; font-size: 0.9rem; transition: 0.2s; ${eventosDoDia ? 'transform: scale(1.05); box-shadow: 0 0 10px rgba(16,185,129,0.1);' : ''}">${dia}</div>`;
         }
 
         grid.innerHTML = html;
@@ -195,7 +207,7 @@
         } else {
             legenda.innerHTML = `<div style="padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px dashed var(--border); color: var(--text-dim); text-align: center;">
                 <i class="fas fa-info-circle" style="margin-bottom: 10px; font-size: 1.5rem; display: block; opacity: 0.5;"></i>
-                Nenhum evento registrado no mês atual.<br><small style="margin-top: 5px; display: block;">Dica: Digite <strong>"Dia 05 - Pagamento"</strong> na tela de lançamentos e ele aparecerá aqui automaticamente.</small>
+                Nenhum evento ou feriado registrado.
             </div>`;
         }
     }

@@ -57,7 +57,8 @@
                             <option value="PAGAMENTO MENSAL">PAGAMENTO MENSAL</option>
                             <option value="TICKET">TICKET</option>
                             <option value="ADIANTAMENTO">ADIANTAMENTO</option>
-                            <option value="OUTRO">OUTRO (Digitar nome...)</option>
+                            <option value="FERIADO" style="color: var(--amarelo); font-weight: bold;">FERIADO (Destaca em Amarelo)</option>
+                            <option value="EVENTO">EVENTO (Digitar nome...)</option>
                         </select>
                     </div>
                     <div style="flex: 1; min-width: 150px;">
@@ -132,11 +133,18 @@
             return;
         }
 
-        // Se o usuário selecionar "OUTRO", pede para digitar o nome
-        if (tipo === 'OUTRO') {
-            const nomePersonalizado = prompt("Digite o nome do evento:");
+        // Lógica de personalização do nome do evento/feriado
+        if (tipo === 'EVENTO') {
+            const nomePersonalizado = prompt("Digite o nome do evento (Ex: Festa Junina, Treinamento, etc):");
             if (!nomePersonalizado || nomePersonalizado.trim() === '') return; 
-            tipo = nomePersonalizado.toUpperCase();
+            tipo = "EVENTO - " + nomePersonalizado.toUpperCase();
+        } else if (tipo === 'FERIADO') {
+            const nomeFeriado = prompt("Qual o nome do feriado? (Pode deixar em branco se quiser)");
+            if (nomeFeriado && nomeFeriado.trim() !== '') {
+                tipo = "FERIADO - " + nomeFeriado.toUpperCase();
+            } else {
+                tipo = "FERIADO";
+            }
         }
 
         // O valor do input date vem no formato "YYYY-MM-DD"
