@@ -18,14 +18,18 @@ window.salvarDadosRH = async function() {
         msg.innerText = "Salvando no banco de dados...";
     }
     
-    // Coleta os valores digitados no formulário
+    // Coleta os valores digitados no formulário, incluindo os novos murais
     const dados = {
-        data_registro: obterDataHoje(), // Salva usando a data de hoje para gerar histórico
+        data_registro: obterDataHoje(),
         headcount: parseInt(document.getElementById('input-headcount')?.value || 0),
         atestados: parseInt(document.getElementById('input-atestados')?.value || 0),
         afastamentos: parseInt(document.getElementById('input-afastamentos')?.value || 0),
         admissoes: parseInt(document.getElementById('input-admissoes')?.value || 0),
-        integracoes: parseInt(document.getElementById('input-integracoes')?.value || 0)
+        integracoes: parseInt(document.getElementById('input-integracoes')?.value || 0),
+        mural_avisos: document.getElementById('input-avisos-rh')?.value || null,
+        mural_liberacoes: document.getElementById('input-liberacoes-rh')?.value || null,
+        mural_aniversariantes: document.getElementById('input-aniversariantes-rh')?.value || null,
+        mural_calendario: document.getElementById('input-calendario-rh')?.value || null
     };
     
     try {
@@ -33,10 +37,10 @@ window.salvarDadosRH = async function() {
         const { error } = await _supa.from('rh_indicadores').upsert([dados], { onConflict: 'data_registro' });
         
         if (error) throw error;
-
+        
         if (msg) {
             msg.style.color = 'var(--verde)';
-            msg.innerText = "Indicadores salvos no banco com sucesso!";
+            msg.innerText = "Indicadores e Murais salvos no banco com sucesso!";
             setTimeout(() => msg.innerText = "", 3000);
         }
         
@@ -48,7 +52,7 @@ window.salvarDadosRH = async function() {
             msg.innerText = "Erro ao salvar no banco de dados.";
         }
     }
-}
+};
 
 window.adicionarVaga = async function() {
     const cargo = document.getElementById('vaga-cargo').value;
@@ -59,77 +63,82 @@ window.adicionarVaga = async function() {
         alert("Preencha o Cargo, Setor e a Quantidade para adicionar a vaga!");
         return;
     }
-
+    
     try {
-        // Insere a nova vaga no banco com status 'Aberta'
         const { error } = await _supa.from('rh_vagas').insert([{ 
             cargo: cargo, 
             setor: setor, 
             quantidade: parseInt(qtd),
             status: 'Aberta'
         }]);
-
+        
         if (error) throw error;
-
-        // Limpa os campos
+        
         document.getElementById('vaga-cargo').value = '';
         document.getElementById('vaga-setor').value = '';
         document.getElementById('vaga-qtd').value = '';
-
+        
         window.carregarDadosRH();
     } catch (err) {
         console.error("Erro ao adicionar vaga no banco:", err);
         alert("Erro ao adicionar vaga. Verifique a conexão.");
     }
-}
+};
 
-// O ID da vaga no banco de dados é passado aqui, não mais a posição da lista
 window.concluirVaga = async function(id) {
     if(confirm("Deseja marcar esta vaga como concluída? Ela sairá do painel, mas ficará no histórico do banco.")) {
         try {
             const { error } = await _supa.from('rh_vagas').update({ status: 'Concluída' }).eq('id', id);
-            
             if (error) throw error;
-            
             window.carregarDadosRH();
         } catch (err) {
             console.error("Erro ao concluir vaga no banco:", err);
             alert("Erro ao concluir vaga.");
         }
     }
-}
+};
 
 window.carregarDadosRH = async function() {
     if (!_supa) return;
-
+    
     try {
-        // 1. Puxa o indicador mais recente cadastrado (ordena pela data mais nova)
+        // 1. Puxa os indicadores e murais
         const { data: indData, error: indError } = await _supa.from('rh_indicadores').select('*').order('data_registro', { ascending: false }).limit(1);
         
         if (!indError && indData && indData.length > 0) {
             const dados = indData[0];
             
-            // Repreencher os inputs de lançamento (se estiver na tela de lançamento)
+            // Repreencher os inputs de lançamento (Tela de Lançamento)
             if(document.getElementById('input-headcount')) document.getElementById('input-headcount').value = dados.headcount || '';
             if(document.getElementById('input-atestados')) document.getElementById('input-atestados').value = dados.atestados || '';
             if(document.getElementById('input-afastamentos')) document.getElementById('input-afastamentos').value = dados.afastamentos || '';
             if(document.getElementById('input-admissoes')) document.getElementById('input-admissoes').value = dados.admissoes || '';
             if(document.getElementById('input-integracoes')) document.getElementById('input-integracoes').value = dados.integracoes || '';
             
-            // Atualizar os Cards no Dashboard (Painel)
+            if(document.getElementById('input-avisos-rh')) document.getElementById('input-avisos-rh').value = dados.mural_avisos || '';
+            if(document.getElementById('input-liberacoes-rh')) document.getElementById('input-liberacoes-rh').value = dados.mural_liberacoes || '';
+            if(document.getElementById('input-aniversariantes-rh')) document.getElementById('input-aniversariantes-rh').value = dados.mural_aniversariantes || '';
+            if(document.getElementById('input-calendario-rh')) document.getElementById('input-calendario-rh').value = dados.mural_calendario || '';
+            
+            // Atualizar os Cards e Murais no Dashboard (Painel)
             if(document.getElementById('val-headcount')) document.getElementById('val-headcount').innerText = dados.headcount || 0;
             if(document.getElementById('val-atestados')) document.getElementById('val-atestados').innerText = dados.atestados || 0;
             if(document.getElementById('val-afastamentos')) document.getElementById('val-afastamentos').innerText = dados.afastamentos || 0;
             if(document.getElementById('val-admissoes')) document.getElementById('val-admissoes').innerText = dados.admissoes || 0;
             if(document.getElementById('val-integracoes')) document.getElementById('val-integracoes').innerText = dados.integracoes || 0;
-        }
 
+            if(document.getElementById('mural-avisos-rh')) document.getElementById('mural-avisos-rh').innerText = dados.mural_avisos || 'Sem avisos no momento.';
+            if(document.getElementById('mural-liberacoes-rh')) document.getElementById('mural-liberacoes-rh').innerText = dados.mural_liberacoes || 'Sem atualizações.';
+            if(document.getElementById('mural-aniversariantes-rh')) document.getElementById('mural-aniversariantes-rh').innerText = dados.mural_aniversariantes || 'Nenhum aniversariante registrado.';
+            if(document.getElementById('mural-calendario-rh')) document.getElementById('mural-calendario-rh').innerText = dados.mural_calendario || 'Sem eventos programados.';
+        }
+        
         // 2. Puxa as vagas que estão com status 'Aberta'
         const { data: vagas, error: vagasError } = await _supa.from('rh_vagas').select('*').eq('status', 'Aberta').order('data_criacao', { ascending: false });
         
         let totalVagas = 0;
         let listaVagas = [];
-
+        
         if (!vagasError && vagas) {
             listaVagas = vagas;
             vagas.forEach(v => {
@@ -137,10 +146,9 @@ window.carregarDadosRH = async function() {
             });
         }
         
-        // Atualiza o KPI de Vagas totais no painel
         if(document.getElementById('val-vagas')) document.getElementById('val-vagas').innerText = totalVagas;
-
-        // Renderiza a tabela de Lançamento (com botão de concluir ligado ao ID do banco)
+        
+        // Tabela de Lançamento
         const tbodyLancamento = document.getElementById('tabela-vagas-lancamento');
         if (tbodyLancamento) {
             if (listaVagas.length === 0) {
@@ -160,8 +168,8 @@ window.carregarDadosRH = async function() {
                 `).join('');
             }
         }
-
-        // Renderiza a tabela do Dashboard (somente visualização)
+        
+        // Tabela do Dashboard
         const tbodyDash = document.getElementById('tabela-vagas-dash');
         if (tbodyDash) {
             if (listaVagas.length === 0) {
@@ -178,11 +186,9 @@ window.carregarDadosRH = async function() {
                 `).join('');
             }
         }
-
     } catch (err) {
         console.error("Erro ao puxar dados do banco:", err);
     }
-}
+};
 
-// Executa assim que a tela abre
 window.carregarDadosRH();

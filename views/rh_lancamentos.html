@@ -25,11 +25,35 @@
                 <input type="number" id="input-integracoes" class="config-input" placeholder="Ex: 4">
             </div>
         </div>
-        
-        <button class="btn-salvar" onclick="salvarDadosRH()" style="margin-top: 20px;">
-            <i class="fas fa-save"></i> Salvar Indicadores
+    </div>
+
+    <!-- Bloco 1.5: Murais de Comunicação RH -->
+    <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid #8b5cf6; margin-top: 10px;">
+        <h3 class="nav-label" style="margin-bottom: 20px; color: #8b5cf6;"><i class="fas fa-chalkboard"></i> MURAIS DE COMUNICAÇÃO (TEXTO LIVRE)</h3>
+
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Avisos</label>
+                <textarea id="input-avisos-rh" class="config-input" rows="3" placeholder="Avisos gerais do RH..."></textarea>
+            </div>
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Liberações Destra x Prazos</label>
+                <textarea id="input-liberacoes-rh" class="config-input" rows="3" placeholder="Status das liberações e prazos do RH..."></textarea>
+            </div>
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Aniversariantes do Mês</label>
+                <textarea id="input-aniversariantes-rh" class="config-input" rows="3" placeholder="Ex: Dia 05 - João, Dia 12 - Maria..."></textarea>
+            </div>
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Calendário de Eventos / Pagamentos</label>
+                <textarea id="input-calendario-rh" class="config-input" rows="3" placeholder="Ex: Pagamento dia 05, Vale dia 20..."></textarea>
+            </div>
+        </div>
+
+        <button class="btn-salvar" onclick="salvarDadosRH()" style="margin-top: 20px; background: #8b5cf6;">
+            <i class="fas fa-save"></i> Salvar Indicadores e Murais no Banco
         </button>
-        <span id="msg-rh" style="margin-left: 15px; font-weight: bold;"></script>
+        <span id="msg-rh" style="margin-left: 15px; font-weight: bold;"></span>
     </div>
 
     <!-- Bloco 2: Gestão de Vagas -->

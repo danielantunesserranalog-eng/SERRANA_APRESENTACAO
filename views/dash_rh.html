@@ -24,7 +24,6 @@
         <div class="kpi-value" id="val-integracoes" style="color: #8b5cf6;">0</div>
         <p class="status-msg"><i class="fas fa-chalkboard-teacher"></i> Realizadas no mês</p>
     </div>
-    
     <div class="kpi-card" style="border-left: 4px solid var(--amarelo);">
         <p class="nav-label" style="color: var(--amarelo);">TOTAL DE VAGAS ABERTAS</p>
         <div class="kpi-value status-amarelo" id="val-vagas">0</div>
@@ -32,7 +31,42 @@
     </div>
 </div>
 
-<!-- NOVA TABELA DE VAGAS NO PAINEL -->
+<!-- ================= MURAIS DE COMUNICAÇÃO RH ================= -->
+<div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; margin-top: 25px;">
+    <!-- AVISOS -->
+    <div class="content-panel kpi-card" style="border-left: 4px solid var(--amarelo); padding: 20px;">
+        <h3 class="nav-label" style="color: var(--amarelo); margin-bottom: 15px;"><i class="fas fa-bullhorn"></i> AVISOS GERAIS</h3>
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; min-height: 120px;">
+            <p id="mural-avisos-rh" style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap;">Carregando...</p>
+        </div>
+    </div>
+    <!-- LIBERAÇÕES DESTRA -->
+    <div class="content-panel kpi-card" style="border-left: 4px solid #0ea5e9; padding: 20px;">
+        <h3 class="nav-label" style="color: #0ea5e9; margin-bottom: 15px;"><i class="fas fa-id-card"></i> LIBERAÇÕES DESTRA X PRAZOS</h3>
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; min-height: 120px;">
+            <p id="mural-liberacoes-rh" style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap;">Carregando...</p>
+        </div>
+    </div>
+</div>
+
+<div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; margin-top: 25px;">
+    <!-- ANIVERSARIANTES -->
+    <div class="content-panel kpi-card" style="border-left: 4px solid #ec4899; padding: 20px;">
+        <h3 class="nav-label" style="color: #ec4899; margin-bottom: 15px;"><i class="fas fa-birthday-cake"></i> ANIVERSARIANTES DO MÊS</h3>
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; min-height: 120px;">
+            <p id="mural-aniversariantes-rh" style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap;">Carregando...</p>
+        </div>
+    </div>
+    <!-- CALENDÁRIO -->
+    <div class="content-panel kpi-card" style="border-left: 4px solid var(--verde); padding: 20px;">
+        <h3 class="nav-label" style="color: var(--verde); margin-bottom: 15px;"><i class="fas fa-calendar-check"></i> CALENDÁRIO DE EVENTOS E PAGAMENTOS</h3>
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; min-height: 120px;">
+            <p id="mural-calendario-rh" style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap;">Carregando...</p>
+        </div>
+    </div>
+</div>
+
+<!-- ================= TABELA DE VAGAS EM ABERTO DETALHADAS ================= -->
 <div class="content-panel" style="margin-top: 30px; border-left: 5px solid var(--amarelo); background: rgba(15, 23, 42, 0.8); border-radius: 16px;">
     <div style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05);">
         <h3 class="nav-label" style="margin: 0; color: var(--amarelo); font-size: 1rem;"><i class="fas fa-search"></i> VAGAS EM ABERTO DETALHADAS</h3>
