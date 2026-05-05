@@ -1,793 +1,836 @@
-<div class="dashboard-grid" style="margin-bottom: 20px;">
-    <div class="kpi-card" style="grid-column: 1 / -1; display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; padding: 20px;">
-        <div class="input-group" style="flex: 1; min-width: 150px;">
-            <label class="nav-label" style="margin-bottom: 5px; display: block;"><i class="fas fa-calendar-alt"></i> Mês</label>
-            <select id="op-mes" class="config-input" style="padding: 10px;">
-                <option value="ALL">TODOS OS MESES</option>
-            </select>
-        </div>
-        
-        <div class="input-group" style="flex: 1; min-width: 150px;">
-            <label class="nav-label" style="margin-bottom: 5px; display: block;"><i class="fas fa-calendar-day"></i> Dia Específico</label>
-            <input type="date" id="op-data" class="config-input" style="padding: 10px;">
-        </div>
+<style>
+    .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); }
+    .glow-border-blue { box-shadow: 0 0 15px rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); }
+    .glow-border-emerald { box-shadow: 0 0 15px rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); }
+    .glow-border-amber { box-shadow: 0 0 15px rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); }
+    .glow-border-rose { box-shadow: 0 0 15px rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.4); }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.8); border-radius: 10px; }
+</style>
 
-        <div class="input-group" style="flex: 2; min-width: 300px;">
-            <label class="nav-label" style="margin-bottom: 5px; display: block;">Filtros Rápidos</label>
-            <div style="display: flex; gap: 5px; background: rgba(0,0,0,0.2); padding: 5px; border-radius: 8px; border: 1px solid var(--border);">
-                <button class="btn-qf" data-qf="D-1" style="flex: 1; padding: 8px; border: none; border-radius: 5px; background: transparent; color: var(--text-dim); cursor: pointer; font-weight: bold;">D-1</button>
-                <button class="btn-qf" data-qf="D-2" style="flex: 1; padding: 8px; border: none; border-radius: 5px; background: transparent; color: var(--text-dim); cursor: pointer; font-weight: bold;">D-2</button>
-                <button class="btn-qf" data-qf="D-7" style="flex: 1; padding: 8px; border: none; border-radius: 5px; background: transparent; color: var(--text-dim); cursor: pointer; font-weight: bold;">D-7</button>
-                <button class="btn-qf" data-qf="D-30" style="flex: 1; padding: 8px; border: none; border-radius: 5px; background: transparent; color: var(--text-dim); cursor: pointer; font-weight: bold;">D-30</button>
-                <button class="btn-qf active" data-qf="ALL" style="flex: 1; padding: 8px; border: none; border-radius: 5px; background: var(--primary); color: white; cursor: pointer; font-weight: bold;">TODOS</button>
-            </div>
-        </div>
-
-        <div style="flex: 1; text-align: right; min-width: 150px;">
-            <span id="op-status" style="font-size: 0.75rem; color: var(--text-dim); font-weight: bold; background: rgba(0,0,0,0.3); padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border);">Carregando dados...</span>
-        </div>
-    </div>
-</div>
-
-<div class="dashboard-grid">
-    <div class="kpi-card" style="border-left: 4px solid #3b82f6;">
-        <p class="nav-label" style="color: #3b82f6;">META DE VIAGENS</p>
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin: 15px 0;">
+<div class="max-w-[96rem] mx-auto py-2" style="font-family: 'Inter', sans-serif;">
+    <div class="flex justify-between items-center mb-6 bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50 backdrop-blur-sm flex-wrap gap-4">
+        <div class="flex items-center gap-4 flex-wrap">
             <div>
-                <p style="font-size: 0.7rem; color: var(--text-dim); font-weight: bold;">PROG.</p>
-                <p id="val-v-prog" style="font-size: 1.5rem; font-weight: 800; color: var(--text-dim);">0</p>
+                <h1 class="text-2xl font-extrabold text-white m-0">Indicadores Operacionais</h1>
+                <p class="text-sm text-slate-400 font-medium m-0">Painel Executivo: Realizado vs Meta Global</p>
             </div>
-            <div style="text-align: right;">
-                <p style="font-size: 0.7rem; color: var(--text-dim); font-weight: bold;">REALIZADO GERAL</p>
-                <p id="val-v-real" style="font-size: 2.2rem; font-weight: 800; color: white;">0</p>
-            </div>
-        </div>
-        <div style="display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: bold; margin-bottom: 5px;">
-            <span style="color: var(--text-dim);">ATINGIMENTO</span>
-            <span id="perc-v" style="color: #3b82f6;">0%</span>
-        </div>
-        <div style="width: 100%; height: 6px; background: var(--bg-dark); border-radius: 10px; overflow: hidden;">
-            <div id="bar-v" style="height: 100%; width: 0%; background: #3b82f6; transition: 0.5s;"></div>
-        </div>
-    </div>
-
-    <div class="kpi-card" style="border-left: 4px solid var(--verde);">
-        <p class="nav-label" style="color: var(--verde);">VOLUME REALIZADO GERAL (m³)</p>
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin: 15px 0;">
-            <div>
-                <p style="font-size: 0.7rem; color: var(--text-dim); font-weight: bold;">PROG.</p>
-                <p id="val-vol-prog" style="font-size: 1.5rem; font-weight: 800; color: var(--text-dim);">0</p>
-            </div>
-            <div style="text-align: right;">
-                <p style="font-size: 0.7rem; color: var(--text-dim); font-weight: bold;">REALIZADO</p>
-                <p id="val-vol-real" style="font-size: 2.2rem; font-weight: 800; color: white;">0</p>
+            <div id="indicadorAtualizacao" class="hidden flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] sm:text-xs font-bold uppercase tracking-widest shadow-inner transition-all duration-500">
+                <i id="iconeAtualizacao" class="fas fa-sync fa-spin"></i>
+                <span id="textoAtualizacao">Verificando...</span>
             </div>
         </div>
-        <div style="display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: bold; margin-bottom: 5px;">
-            <span style="color: var(--text-dim);">ATINGIMENTO</span>
-            <span id="perc-vol" style="color: var(--verde);">0%</span>
-        </div>
-        <div style="width: 100%; height: 6px; background: var(--bg-dark); border-radius: 10px; overflow: hidden;">
-            <div id="bar-vol" style="height: 100%; width: 0%; background: var(--verde); transition: 0.5s;"></div>
-        </div>
     </div>
 
-    <div class="kpi-card" style="border-left: 4px solid var(--amarelo);">
-        <p class="nav-label" style="color: var(--amarelo);">CAIXA DE CARGA MÉDIA GERAL (m³)</p>
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin: 15px 0;">
-            <div>
-                <p style="font-size: 0.7rem; color: var(--text-dim); font-weight: bold;">META BASE</p>
-                <p id="val-cx-prog" style="font-size: 1.5rem; font-weight: 800; color: var(--text-dim);">0</p>
+    <section class="animate-fade-in space-y-6">
+        <!-- Filtros Superiores -->
+        <div class="glass-card p-5 rounded-2xl border border-slate-700/50 shadow-lg flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+            <div class="flex flex-wrap items-center gap-4 w-full md:w-auto">
+                <div class="bg-emerald-500/20 p-3 rounded-full border border-emerald-500/30 hidden sm:block">
+                    <i class="far fa-calendar-check text-emerald-400 text-xl"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Mês</p>
+                    <select id="filterMesOp" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white font-bold outline-none focus:border-emerald-500 shadow-inner cursor-pointer w-full sm:w-auto">
+                        <option value="ALL">Todos os Meses</option>
+                    </select>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Dia Específico</p>
+                    <input type="date" id="opDatePicker" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white font-bold outline-none focus:border-emerald-500 shadow-inner cursor-pointer w-full sm:w-auto">
+                </div>
+                
+                <div class="flex items-center gap-1 bg-slate-900/80 p-1 rounded-lg border border-slate-700/50 shadow-inner mt-2 sm:mt-0">
+                    <button data-op-qf="D-1" class="btn-op-qf border border-transparent text-xs font-bold text-slate-400 hover:text-emerald-300 hover:bg-slate-700/50 px-3 py-2 rounded transition-all">D-1</button>
+                    <button data-op-qf="D-2" class="btn-op-qf border border-transparent text-xs font-bold text-slate-400 hover:text-emerald-300 hover:bg-slate-700/50 px-3 py-2 rounded transition-all">D-2</button>
+                    <div class="w-px h-5 bg-slate-700 mx-1"></div>
+                    <button data-op-qf="D-7" class="btn-op-qf border border-transparent text-xs font-bold text-slate-400 hover:text-emerald-300 hover:bg-slate-700/50 px-3 py-2 rounded transition-all">D-7</button>
+                    <button data-op-qf="D-30" class="btn-op-qf border border-transparent text-xs font-bold text-slate-400 hover:text-emerald-300 hover:bg-slate-700/50 px-3 py-2 rounded transition-all">D-30</button>
+                    <button data-op-qf="SEM" class="btn-op-qf border border-transparent text-xs font-bold text-slate-400 hover:text-emerald-300 hover:bg-slate-700/50 px-3 py-2 rounded transition-all">Semana</button>
+                    <button data-op-qf="ALL" class="btn-op-qf active border border-emerald-500/50 text-emerald-400 bg-emerald-900/30 text-xs font-bold px-3 py-2 rounded transition-all">Todos</button>
+                </div>
             </div>
-            <div style="text-align: right;">
-                <p style="font-size: 0.7rem; color: var(--text-dim); font-weight: bold;">REALIZADA</p>
-                <p id="val-cx-real" style="font-size: 2.2rem; font-weight: 800; color: white;">0</p>
-            </div>
-        </div>
-        <div style="display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: bold; margin-bottom: 5px;">
-            <span style="color: var(--text-dim);">DESEMPENHO</span>
-            <span id="perc-cx" style="color: var(--amarelo);">0%</span>
-        </div>
-        <div style="width: 100%; height: 6px; background: var(--bg-dark); border-radius: 10px; overflow: hidden;">
-            <div id="bar-cx" style="height: 100%; width: 0%; background: var(--amarelo); transition: 0.5s;"></div>
-        </div>
-    </div>
-
-    <div class="kpi-card" style="border-left: 4px solid #f43f5e;">
-        <p class="nav-label" style="color: #f43f5e;">PBTC MÉDIO REALIZADO GERAL</p>
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin: 15px 0;">
-            <div>
-                <p style="font-size: 0.7rem; color: var(--text-dim); font-weight: bold;">META BASE</p>
-                <p id="val-pbtc-prog" style="font-size: 1.5rem; font-weight: 800; color: var(--text-dim);">74 a 77.7</p>
-            </div>
-            <div style="text-align: right;">
-                <p style="font-size: 0.7rem; color: var(--text-dim); font-weight: bold;">REALIZADO</p>
-                <p id="val-pbtc-real" style="font-size: 2.2rem; font-weight: 800; color: white;">0.0</p>
+            <div class="text-right">
+                <span class="text-xs text-slate-500 font-mono" id="opStatusFetch">Carregando dados...</span>
             </div>
         </div>
-        <div style="display: flex; justify-content: space-between; font-size: 0.7rem; font-weight: bold; margin-bottom: 5px;">
-            <span style="color: var(--text-dim);">STATUS DA MÉDIA</span>
-            <span id="perc-pbtc" style="color: #f43f5e;">Apurando</span>
-        </div>
-        <div style="width: 100%; height: 6px; background: var(--bg-dark); border-radius: 10px; overflow: hidden;">
-            <div id="bar-pbtc" style="height: 100%; width: 100%; background: #f43f5e; transition: 0.5s;"></div>
-        </div>
-    </div>
-</div>
 
-<div class="dashboard-grid" style="margin-top: 30px;">
-    <div class="kpi-card" style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div>
-            <p class="nav-label" style="color: #60a5fa;">CICLO MÉDIO GERAL</p>
-            <div class="kpi-value" id="val-ciclo" style="font-size: 2rem; margin: 10px 0;">0h 0m</div>
-            <p class="status-msg">PADRÃO: 10H 05M</p>
-        </div>
-        <i class="fas fa-stopwatch" style="font-size: 2rem; color: rgba(96, 165, 250, 0.2);"></i>
-    </div>
+        <!-- Painel de Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <!-- Viagens -->
+            <div class="glass-card p-6 rounded-2xl glow-border-blue flex flex-col justify-between relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 text-blue-500/10 text-8xl group-hover:scale-110 transition-transform"><i class="fas fa-route"></i></div>
+                <div>
+                    <h3 class="text-blue-400 font-bold tracking-widest text-[11px] uppercase mb-4 relative z-10 m-0">Meta de Viagens</h3>
+                    <div class="flex justify-between items-end mb-6 relative z-10">
+                        <div class="w-1/2 pr-2"><label class="text-[10px] text-slate-500 uppercase font-bold">Meta do Filtro</label><p id="disp_v_prog" class="text-2xl font-black text-slate-300 m-0 mt-1">0</p></div>
+                        <div class="w-1/2 pl-2 text-right border-l border-slate-700/50"><label class="text-[10px] text-slate-500 uppercase font-bold">Realizado</label><p id="disp_v_real" class="text-3xl font-black text-white m-0 mt-1">0</p></div>
+                    </div>
+                </div>
+                <div class="relative z-10">
+                    <div class="flex justify-between text-[11px] mb-2 font-bold uppercase tracking-wider"><span class="text-slate-400">Atingimento</span><span id="disp_v_perc" class="text-blue-400 text-sm">0%</span></div>
+                    <div class="w-full bg-slate-800 rounded-full h-2.5 shadow-inner"><div id="bar_v_perc" class="bg-blue-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div></div>
+                </div>
+            </div>
 
-    <div class="kpi-card" style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div>
-            <p class="nav-label" style="color: var(--amarelo);">ESPERA MÉDIA NO CAMPO</p>
-            <div class="kpi-value" id="val-campo" style="font-size: 2rem; margin: 10px 0;">0h 0m</div>
-            <p class="status-msg">PADRÃO: 1H 20M</p>
-        </div>
-        <i class="fas fa-tractor" style="font-size: 2rem; color: rgba(245, 158, 11, 0.2);"></i>
-    </div>
+            <!-- Volume -->
+            <div class="glass-card p-6 rounded-2xl glow-border-emerald flex flex-col justify-between relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 text-emerald-500/10 text-8xl group-hover:scale-110 transition-transform"><i class="fas fa-cubes"></i></div>
+                <div>
+                    <h3 class="text-emerald-400 font-bold tracking-widest text-[11px] uppercase mb-4 relative z-10 m-0">Volume Realizado (m³)</h3>
+                    <div class="flex justify-between items-end mb-6 relative z-10">
+                        <div class="w-1/2 pr-2"><label class="text-[10px] text-slate-500 uppercase font-bold">Meta do Filtro</label><p id="disp_vol_prog" class="text-2xl font-black text-slate-300 m-0 mt-1">0</p></div>
+                        <div class="w-1/2 pl-2 text-right border-l border-slate-700/50"><label class="text-[10px] text-slate-500 uppercase font-bold">Realizado</label><p id="disp_vol_real" class="text-3xl font-black text-white m-0 mt-1">0</p></div>
+                    </div>
+                </div>
+                <div class="relative z-10">
+                    <div class="flex justify-between text-[11px] mb-2 font-bold uppercase tracking-wider"><span class="text-slate-400">Atingimento</span><span id="disp_vol_perc" class="text-emerald-400 text-sm">0%</span></div>
+                    <div class="w-full bg-slate-800 rounded-full h-2.5 shadow-inner"><div id="bar_vol_perc" class="bg-emerald-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div></div>
+                </div>
+            </div>
 
-    <div class="kpi-card" style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div>
-            <p class="nav-label" style="color: var(--verde);">TEMPO MÉDIO DE CARGA</p>
-            <div class="kpi-value" id="val-carga" style="font-size: 2rem; margin: 10px 0;">0m</div>
-            <p class="status-msg">PADRÃO: 1H</p>
-        </div>
-        <i class="fas fa-truck-loading" style="font-size: 2rem; color: rgba(16, 185, 129, 0.2);"></i>
-    </div>
+            <!-- Caixa Média -->
+            <div class="glass-card p-6 rounded-2xl glow-border-amber flex flex-col justify-between relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 text-amber-500/10 text-8xl group-hover:scale-110 transition-transform"><i class="fas fa-box-open"></i></div>
+                <div>
+                    <h3 class="text-amber-400 font-bold tracking-widest text-[11px] uppercase mb-4 relative z-10 m-0">Caixa de Carga Média (m³)</h3>
+                    <div class="flex justify-between items-end mb-6 relative z-10">
+                        <div class="w-1/2 pr-2"><label class="text-[10px] text-slate-500 uppercase font-bold">Meta Base</label><p id="disp_cx_prog" class="text-2xl font-black text-slate-300 m-0 mt-1">0</p></div>
+                        <div class="w-1/2 pl-2 text-right border-l border-slate-700/50"><label class="text-[10px] text-slate-500 uppercase font-bold">Realizada</label><p id="disp_cx_real" class="text-3xl font-black text-white m-0 mt-1">0</p></div>
+                    </div>
+                </div>
+                <div class="relative z-10">
+                    <div class="flex justify-between text-[11px] mb-2 font-bold uppercase tracking-wider"><span class="text-slate-400">Desempenho</span><span id="disp_cx_perc" class="text-amber-400 text-sm">0%</span></div>
+                    <div class="w-full bg-slate-800 rounded-full h-2.5 shadow-inner"><div id="bar_cx_perc" class="bg-amber-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div></div>
+                </div>
+            </div>
 
-    <div class="kpi-card" style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div>
-            <p class="nav-label" style="color: #f43f5e;">ESPERA MÉDIA NA FÁBRICA</p>
-            <div class="kpi-value" id="val-fabrica" style="font-size: 2rem; margin: 10px 0;">0m</div>
-            <p class="status-msg">PADRÃO: 30M</p>
+            <!-- PBTC -->
+            <div class="glass-card p-6 rounded-2xl glow-border-rose flex flex-col justify-between relative overflow-hidden group">
+                <div class="absolute -right-4 -top-4 text-rose-500/10 text-8xl group-hover:scale-110 transition-transform"><i class="fas fa-truck-moving"></i></div>
+                <div>
+                    <h3 class="text-rose-400 font-bold tracking-widest text-[11px] uppercase mb-4 relative z-10 m-0">PBTC Médio Realizado</h3>
+                    <div class="flex justify-between items-end mb-6 relative z-10">
+                        <div class="w-1/2 pr-2"><label class="text-[10px] text-slate-500 uppercase font-bold">Meta Base</label><p id="disp_pbtc_prog" class="text-2xl font-black text-slate-300 m-0 mt-1">0</p></div>
+                        <div class="w-1/2 pl-2 text-right border-l border-slate-700/50"><label class="text-[10px] text-slate-500 uppercase font-bold">Realizado</label><p id="disp_pbtc_real" class="text-3xl font-black text-white m-0 mt-1 flex items-center justify-end">0.0</p></div>
+                    </div>
+                </div>
+                <div class="relative z-10">
+                    <div class="flex justify-between text-[11px] mb-2 font-bold uppercase tracking-wider"><span class="text-slate-400">Status</span><span id="disp_pbtc_perc" class="text-rose-400 text-sm">0%</span></div>
+                    <div class="w-full bg-slate-800 rounded-full h-2.5 shadow-inner"><div id="bar_pbtc_perc" class="bg-rose-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div></div>
+                </div>
+            </div>
         </div>
-        <i class="fas fa-industry" style="font-size: 2rem; color: rgba(244, 63, 94, 0.2);"></i>
-    </div>
 
-    <div class="kpi-card">
-        <p class="nav-label">DIST. MÉDIA GERAL</p>
-        <div class="kpi-value" id="val-dist-total" style="font-size: 2rem; margin: 10px 0;">0 km</div>
-        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: bold; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
-            <span style="color: var(--text-dim);">Asfalto: <span id="val-dist-asfalto" style="color: #60a5fa;">0</span></span>
-            <span style="color: var(--text-dim);">Terra: <span id="val-dist-terra" style="color: var(--amarelo);">0</span></span>
+        <!-- Gráficos Centrais (Empilhados Verticalmente um debaixo do outro) -->
+        <div class="grid grid-cols-1 gap-6 mb-6">
+            <!-- Gráfico Carregamento -->
+            <div class="glass-card rounded-xl shadow-2xl p-5 border border-slate-700/50 flex flex-col w-full">
+                <div class="flex justify-between items-center mb-2 border-b border-slate-700/50 pb-3">
+                    <h3 class="font-bold text-white tracking-wide flex items-center text-[13px] uppercase m-0">
+                        <i class="fas fa-chart-line text-emerald-400 mr-2 text-lg"></i> Evolução Diária de Carregamento
+                    </h3>
+                </div>
+                <div class="w-full relative h-[250px]">
+                    <canvas id="evolucaoCarregamentoChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Gráfico Transporte -->
+            <div class="glass-card rounded-xl shadow-2xl p-5 border border-slate-700/50 flex flex-col w-full">
+                <div class="flex justify-between items-center mb-2 border-b border-slate-700/50 pb-3">
+                    <h3 class="font-bold text-white tracking-wide flex items-center text-[13px] uppercase m-0">
+                        <i class="fas fa-truck text-sky-400 mr-2 text-lg"></i> Evolução Diária de Transporte
+                    </h3>
+                </div>
+                <div class="w-full relative h-[250px]">
+                    <canvas id="evolucaoTransporteChart"></canvas>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
-<div id="comparativoContainer" class="rounded-xl border border-slate-700/50 shadow-xl overflow-hidden mb-6 bg-slate-900 relative" style="background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); margin-top: 30px;">
-    <div class="bg-slate-800/90 px-6 py-6 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-4">
-        <h3 class="font-extrabold text-white tracking-wide uppercase text-base flex items-center">
-            <i class="fas fa-balance-scale text-sky-400 mr-3 text-xl"></i> Comparativo de Desempenho Operacional por Cenários
-        </h3>
-        
-        <div class="flex items-center gap-6">
-            <button id="btnExportarComparativo" data-html2canvas-ignore class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-colors text-xs flex items-center gap-2 border border-indigo-500/50 cursor-pointer" style="border: none; padding: 10px 15px;">
-                <i class="fas fa-camera"></i> Salvar PNG
-            </button>
-            <img src="./assets/logo.png" alt="Serrana Florestal" class="h-10 object-contain drop-shadow-md" style="max-height: 40px;" onerror="this.style.display='none'">
+        <!-- Leaderboards -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="glass-card rounded-xl shadow-2xl overflow-hidden border border-slate-700/50 flex flex-col">
+                <div class="bg-slate-800/80 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
+                    <h3 class="font-bold text-white tracking-wide flex items-center text-[13px] uppercase m-0">
+                        <i class="fas fa-trophy text-emerald-400 mr-2 text-lg"></i> Volume por Veículo (Serrana)
+                    </h3>
+                    <button onclick="window.exportarTopVolume()" class="text-[11px] bg-slate-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg border border-slate-600 hover:border-emerald-500 transition-all flex items-center gap-2 font-bold shadow-md">
+                        <i class="fas fa-file-csv"></i> Exportar
+                    </button>
+                </div>
+                <div class="overflow-x-auto max-h-[350px] overflow-y-auto custom-scrollbar">
+                    <table class="min-w-full text-xs text-left m-0">
+                        <thead class="bg-slate-900/95 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-700 sticky top-0 z-10 shadow-md backdrop-blur-sm">
+                            <tr>
+                                <th class="px-4 py-3 w-10 text-center">Pos</th>
+                                <th class="px-4 py-3">Placa</th>
+                                <th class="px-4 py-3">Transp.</th>
+                                <th class="px-4 py-3 text-center">Viagens</th>
+                                <th class="px-4 py-3 text-right">Vol (m³)</th>
+                                <th class="px-4 py-3 text-center">Meta ≥ 2</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardBody" class="divide-y divide-slate-800/80 text-slate-300"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="glass-card rounded-xl shadow-2xl overflow-hidden border border-slate-700/50 flex flex-col">
+                <div class="bg-slate-800/80 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
+                    <h3 class="font-bold text-white tracking-wide flex items-center text-[13px] uppercase m-0">
+                        <i class="fas fa-stopwatch text-sky-400 mr-2 text-lg"></i> Ciclo Médio por Veículo
+                    </h3>
+                    <button onclick="window.exportarTopCiclo()" class="text-[11px] bg-slate-700 hover:bg-sky-600 text-white px-3 py-1.5 rounded-lg border border-slate-600 hover:border-sky-500 transition-all flex items-center gap-2 font-bold shadow-md">
+                        <i class="fas fa-file-csv"></i> Exportar
+                    </button>
+                </div>
+                <div class="overflow-x-auto max-h-[350px] overflow-y-auto custom-scrollbar">
+                    <table class="min-w-full text-xs text-left m-0">
+                        <thead class="bg-slate-900/95 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-700 sticky top-0 z-10 shadow-md backdrop-blur-sm">
+                            <tr>
+                                <th class="px-4 py-3 w-10 text-center">Pos</th>
+                                <th class="px-4 py-3">Placa</th>
+                                <th class="px-4 py-3">Transp.</th>
+                                <th class="px-4 py-3 text-center">Viagens</th>
+                                <th class="px-4 py-3 text-right">T. Médio</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardCicloBody" class="divide-y divide-slate-800/80 text-slate-300"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-    </div>
-
-    <div class="overflow-x-auto">
-        <table class="min-w-full text-xs text-left">
-            <thead class="bg-slate-900/95 text-white font-semibold uppercase text-xs tracking-wider border-b border-slate-700">
-                <tr>
-                    <th class="px-6 py-4 text-slate-300">Indicador de Performance</th>
-                    <th class="px-6 py-4 text-white bg-emerald-900/10 text-right"><i class="fas fa-star mr-1 text-emerald-400"></i> C1: Serrana</th>
-                    <th class="px-6 py-4 text-white bg-rose-900/10 text-right"><i class="fas fa-truck-loading mr-1 text-rose-400"></i> C2: TRANSP. ASN</th>
-                    <th class="px-6 py-4 text-white bg-amber-900/10 text-right"><i class="fas fa-tree mr-1 text-amber-400"></i> C3: Reflorestar</th>
-                    <th class="px-6 py-4 text-white bg-indigo-900/10 text-right"><i class="fas fa-leaf mr-1 text-indigo-400"></i> C4: JSL</th>
-                    <th class="px-6 py-4 text-white bg-sky-900/10 text-right"><i class="fas fa-globe mr-1 text-sky-400"></i> Total (Geral)</th>
-                </tr>
-            </thead>
-            <tbody id="comparativoBody" class="divide-y divide-slate-800/80 text-slate-300">
-                <tr><td colspan="6" style="text-align: center; padding: 20px; color: var(--text-dim);">Aguardando sincronização de dados...</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<div class="dashboard-grid" style="margin-top: 30px;">
-    <div class="kpi-card" style="grid-column: span 2;">
-        <p class="nav-label"><i class="fas fa-chart-line" style="color: var(--verde);"></i> EVOLUÇÃO DIÁRIA DE VOLUME (m³) - GERAL</p>
-        <div style="height: 250px; margin-top: 15px; position: relative;">
-            <canvas id="chart-evolucao"></canvas>
-        </div>
-    </div>
-    <div class="kpi-card">
-        <p class="nav-label"><i class="fas fa-forward" style="color: #38bdf8;"></i> PROJEÇÃO (PRÓX. 5 DIAS) - GERAL</p>
-        <div style="height: 250px; margin-top: 15px; position: relative;">
-            <canvas id="chart-projecao"></canvas>
-        </div>
-    </div>
-</div>
-
-<div class="dashboard-grid" style="margin-top: 30px; margin-bottom: 50px;">
-    <div class="table-box">
-        <h3 class="nav-label"><i class="fas fa-trophy" style="color: var(--verde);"></i> TOP VOLUME (PRODUTIVIDADE POR PLACA)</h3>
-        <table class="exec-table">
-            <thead><tr><th>Pos</th><th>Placa</th><th>Transportadora</th><th style="text-align: center;">Viagens</th><th style="text-align: right;">Vol (m³)</th></tr></thead>
-            <tbody id="top-vol-body"></tbody>
-        </table>
-    </div>
-    <div class="table-box">
-        <h3 class="nav-label"><i class="fas fa-stopwatch" style="color: #38bdf8;"></i> TOP CICLO (MENOR TEMPO MÉDIO)</h3>
-        <table class="exec-table">
-            <thead><tr><th>Pos</th><th>Placa</th><th>Transportadora</th><th style="text-align: center;">Viagens</th><th style="text-align: right;">T. Médio</th></tr></thead>
-            <tbody id="top-ciclo-body"></tbody>
-        </table>
-    </div>
+    </section>
 </div>
 
 <script>
-(async function initDashboardFull() {
-    try {
-        const SUPABASE_URL = 'https://qnpwkvazkntbqjbwegcp.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_bjTFgpk-qAdpVuWzr4hbng_G8O9qlc8';
-        let _db;
-        if (typeof supabaseClient !== 'undefined') {
-            _db = supabaseClient;
-        } else if (window.supabase) {
-            _db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        } else {
-            console.error("Supabase não carregado!");
+(function initNovoDashboardOperacional() {
+    // Configurações Globais do Chart.js
+    if (typeof Chart !== 'undefined') {
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
+        Chart.defaults.font.family = "'Inter', sans-serif";
+    }
+
+    // Plugin Nativo para exibir valores sobre as barras sem depender da lib externa
+    const chartDataLabelsPlugin = {
+        id: 'customDataLabels',
+        afterDatasetsDraw: (chart) => {
+            const { ctx } = chart;
+            ctx.save();
+            ctx.font = 'bold 11px Inter, sans-serif';
+            ctx.fillStyle = '#f8fafc';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            chart.data.datasets.forEach((dataset, i) => {
+                const meta = chart.getDatasetMeta(i);
+                meta.data.forEach((bar, index) => {
+                    const dataVal = dataset.data[index];
+                    if (dataVal > 0) {
+                        ctx.fillText(dataVal.toLocaleString('pt-BR', {maximumFractionDigits: 0}), bar.x, bar.y - 4);
+                    }
+                });
+            });
+            ctx.restore();
+        }
+    };
+
+    // Inicialização direta do Supabase
+    const SUPABASE_URL = 'https://qnpwkvazkntbqjbwegcp.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_bjTFgpk-qAdpVuWzr4hbng_G8O9qlc8';
+    const supabaseClientLocal = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let fullHistoricoDataOp = [];
+    let metasGlobais = {};
+    let activeQuickFilterOp = 'ALL';
+    
+    window.diasConsideradosGlobais = 1;
+    window.globalTopVol = [];
+    window.globalTopCiclo = [];
+
+    let chartCarregamento = null;
+    let chartTransporte = null; 
+
+    function setupOperacionalFilters() {
+        const btnQFs = document.querySelectorAll('.btn-op-qf');
+        const datePicker = document.getElementById('opDatePicker');
+        const filterMesOp = document.getElementById('filterMesOp');
+        
+        btnQFs.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                activeQuickFilterOp = e.currentTarget.getAttribute('data-op-qf');
+                btnQFs.forEach(b => {
+                    if(b.getAttribute('data-op-qf') === activeQuickFilterOp) {
+                        b.classList.add('active', 'border-emerald-500/50', 'text-emerald-400', 'bg-emerald-900/30');
+                        b.classList.remove('border-transparent', 'text-slate-400', 'hover:bg-slate-700/50');
+                    } else {
+                        b.classList.remove('active', 'border-emerald-500/50', 'text-emerald-400', 'bg-emerald-900/30');
+                        b.classList.add('border-transparent', 'text-slate-400', 'hover:bg-slate-700/50');
+                    }
+                });
+                if(datePicker) datePicker.value = '';
+                if(filterMesOp) filterMesOp.value = 'ALL';
+                atualizarPainelOperacional();
+            });
+        });
+
+        if(datePicker) {
+            datePicker.addEventListener('change', () => {
+                if(datePicker.value) {
+                    activeQuickFilterOp = 'DATE';
+                    btnQFs.forEach(b => {
+                        b.classList.remove('active', 'border-emerald-500/50', 'text-emerald-400', 'bg-emerald-900/30');
+                        b.classList.add('border-transparent', 'text-slate-400', 'hover:bg-slate-700/50');
+                    });
+                    if(filterMesOp) filterMesOp.value = 'ALL';
+                    atualizarPainelOperacional();
+                }
+            });
+        }
+
+        if(filterMesOp) {
+            filterMesOp.addEventListener('change', () => {
+                if(filterMesOp.value !== 'ALL') {
+                    activeQuickFilterOp = 'ALL';
+                    btnQFs.forEach(b => {
+                        b.classList.remove('active', 'border-emerald-500/50', 'text-emerald-400', 'bg-emerald-900/30');
+                        b.classList.add('border-transparent', 'text-slate-400', 'hover:bg-slate-700/50');
+                    });
+                    if(datePicker) datePicker.value = '';
+                }
+                atualizarPainelOperacional();
+            });
+        }
+    }
+
+    function verificarStatusAtualizacao(datasArray) {
+        const indicador = document.getElementById('indicadorAtualizacao');
+        const icone = document.getElementById('iconeAtualizacao');
+        const texto = document.getElementById('textoAtualizacao');
+        
+        if(!indicador) return;
+        indicador.classList.remove('hidden');
+
+        if (!datasArray || datasArray.length === 0) {
+            indicador.className = "flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] sm:text-xs font-bold uppercase tracking-widest shadow-inner bg-slate-900/50 text-slate-400 border-slate-600";
+            icone.className = "fas fa-times-circle";
+            texto.innerText = "Sem Dados";
             return;
         }
 
-        let fullData = [];
-        let metasGlobais = {};
-        let activeFilter = 'ALL';
+        let maxDate = new Date(0);
+        let maxDateStr = "";
         
-        if (window.chartEvoObj) window.chartEvoObj.destroy();
-        if (window.chartProjObj) window.chartProjObj.destroy();
+        datasArray.forEach(dStr => {
+            let dt = null;
+            const p = String(dStr).split('/');
+            if(p.length === 3) {
+                let ano = parseInt(p[2]); if(ano < 100) ano += 2000;
+                dt = new Date(ano, parseInt(p[1])-1, parseInt(p[0]));
+            }
+            if (dt && dt > maxDate) {
+                maxDate = dt;
+                const dia = String(dt.getDate()).padStart(2, '0');
+                const mes = String(dt.getMonth() + 1).padStart(2, '0');
+                const ano = dt.getFullYear();
+                maxDateStr = `${dia}/${mes}/${ano}`;
+            }
+        });
 
-        if (typeof Chart !== 'undefined') {
-            Chart.defaults.color = '#94a3b8';
-            Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
-            Chart.defaults.font.family = "'Inter', sans-serif";
+        const hoje = new Date();
+        const diaH = String(hoje.getDate()).padStart(2, '0');
+        const mesH = String(hoje.getMonth() + 1).padStart(2, '0');
+        const anoH = hoje.getFullYear();
+        const hojeStr = `${diaH}/${mesH}/${anoH}`;
+
+        if (maxDateStr === hojeStr) {
+            indicador.className = "flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] sm:text-xs font-bold uppercase tracking-widest shadow-inner bg-emerald-900/30 text-emerald-400 border-emerald-500/50 transition-colors";
+            icone.className = "fas fa-check-circle";
+            texto.innerText = "Atualizado Hoje";
+        } else {
+            indicador.className = "flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] sm:text-xs font-bold uppercase tracking-widest shadow-inner bg-amber-900/30 text-amber-400 border-amber-500/50 transition-colors";
+            icone.className = "fas fa-exclamation-triangle";
+            texto.innerText = `Base: ${maxDateStr}`;
         }
+    }
 
-        const getValNum = (obj, keys) => {
-            for(let k of keys) {
-                if(obj[k] !== undefined && obj[k] !== null && String(obj[k]).trim() !== '') {
-                    let cleanStr = String(obj[k]).replace(/\s/g, '').replace(',', '.').replace(/[^\d.-]/g, '');
-                    const v = parseFloat(cleanStr);
-                    if(!isNaN(v)) return v;
-                }
-            }
-            return 0;
-        };
+    async function loadOperacionalData() {
+        try {
+            // Busca as Metas Globais Atualizadas no Banco
+            const { data: metas } = await supabaseClientLocal.from('metas_globais').select('*').eq('id', 1).single();
+            if(metas) metasGlobais = metas;
 
-        const btnQFs = document.querySelectorAll('.btn-qf');
-        const inputData = document.getElementById('op-data');
-        const selectMes = document.getElementById('op-mes');
-
-        btnQFs.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                activeFilter = e.target.getAttribute('data-qf');
-                btnQFs.forEach(b => {
-                    b.classList.remove('active');
-                    b.style.background = 'transparent'; b.style.color = 'var(--text-dim)';
-                });
-                e.target.classList.add('active');
-                e.target.style.background = 'var(--primary)'; e.target.style.color = 'white';
-                inputData.value = ''; selectMes.value = 'ALL';
-                renderizarPainel();
-            });
-        });
-
-        inputData.addEventListener('change', () => {
-            if(inputData.value) {
-                activeFilter = 'DATE';
-                btnQFs.forEach(b => { b.classList.remove('active'); b.style.background = 'transparent'; b.style.color = 'var(--text-dim)'; });
-                selectMes.value = 'ALL';
-                renderizarPainel();
-            }
-        });
-
-        selectMes.addEventListener('change', () => {
-            if(selectMes.value !== 'ALL') {
-                activeFilter = 'MONTH';
-                btnQFs.forEach(b => { b.classList.remove('active'); b.style.background = 'transparent'; b.style.color = 'var(--text-dim)'; });
-                inputData.value = '';
-            }
-            renderizarPainel();
-        });
-
-        async function loadData() {
-            try {
-                const { data: mData } = await _db.from('metas_globais').select('*').eq('id', 1).single();
-                if(mData) metasGlobais = mData;
-
-                let historico = [];
-                let from = 0; const step = 1000; let fetchMore = true;
-
-                while(fetchMore) {
-                    const { data, error } = await _db.from('historico_viagens').select('*').range(from, from + step - 1);
-                    if(error || !data || data.length === 0) break;
+            let historico = [];
+            let from = 0;
+            const step = 1000;
+            let fetchMore = true;
+            
+            while (fetchMore) {
+                const { data, error } = await supabaseClientLocal
+                    .from('historico_viagens')
+                    .select('*')
+                    .range(from, from + step - 1);
+                    
+                if (error) break;
+                if (data && data.length > 0) {
                     historico = historico.concat(data);
-                    if(data.length < step) fetchMore = false;
                     from += step;
                 }
+                if (!data || data.length < step) fetchMore = false;
+            }
+            
+            if(historico && historico.length > 0) {
+                historico = historico.filter(d => {
+                    const motorista = String(d.motorista || '').toUpperCase();
+                    return !motorista.includes('JULIO CESAR ALMEIDA NUNES') && motorista !== '-';
+                });
+                fullHistoricoDataOp = historico.reverse();
+            }
 
-                fullData = historico;
-                popularFiltroMeses(fullData);
-                renderizarPainel();
-            } catch(e) { console.error("Erro no DB:", e); }
-        }
+            const filterMesOp = document.getElementById('filterMesOp');
+            if(filterMesOp && fullHistoricoDataOp.length > 0) {
+                let currMesOp = filterMesOp.value;
 
-        function popularFiltroMeses(data) {
-            const meses = new Set();
-            data.forEach(d => {
-                if(d.dataDaBaseExcel && d.dataDaBaseExcel !== 'Desconhecida') {
-                    const dtStr = String(d.dataDaBaseExcel).trim();
-                    if(dtStr.includes('/')) {
-                        const p = dtStr.split(' ')[0].split('/');
-                        if(p.length >= 3) meses.add(`${p[1]}/${p[2].length===2?'20'+p[2]:p[2]}`);
+                if (!window.opMesInicializado) {
+                    const hj = new Date();
+                    const mesAtualStr = String(hj.getMonth() + 1).padStart(2, '0') + '/' + hj.getFullYear();
+                    currMesOp = mesAtualStr;
+                    window.opMesInicializado = true;
+                }
+
+                const mesesSet = new Set();
+                fullHistoricoDataOp.forEach(d => {
+                    if(d.dataDaBaseExcel && d.dataDaBaseExcel !== 'Desconhecida') {
+                        const p = d.dataDaBaseExcel.split('/');
+                        if(p.length >= 3) {
+                            let y = p[2]; if(y.length === 2) y = "20"+y;
+                            mesesSet.add(`${p[1]}/${y}`);
+                        }
                     }
+                });
+
+                const allMeses = Array.from(mesesSet).sort((a,b) => {
+                      const pA = a.split('/'); const pB = b.split('/');
+                      return new Date(pA[1], pA[0]-1, 1) - new Date(pB[1], pB[0]-1, 1);
+                });
+
+                const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+                
+                filterMesOp.innerHTML = '<option value="ALL">Todos os Meses</option>';
+                let optionExists = false;
+                allMeses.forEach(mStr => {
+                    const p = mStr.split('/');
+                    const mesIdx = parseInt(p[0]) - 1;
+                    const nomeMes = monthNames[mesIdx] + '/' + p[1].substring(2);
+                    if (mStr === currMesOp) optionExists = true;
+                    filterMesOp.insertAdjacentHTML('beforeend', `<option value="${mStr}" ${mStr===currMesOp?'selected':''}>${nomeMes}</option>`);
+                });
+
+                if (!optionExists && currMesOp !== 'ALL') {
+                    filterMesOp.value = 'ALL';
+                } else {
+                    filterMesOp.value = currMesOp;
                 }
-            });
-            const arrMeses = Array.from(meses).sort((a,b) => {
-                const pa = a.split('/'), pb = b.split('/');
-                return new Date(pa[1], pa[0]-1) - new Date(pb[1], pb[0]-1);
-            });
-            selectMes.innerHTML = '<option value="ALL">TODOS OS MESES</option>';
-            arrMeses.forEach(m => selectMes.insertAdjacentHTML('beforeend', `<option value="${m}">${m}</option>`));
+            }
+
+            if(fullHistoricoDataOp.length > 0) {
+                const allDates = [...new Set(fullHistoricoDataOp.map(d => d.dataDaBaseExcel))].filter(d => d && d !== 'Desconhecida');
+                verificarStatusAtualizacao(allDates);
+                atualizarPainelOperacional();
+            }
+
+        } catch(e) { console.error("Erro operacionais:", e); }
+    }
+
+    // Parse simplificado não dependente do XLSX
+    function parseDateTime(dateVal) {
+        if (!dateVal) return null;
+        const str = String(dateVal).trim();
+        if (str === 'Desconhecida') return null;
+
+        let baseDate = null;
+        if (str.includes('/')) {
+            const parts = str.split(' ')[0].split('/');
+            if (parts.length >= 3) {
+                let year = parseInt(parts[2], 10);
+                if (year < 100) year += 2000;
+                baseDate = new Date(year, parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+            }
+        } else if (str.includes('-')) {
+            baseDate = new Date(str);
         }
 
-        function parseDataBR(dtVal) {
-            if(!dtVal || dtVal === 'Desconhecida') return null;
-            const dtStr = String(dtVal).trim();
-            if(dtStr.includes('/')) {
-                const p = dtStr.split(' ')[0].split('/');
+        if (!baseDate || isNaN(baseDate.getTime())) return null;
+        baseDate.setHours(0, 0, 0, 0);
+        return baseDate;
+    }
+
+    function atualizarPainelOperacional() {
+        const dataRef = document.getElementById('opDatePicker') ? document.getElementById('opDatePicker').value : null;
+        const filterMesOp = document.getElementById('filterMesOp');
+        const mesRef = filterMesOp ? filterMesOp.value : 'ALL';
+        
+        let diasConsiderados = 1;
+
+        const filteredGlobal = fullHistoricoDataOp.filter(d => {
+            const parsed = parseDateTime(d.dataDaBaseExcel);
+            if(!parsed) return false;
+
+            if (mesRef !== 'ALL') {
+                const p = d.dataDaBaseExcel.split('/');
                 if(p.length >= 3) {
-                    let y = p[2]; if(y.length === 2) y = '20' + y;
-                    return new Date(y, p[1]-1, p[0]);
-                }
-            }
-            if(dtStr.includes('-')) return new Date(dtStr);
-            return null;
-        }
-
-        function formatTime(horasDecimais) {
-            if(isNaN(horasDecimais) || horasDecimais <= 0) return '-';
-            const h = Math.floor(horasDecimais);
-            const m = Math.round((horasDecimais - h) * 60);
-            if(h === 0) return `${m}m`;
-            return `${h}h ${m.toString().padStart(2,'0')}m`;
-        }
-
-        function renderizarPainel() {
-            const hj = new Date(); hj.setHours(0,0,0,0);
-            let diasNoFiltro = 30;
-
-            const filtered = fullData.filter(d => {
-                const dt = parseDataBR(d.dataDaBaseExcel);
-                if(!dt) return false;
-                
-                if(activeFilter === 'DATE') {
-                    const dr = new Date(inputData.value + "T00:00:00"); dr.setHours(0,0,0,0);
-                    return dt.getTime() === dr.getTime();
-                }
-                if(activeFilter === 'MONTH') {
-                    const m = String(dt.getMonth()+1).padStart(2,'0'); const y = dt.getFullYear();
-                    return `${m}/${y}` === selectMes.value;
-                }
-                if(activeFilter === 'ALL') return true;
-
-                const diff = Math.round((hj - dt)/86400000);
-                if(activeFilter === 'D-1') { diasNoFiltro = 1; return diff === 1; }
-                if(activeFilter === 'D-2') { diasNoFiltro = 2; return diff === 2; }
-                if(activeFilter === 'D-7') { diasNoFiltro = 7; return diff >= 0 && diff <= 7; }
-                if(activeFilter === 'D-30') { diasNoFiltro = 30; return diff >= 0 && diff <= 30; }
-                return true;
-            });
-
-            const dts = new Set(filtered.map(d=>d.dataDaBaseExcel));
-            if(activeFilter === 'MONTH' || activeFilter === 'ALL') diasNoFiltro = dts.size || 1;
-
-            document.getElementById('op-status').innerText = `Base: ${filtered.length} Viagens Globais | ${diasNoFiltro} Dia(s)`;
-
-            const tViagens = filtered.length;
-            const tVol = filtered.reduce((s,x) => s + (parseFloat(String(x.volumeReal).replace(',','.'))||0), 0);
-            const tPesoLiq = filtered.reduce((s,x) => s + (parseFloat(String(x.pesoLiquido).replace(',','.'))||0), 0) / 1000;
-            
-            let somaCiclo = 0, qtdCiclo = 0;
-            let somaCampo = 0, qtdCampo = 0;
-            let somaCarga = 0, qtdCarga = 0;
-            let somaFab = 0, qtdFab = 0;
-            let sDistT = 0, sDistA = 0, sDistTe = 0, qtdDist = 0;
-
-            filtered.forEach(d => {
-                if(d.cicloHoras > 0) { somaCiclo += d.cicloHoras; qtdCiclo++; }
-                if(d.filaCampoHoras > 0) { somaCampo += d.filaCampoHoras; qtdCampo++; }
-                if(d.tempoCarregamentoHoras > 0) { somaCarga += d.tempoCarregamentoHoras; qtdCarga++; }
-                if(d.filaFabricaHoras > 0) { somaFab += d.filaFabricaHoras; qtdFab++; }
-                
-                const distA = getValNum(d, ['distanciaAsfalto', 'distancia_asfalto', 'kmAsfalto', 'km_asfalto', 'asfalto', 'km_asf', 'dist_asfalto']);
-                const distTe = getValNum(d, ['distanciaTerra', 'distancia_terra', 'kmTerra', 'km_terra', 'terra', 'km_ter', 'dist_terra']);
-                let distT = getValNum(d, ['distanciaTotal', 'distancia_total', 'kmTotal', 'km_total', 'distancia', 'km', 'dist']);
-                
-                if (distT === 0 && (distA > 0 || distTe > 0)) distT = distA + distTe;
-
-                if(distT > 0 || distA > 0 || distTe > 0) {
-                    sDistT += distT; sDistA += distA; sDistTe += distTe; qtdDist++;
-                }
-            });
-
-            // Metas
-            const placasUnicas = new Set(filtered.map(d=>d.placa).filter(p=>p&&p!=='-')).size || 1;
-            const mediaCx = tViagens > 0 ? (tVol / tViagens) : 0;
-            const mediaPbtc = tViagens > 0 ? (tPesoLiq / tViagens) : 0;
-            const metaV = (metasGlobais.v_prog||0) * placasUnicas * diasNoFiltro;
-            const metaVol = (metasGlobais.vol_prog||0) * diasNoFiltro;
-            const metaCx = metasGlobais.cx_prog || 62.2;
-            
-            const percV = metaV > 0 ? Math.min((tViagens/metaV)*100, 100) : 0;
-            const percVol = metaVol > 0 ? Math.min((tVol/metaVol)*100, 100) : 0;
-            const percCx = metaCx > 0 ? Math.min((mediaCx/metaCx)*100, 100) : 0;
-
-            // UI Cards
-            document.getElementById('val-v-prog').innerText = metaV;
-            document.getElementById('val-v-real').innerText = tViagens;
-            document.getElementById('perc-v').innerText = `${percV.toFixed(1)}%`;
-            document.getElementById('bar-v').style.width = `${percV}%`;
-
-            document.getElementById('val-vol-prog').innerText = metaVol.toLocaleString('pt-BR');
-            document.getElementById('val-vol-real').innerText = tVol.toLocaleString('pt-BR', {maximumFractionDigits:1});
-            document.getElementById('perc-vol').innerText = `${percVol.toFixed(1)}%`;
-            document.getElementById('bar-vol').style.width = `${percVol}%`;
-
-            document.getElementById('val-cx-prog').innerText = metaCx.toLocaleString('pt-BR');
-            document.getElementById('val-cx-real').innerText = mediaCx.toLocaleString('pt-BR', {maximumFractionDigits:2});
-            document.getElementById('perc-cx').innerText = `${percCx.toFixed(1)}%`;
-            document.getElementById('bar-cx').style.width = `${percCx}%`;
-
-            document.getElementById('val-pbtc-prog').innerText = metasGlobais.pbtc_prog || '74';
-            document.getElementById('val-pbtc-real').innerText = mediaPbtc.toLocaleString('pt-BR', {maximumFractionDigits:2});
-            
-            const bPbtc = document.getElementById('bar-pbtc');
-            const vPbtc = document.getElementById('val-pbtc-real');
-            const txtPbtc = document.getElementById('perc-pbtc');
-            if (mediaPbtc < 74) { bPbtc.style.background = 'var(--amarelo)'; vPbtc.style.color = 'var(--amarelo)'; txtPbtc.innerText = 'Abaixo do Ideal'; txtPbtc.style.color = 'var(--amarelo)'; }
-            else if (mediaPbtc <= 77.7) { bPbtc.style.background = 'var(--verde)'; vPbtc.style.color = 'var(--verde)'; txtPbtc.innerText = 'Ideal'; txtPbtc.style.color = 'var(--verde)'; }
-            else { bPbtc.style.background = '#f43f5e'; vPbtc.style.color = '#f43f5e'; txtPbtc.innerText = 'Acima do Limite'; txtPbtc.style.color = '#f43f5e'; }
-
-            document.getElementById('val-ciclo').innerText = formatTime(qtdCiclo > 0 ? somaCiclo/qtdCiclo : 0);
-            document.getElementById('val-campo').innerText = formatTime(qtdCampo > 0 ? somaCampo/qtdCampo : 0);
-            document.getElementById('val-carga').innerText = formatTime(qtdCarga > 0 ? somaCarga/qtdCarga : 0);
-            document.getElementById('val-fabrica').innerText = formatTime(qtdFab > 0 ? somaFab/qtdFab : 0);
-            
-            document.getElementById('val-dist-total').innerText = `${(qtdDist>0?sDistT/qtdDist:0).toFixed(1)} km`;
-            document.getElementById('val-dist-asfalto').innerText = (qtdDist>0?sDistA/qtdDist:0).toFixed(1);
-            document.getElementById('val-dist-terra').innerText = (qtdDist>0?sDistTe/qtdDist:0).toFixed(1);
-
-            renderizarTabelaComparativa(filtered);
-            renderTopTabelas(filtered);
-            renderGraficos(filtered);
-        }
-
-        const serranaLoaders = ['GSR0001', 'GSR0002', 'GSR0003', 'GSR0007', 'GSR0008', 'GRB0015', 'GRB0022'];
-        const reflorestarLoaders = ['GRB0017', 'GRB0020', 'GRB0029'];
-        const jslLoaders = ['GSL0012', 'GSL0016'];
-
-        function checkLoader(d, loaderArray) {
-            const val = String(d.carregadorFlorestal || d.grua || '').trim().toUpperCase();
-            if (val && val !== '-') return loaderArray.includes(val);
-            for (let key in d) {
-                if (d[key] && typeof d[key] === 'string') {
-                    const v = d[key].trim().toUpperCase();
-                    if (loaderArray.includes(v)) return true;
-                }
-            }
-            return false;
-        }
-
-        function isSerranaTransp(d) {
-            const name = String(d.transportadora || '').toUpperCase();
-            return name.includes('SERRANALOG') || name.includes('SERRANA');
-        }
-
-        function calcStats(dataArr) {
-            const viagens = dataArr.length;
-            const vol = dataArr.reduce((s,d) => s + (parseFloat(String(d.volumeReal).replace(',','.'))||0), 0);
-            const medVol = viagens > 0 ? vol / viagens : 0;
-
-            const validCiclos = dataArr.filter(d => d.cicloHoras > 0);
-            const somaCiclos = validCiclos.reduce((s,d) => s + d.cicloHoras, 0);
-            const medCiclo = validCiclos.length > 0 ? somaCiclos / validCiclos.length : 0;
-
-            const validFilaCpo = dataArr.filter(d => d.filaCampoHoras > 0);
-            const medFilaCpo = validFilaCpo.length > 0 ? validFilaCpo.reduce((s,d) => s + d.filaCampoHoras, 0) / validFilaCpo.length : 0;
-
-            const validCarreg = dataArr.filter(d => d.tempoCarregamentoHoras > 0);
-            const medCarreg = validCarreg.length > 0 ? validCarreg.reduce((s,d) => s + d.tempoCarregamentoHoras, 0) / validCarreg.length : 0;
-
-            const validFilaFab = dataArr.filter(d => d.filaFabricaHoras > 0);
-            const medFilaFab = validFilaFab.length > 0 ? validFilaFab.reduce((s,d) => s + d.filaFabricaHoras, 0) / validFilaFab.length : 0;
-
-            const medAsfalto = viagens > 0 ? dataArr.reduce((s, d) => s + (getValNum(d, ['distanciaAsfalto', 'distancia_asfalto', 'kmAsfalto', 'asfalto']) || 0), 0) / viagens : 0;
-            const medTerra = viagens > 0 ? dataArr.reduce((s, d) => s + (getValNum(d, ['distanciaTerra', 'distancia_terra', 'kmTerra', 'terra']) || 0), 0) / viagens : 0;
-
-            return { volTotal: vol, medVol, medCiclo, medFilaCpo, medCarreg, medFilaFab, medAsfalto, medTerra };
-        }
-
-        function formatarHorasMinutos(horasDecimais) {
-            if (horasDecimais === null || horasDecimais === undefined || isNaN(horasDecimais) || horasDecimais <= 0) return '-';
-            const horas = Math.floor(horasDecimais);
-            const minutos = Math.round((horasDecimais - horas) * 60);
-            if (horas === 0 && minutos === 0) return '0m';
-            if (horas === 0) return `${minutos}m`;
-            if (minutos === 0) return `${horas}h`;
-            return `${horas}h ${minutos.toString().padStart(2, '0')}m`;
-        }
-
-        function renderizarTabelaComparativa(filteredData) {
-            const tbodyComp = document.getElementById('comparativoBody');
-            if (!tbodyComp) return;
-
-            if (!filteredData || filteredData.length === 0) {
-                tbodyComp.innerHTML = '<tr><td colspan="6" class="px-6 py-4 text-center text-slate-500" style="text-align: center;">Sem dados para comparar</td></tr>';
-                return;
+                      let y = p[2]; if(y.length === 2) y = "20"+y;
+                      if(`${p[1]}/${y}` !== mesRef) return false;
+                } else return false;
+            } else {
+                if(activeQuickFilterOp === 'ALL' && !dataRef) return true;
             }
 
-            const dataC1 = filteredData.filter(d => checkLoader(d, serranaLoaders) && isSerranaTransp(d));
-            const dataC2 = filteredData.filter(d => checkLoader(d, serranaLoaders) && !isSerranaTransp(d));
-            const dataC3 = filteredData.filter(d => checkLoader(d, reflorestarLoaders) && isSerranaTransp(d));
-            const dataC4 = filteredData.filter(d => checkLoader(d, jslLoaders) && isSerranaTransp(d));
-            
-            const stC1 = calcStats(dataC1);
-            const stC2 = calcStats(dataC2);
-            const stC3 = calcStats(dataC3);
-            const stC4 = calcStats(dataC4);
-            const stGlobal = calcStats(filteredData);
+            if (mesRef === 'ALL') {
+                parsed.setHours(0,0,0,0); 
+                const hj = new Date(); hj.setHours(0,0,0,0);
+                
+                if (activeQuickFilterOp === 'DATE' && dataRef) {
+                    const dr = new Date(dataRef + "T00:00:00");
+                    dr.setHours(0,0,0,0);
+                    return parsed.getTime() === dr.getTime();
+                }
 
-            tbodyComp.innerHTML = `
-                <tr class="hover:bg-slate-800/30 transition-colors">
-                    <td class="px-6 py-4 font-bold text-white text-sm"><i class="fas fa-route text-slate-400 w-5"></i> Viagens Realizadas</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${dataC1.length}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${dataC2.length}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${dataC3.length}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${dataC4.length}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${filteredData.length}</td>
-                </tr>
-                <tr class="hover:bg-slate-800/30 transition-colors">
-                    <td class="px-6 py-4 font-bold text-white text-sm"><i class="fas fa-box-open text-indigo-400 w-5"></i> Caixa de Carga Média</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stC1.medVol.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stC2.medVol.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stC3.medVol.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stC4.medVol.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stGlobal.medVol.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
-                </tr>
-                <tr class="hover:bg-slate-800/30 transition-colors">
-                    <td class="px-6 py-4 font-bold text-white text-sm"><i class="fas fa-cubes text-cyan-400 w-5"></i> Volume Total</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stC1.volTotal.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stC2.volTotal.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stC3.volTotal.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stC4.volTotal.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${stGlobal.volTotal.toLocaleString('pt-BR',{maximumFractionDigits:1})} m³</td>
-                </tr>
-                <tr class="hover:bg-slate-800/30 transition-colors">
-                    <td class="px-6 py-4 font-bold text-white text-sm"><i class="fas fa-stopwatch text-blue-400 w-5"></i> Ciclo Médio Total</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC1.medCiclo)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC2.medCiclo)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC3.medCiclo)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC4.medCiclo)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stGlobal.medCiclo)}</td>
-                </tr>
-                <tr class="hover:bg-slate-800/30 transition-colors border-t border-slate-700/50">
-                    <td class="px-6 py-4 font-bold text-slate-300 text-xs uppercase tracking-wider"><i class="fas fa-hourglass-half text-amber-500 w-5"></i> Espera Média no Campo</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC1.medFilaCpo)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC2.medFilaCpo)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC3.medFilaCpo)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC4.medFilaCpo)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stGlobal.medFilaCpo)}</td>
-                </tr>
-                <tr class="hover:bg-slate-800/30 transition-colors">
-                    <td class="px-6 py-4 font-bold text-slate-300 text-xs uppercase tracking-wider"><i class="fas fa-truck-loading text-emerald-500 w-5"></i> T. Médio Carregamento</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC1.medCarreg)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC2.medCarreg)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC3.medCarreg)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC4.medCarreg)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stGlobal.medCarreg)}</td>
-                </tr>
-                <tr class="hover:bg-slate-800/30 transition-colors">
-                    <td class="px-6 py-4 font-bold text-slate-300 text-xs uppercase tracking-wider"><i class="fas fa-industry text-rose-500 w-5"></i> Espera Média Fábrica</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC1.medFilaFab)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC2.medFilaFab)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC3.medFilaFab)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stC4.medFilaFab)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[15px] font-bold text-right">${formatarHorasMinutos(stGlobal.medFilaFab)}</td>
-                </tr>
-                <tr class="hover:bg-slate-800/30 transition-colors border-t border-slate-700">
-                    <td class="px-6 py-4 font-bold text-slate-300 text-xs uppercase tracking-wider"><i class="fas fa-road text-slate-400 w-5"></i> Dist. Média (Asfalto / Terra)</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">
-                        <span class="text-sky-300" title="Asfalto">Asf: ${stC1.medAsfalto.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
-                        <span class="text-amber-400" title="Terra">Ter: ${stC1.medTerra.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
-                    </td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">
-                        <span class="text-sky-300" title="Asfalto">Asf: ${stC2.medAsfalto.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
-                        <span class="text-amber-400" title="Terra">Ter: ${stC2.medTerra.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
-                    </td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">
-                        <span class="text-sky-300" title="Asfalto">Asf: ${stC3.medAsfalto.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
-                        <span class="text-amber-400" title="Terra">Ter: ${stC3.medTerra.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
-                    </td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">
-                        <span class="text-sky-300" title="Asfalto">Asf: ${stC4.medAsfalto.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
-                        <span class="text-amber-400" title="Terra">Ter: ${stC4.medTerra.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
-                    </td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">
-                        <span class="text-sky-300" title="Asfalto">Asf: ${stGlobal.medAsfalto.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
-                        <span class="text-amber-400" title="Terra">Ter: ${stGlobal.medTerra.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
-                    </td>
-                </tr>
+                const diff = Math.round((hj - parsed)/86400000);
+
+                if (activeQuickFilterOp === 'D-1') return diff === 1;
+                if (activeQuickFilterOp === 'D-2') return diff === 2;
+                if (activeQuickFilterOp === 'D-7') return diff >= 0 && diff <= 7;
+                if (activeQuickFilterOp === 'D-30') return diff >= 0 && diff <= 30;
+                if (activeQuickFilterOp === 'SEM') {
+                    const inicioSemana = new Date(hj);
+                    inicioSemana.setDate(hj.getDate() - hj.getDay());
+                    return (parsed >= inicioSemana && parsed <= hj);
+                }
+            }
+            
+            return mesRef !== 'ALL';
+        });
+
+        const filteredSerrana = filteredGlobal.filter(d => {
+            const transp = String(d.transportadora || "").toUpperCase();
+            return transp.includes('SERRANALOG');
+        });
+
+        if(activeQuickFilterOp === 'D-7') diasConsiderados = 7;
+        else if(activeQuickFilterOp === 'D-30') diasConsiderados = 30;
+        else if(activeQuickFilterOp === 'SEM') diasConsiderados = new Date().getDay() + 1; 
+        else {
+            const dts = new Set(filteredGlobal.map(x=>x.dataDaBaseExcel));
+            diasConsiderados = dts.size || 1;
+        }
+        window.diasConsideradosGlobais = diasConsiderados;
+
+        const placasUnicasSerrana = new Set(filteredSerrana.map(d => d.placa).filter(p => p && p !== '-' && p.trim() !== '')).size || 0;
+        const placasUnicasGlobal = new Set(filteredGlobal.map(d => d.placa).filter(p => p && p !== '-' && p.trim() !== '')).size || 0;
+
+        const opStatusFetch = document.getElementById('opStatusFetch');
+        if(opStatusFetch) {
+            opStatusFetch.innerHTML = `
+                <span class="text-sky-400 font-bold">F. Própria: ${placasUnicasSerrana}</span> | 
+                <span class="text-emerald-400 font-bold">F. Global: ${placasUnicasGlobal}</span> | 
+                ${diasConsiderados} dia(s)
             `;
         }
+        
+        // --- Atualização de Metas Globais ---
+        const totalV_Global = filteredGlobal.length;
+        const frotaRealOuConfigurada = metasGlobais.tamanho_frota || (placasUnicasGlobal === 0 ? 0 : placasUnicasGlobal);
+        const metaV = frotaRealOuConfigurada * (metasGlobais.v_prog || 0) * diasConsiderados;
+        
+        document.getElementById('disp_v_prog').innerText = metaV;
+        document.getElementById('disp_v_real').innerText = totalV_Global;
+        atualizarBarra('bar_v_perc', 'disp_v_perc', totalV_Global, metaV);
 
-        function renderTopTabelas(data) {
-            const pMap = new Map();
-            data.forEach(d => {
-                const pl = d.placa || 'N/A';
-                if(!pMap.has(pl)) pMap.set(pl, { p: pl, t: d.transportadora||'-', vol:0, v:0, c:0, cc:0 });
-                const o = pMap.get(pl);
-                o.vol += parseFloat(String(d.volumeReal).replace(',','.'))||0; o.v++;
-                if(d.cicloHoras > 0) { o.c += d.cicloHoras; o.cc++; }
-            });
+        const totalVol_Global = filteredGlobal.reduce((s,x)=>s+(parseFloat(String(x.volumeReal).replace(',','.'))||0), 0);
+        const metaVol = (metasGlobais.vol_prog || 0) * diasConsiderados;
+        
+        document.getElementById('disp_vol_prog').innerText = metaVol.toLocaleString('pt-PT');
+        document.getElementById('disp_vol_real').innerText = totalVol_Global.toLocaleString('pt-PT', {maximumFractionDigits:1});
+        atualizarBarra('bar_vol_perc', 'disp_vol_perc', totalVol_Global, metaVol);
 
-            const arr = Array.from(pMap.values());
-            const tVol = document.getElementById('top-vol-body');
-            tVol.innerHTML = arr.sort((a,b)=>b.vol - a.vol).slice(0,5).map((x,i) => 
-                `<tr>
-                    <td><span style="background: ${i<3?'var(--verde)':'var(--border)'}; color: ${i<3?'white':'var(--text-dim)'}; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; font-weight:bold;">${i+1}</span></td>
-                    <td style="font-weight:bold; color:white;">${x.p}</td>
-                    <td style="color:var(--text-dim);">${x.t}</td>
-                    <td style="text-align:center;">${x.v}</td>
-                    <td style="text-align:right; font-weight:bold; color:var(--verde);">${x.vol.toLocaleString('pt-BR',{maximumFractionDigits:1})}</td>
-                </tr>`
-            ).join('');
+        const mediaCx = totalV_Global > 0 ? (totalVol_Global / totalV_Global) : 0;
+        const metaCx = metasGlobais.cx_prog || 0;
 
-            const tCiclo = document.getElementById('top-ciclo-body');
-            tCiclo.innerHTML = arr.filter(x=>x.cc>0).sort((a,b)=>(a.c/a.cc) - (b.c/b.cc)).slice(0,5).map((x,i) => 
-                `<tr>
-                    <td><span style="background: ${i<3?'#38bdf8':'var(--border)'}; color: ${i<3?'white':'var(--text-dim)'}; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem; font-weight:bold;">${i+1}</span></td>
-                    <td style="font-weight:bold; color:white;">${x.p}</td>
-                    <td style="color:var(--text-dim);">${x.t}</td>
-                    <td style="text-align:center;">${x.v}</td>
-                    <td style="text-align:right; font-weight:bold; color:#38bdf8;">${formatTime(x.c/x.cc)}</td>
-                </tr>`
-            ).join('');
-        }
+        document.getElementById('disp_cx_prog').innerText = metaCx;
+        document.getElementById('disp_cx_real').innerText = mediaCx.toLocaleString('pt-PT', {maximumFractionDigits:2});
+        atualizarBarra('bar_cx_perc', 'disp_cx_perc', mediaCx, metaCx);
 
-        // NOVO: Plugin customizado para escrever os valores em cima das barras no Chart.js
-        const chartDataLabelsPlugin = {
-            id: 'customDataLabels',
-            afterDatasetsDraw: (chart) => {
-                const { ctx } = chart;
-                ctx.save();
-                ctx.font = 'bold 10px Inter, sans-serif';
-                ctx.fillStyle = '#f8fafc'; // Cor clara para sobressair no fundo escuro
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'bottom';
-                
-                chart.data.datasets.forEach((dataset, i) => {
-                    const meta = chart.getDatasetMeta(i);
-                    meta.data.forEach((bar, index) => {
-                        const dataVal = dataset.data[index];
-                        if (dataVal > 0) {
-                            // Imprime o valor sem casas decimais, um pouco acima da barra
-                            ctx.fillText(dataVal.toLocaleString('pt-BR', {maximumFractionDigits: 0}), bar.x, bar.y - 4);
-                        }
-                    });
-                });
-                ctx.restore();
+        // PBTC calculado na Média
+        const totalP_Global = filteredGlobal.reduce((s,x)=>s+(parseFloat(String(x.pesoLiquido).replace(',','.'))||0), 0)/1000;
+        const mediaPbtc = totalV_Global > 0 ? (totalP_Global / totalV_Global) : 0;
+        const metaPbtc = metasGlobais.pbtc_prog || 0;
+
+        document.getElementById('disp_pbtc_prog').innerText = metaPbtc;
+        
+        let pbtcCor = "text-white";
+        let pbtcIcone = "";
+        
+        if (mediaPbtc > 0) {
+            if (mediaPbtc < 74) {
+                pbtcCor = "text-yellow-400";
+                pbtcIcone = '<i class="fas fa-exclamation-triangle text-yellow-400 text-sm ml-2" title="Abaixo do ideal"></i>';
+            } else if (mediaPbtc >= 74 && mediaPbtc <= 77.7) {
+                pbtcCor = "text-green-400";
+                pbtcIcone = '<i class="fas fa-check-circle text-green-400 text-sm ml-2" title="Ideal"></i>';
+            } else if (mediaPbtc > 77.7) {
+                pbtcCor = "text-red-500";
+                pbtcIcone = '<i class="fas fa-times-circle text-red-500 text-sm ml-2" title="Acima do ideal"></i>';
             }
-        };
-
-        function renderGraficos(data) {
-            const dMap = new Map();
-            data.forEach(d => {
-                const dtStr = String(d.dataDaBaseExcel || '').trim();
-                if(!dtStr || dtStr === 'Desconhecida') return;
-                dMap.set(dtStr, (dMap.get(dtStr)||0) + (parseFloat(String(d.volumeReal).replace(',','.'))||0));
-            });
-
-            const sorted = Array.from(dMap.keys()).sort((a,b) => {
-                if(!a.includes('/') || !b.includes('/')) return 0;
-                const pa = a.split(' ')[0].split('/'); const pb = b.split(' ')[0].split('/');
-                return new Date(pa[2], pa[1]-1, pa[0]) - new Date(pb[2], pb[1]-1, pb[0]);
-            });
-
-            const dispEvo = sorted.slice(-30);
-            const ctxEvo = document.getElementById('chart-evolucao');
-            if(window.chartEvoObj) window.chartEvoObj.destroy();
-            
-            // Gráfico EVOLUÇÃO com os Valores Rótulados
-            window.chartEvoObj = new Chart(ctxEvo, {
-                type: 'bar',
-                data: { labels: dispEvo.map(d=>d.substring(0,5)), datasets: [{ data: dispEvo.map(d=>dMap.get(d)), backgroundColor: '#10b981', borderRadius: 4 }] },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    layout: { padding: { top: 20 } }, // Espaçamento extra em cima pra caber o número
-                    plugins: { legend: { display: false } }, 
-                    scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } } 
-                },
-                plugins: [chartDataLabelsPlugin] // Injeção do nosso plugin customizado
-            });
-
-            const last7 = sorted.slice(-7);
-            const avg7 = last7.reduce((s, d) => s + dMap.get(d), 0) / (last7.length||1);
-            
-            const projLabels = [], projData = [];
-            if(sorted.length > 0) {
-                const pL = sorted[sorted.length-1].split(' ')[0].split('/');
-                if(pL.length >= 3) {
-                    let bd = new Date(pL[2], pL[1]-1, pL[0]);
-                    for(let i=1; i<=5; i++) {
-                        bd.setDate(bd.getDate()+1);
-                        projLabels.push(`${String(bd.getDate()).padStart(2,'0')}/${String(bd.getMonth()+1).padStart(2,'0')}`);
-                        projData.push(avg7 * (1 + ((Math.random()-0.5)*0.04)));
-                    }
-                }
-            }
-
-            const ctxProj = document.getElementById('chart-projecao');
-            if(window.chartProjObj) window.chartProjObj.destroy();
-            
-            // Gráfico PROJEÇÃO com os Valores Rótulados
-            window.chartProjObj = new Chart(ctxProj, {
-                type: 'bar',
-                data: { labels: projLabels, datasets: [{ data: projData, backgroundColor: '#38bdf8', borderRadius: 4 }] },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    layout: { padding: { top: 20 } }, // Espaçamento extra em cima pra caber o número
-                    plugins: { legend: { display: false } }, 
-                    scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: '#94a3b8' } } } 
-                },
-                plugins: [chartDataLabelsPlugin] // Injeção do nosso plugin customizado
-            });
         }
 
-        const btnExportarComparativo = document.getElementById('btnExportarComparativo');
-        if(btnExportarComparativo) {
-            btnExportarComparativo.replaceWith(btnExportarComparativo.cloneNode(true));
-            document.getElementById('btnExportarComparativo').addEventListener('click', () => {
-                const btn = document.getElementById('btnExportarComparativo');
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
-                
-                const container = document.getElementById('comparativoContainer');
-                html2canvas(container, {
-                    scale: 2, 
-                    backgroundColor: '#0f172a', 
-                    useCORS: true
-                }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = 'Comparativo_Cenarios_Serrana.png';
-                    link.href = canvas.toDataURL('image/png', 1.0);
-                    link.click();
-                    btn.innerHTML = originalText;
-                }).catch(err => {
-                    console.error("Erro ao gerar a imagem PNG:", err);
-                    alert("Houve um erro ao tentar salvar a imagem.");
-                    btn.innerHTML = originalText;
-                });
-            });
-        }
+        document.getElementById('disp_pbtc_real').innerHTML = `<span class="${pbtcCor}">${mediaPbtc.toLocaleString('pt-PT', {maximumFractionDigits:2})}</span>${pbtcIcone}`;
+        atualizarBarra('bar_pbtc_perc', 'disp_pbtc_perc', mediaPbtc, metaPbtc);
 
-        loadData();
-    } catch(err) {
-        console.error("ERRO CRÍTICO AO INICIAR DASHBOARD OPERACIONAL:", err);
+        const baseEvolucao = filteredGlobal.length > 0 ? filteredGlobal : fullHistoricoDataOp;
+        renderCarregamentoChart(baseEvolucao);
+        
+        const baseTransporte = baseEvolucao.filter(d => {
+            const transp = String(d.transportadora || "").toUpperCase();
+            return transp.includes('SERRANALOG') && !transp.includes('ASN');
+        });
+        renderTransporteChart(baseTransporte);
+
+        renderLeaderboards(filteredSerrana, diasConsiderados);
     }
+
+    function atualizarBarra(barId, txtId, real, meta) {
+        const perc = meta > 0 ? Math.min((real/meta)*100, 100) : 0;
+        const b = document.getElementById(barId);
+        const t = document.getElementById(txtId);
+        if(b) b.style.width = `${perc}%`;
+        if(t) t.innerText = `${perc.toFixed(1)}%`;
+    }
+
+    function formatarHorasMinutos(horasDecimais) {
+        if (horasDecimais === null || horasDecimais === undefined || isNaN(horasDecimais) || horasDecimais <= 0) return '-';
+        const horas = Math.floor(horasDecimais);
+        const minutos = Math.round((horasDecimais - horas) * 60);
+        if (horas === 0 && minutos === 0) return '0m';
+        if (horas === 0) return `${minutos}m`;
+        if (minutos === 0) return `${horas}h`;
+        return `${horas}h ${minutos.toString().padStart(2, '0')}m`;
+    }
+
+    function renderCarregamentoChart(data) {
+        const ctxCarreg = document.getElementById('evolucaoCarregamentoChart');
+        if(!ctxCarreg) return;
+
+        const dailyMap = new Map();
+        data.forEach(d => {
+            const dt = d.dataDaBaseExcel;
+            if (!dt || dt === 'Desconhecida') return;
+            if (!dailyMap.has(dt)) dailyMap.set(dt, 0);
+            const vol = parseFloat(String(d.volumeReal).replace(',', '.')) || 0;
+            dailyMap.set(dt, dailyMap.get(dt) + vol);
+        });
+
+        const sortedDates = Array.from(dailyMap.keys()).sort((a, b) => {
+            const pA = a.split('/'); const pB = b.split('/');
+            return new Date(pA[2], pA[1]-1, pA[0]) - new Date(pB[2], pB[1]-1, pB[0]);
+        });
+
+        const displayDates = sortedDates.slice(-30);
+        const displayVols = displayDates.map(dt => dailyMap.get(dt));
+
+        if (chartCarregamento) chartCarregamento.destroy();
+        
+        const ctx = ctxCarreg.getContext('2d');
+        let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, '#10b981'); 
+        gradient.addColorStop(1, '#047857'); 
+
+        chartCarregamento = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: displayDates.map(d => d.substring(0, 5)), 
+                datasets: [{
+                    label: 'Carregamento (m³)',
+                    data: displayVols,
+                    backgroundColor: gradient,
+                    borderRadius: 4,
+                    barPercentage: 0.6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { display: false, beginAtZero: true, suggestedMax: Math.max(...displayVols) * 1.2 }, 
+                    x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11, weight: 'bold' }, color: '#cbd5e1' } }
+                },
+                layout: { padding: { top: 25 } }
+            },
+            plugins: [chartDataLabelsPlugin]
+        });
+    }
+
+    function renderTransporteChart(data) {
+        const ctxTransp = document.getElementById('evolucaoTransporteChart');
+        if(!ctxTransp) return;
+
+        const dailyMap = new Map();
+        data.forEach(d => {
+            const dt = d.dataDaBaseExcel;
+            if (!dt || dt === 'Desconhecida') return;
+            if (!dailyMap.has(dt)) dailyMap.set(dt, 0);
+            const vol = parseFloat(String(d.volumeReal).replace(',', '.')) || 0;
+            dailyMap.set(dt, dailyMap.get(dt) + vol);
+        });
+
+        const sortedDates = Array.from(dailyMap.keys()).sort((a, b) => {
+            const pA = a.split('/'); const pB = b.split('/');
+            return new Date(pA[2], pA[1]-1, pA[0]) - new Date(pB[2], pB[1]-1, pB[0]);
+        });
+
+        const displayDates = sortedDates.slice(-30);
+        const displayVols = displayDates.map(dt => dailyMap.get(dt));
+
+        if (chartTransporte) chartTransporte.destroy();
+        
+        const ctx = ctxTransp.getContext('2d');
+        let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, '#38bdf8'); 
+        gradient.addColorStop(1, '#0369a1'); 
+
+        chartTransporte = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: displayDates.map(d => d.substring(0, 5)), 
+                datasets: [{
+                    label: 'Transporte (m³)',
+                    data: displayVols,
+                    backgroundColor: gradient,
+                    borderRadius: 4,
+                    barPercentage: 0.6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { display: false, beginAtZero: true, suggestedMax: Math.max(...displayVols) * 1.2 }, 
+                    x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 11, weight: 'bold' }, color: '#cbd5e1' } }
+                },
+                layout: { padding: { top: 25 } }
+            },
+            plugins: [chartDataLabelsPlugin]
+        });
+    }
+
+    function renderLeaderboards(data, diasConsiderados = 1) {
+        const pMap = new Map();
+        data.forEach(d => {
+            const pl = d.placa || 'N/A';
+            const volNum = parseFloat(String(d.volumeReal).replace(',', '.')) || 0;
+            if(!pMap.has(pl)) pMap.set(pl, {p: pl, t: d.transportadora||'-', vol: 0, v: 0, ciclos: 0, cCount: 0});
+            const o = pMap.get(pl);
+            o.vol += volNum; o.v++;
+            if(d.cicloHoras > 0) { o.ciclos += d.cicloHoras; o.cCount++; }
+        });
+
+        const arr = Array.from(pMap.values());
+        
+        window.globalTopVol = [...arr].sort((a,b)=>b.vol - a.vol);
+        window.globalTopCiclo = [...arr].filter(x=>x.cCount > 0).map(x=>({...x, cMedio: x.ciclos/x.cCount})).sort((a,b)=>a.cMedio - b.cMedio);
+
+        const bVol = document.getElementById('leaderboardBody');
+        if(bVol) {
+            bVol.innerHTML = '';
+            window.globalTopVol.forEach((x,i) => {
+                const viagensPorDia = diasConsiderados > 0 ? (x.v / diasConsiderados) : x.v;
+                const cumpriuMeta = viagensPorDia >= 2;
+                
+                const badgeHtml = cumpriuMeta 
+                    ? `<span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded text-[10px] font-bold" title="${viagensPorDia.toFixed(1)} viagens/dia"><i class="fas fa-check mr-1"></i>SIM</span>`
+                    : `<span class="bg-rose-500/20 text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded text-[10px] font-bold" title="${viagensPorDia.toFixed(1)} viagens/dia"><i class="fas fa-times mr-1"></i>NÃO</span>`;
+
+                const tr = `<tr>
+                    <td class="px-4 py-3 text-center"><div class="w-6 h-6 rounded-full ${i<3?'bg-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.5)]':'bg-slate-800 text-slate-400'} flex items-center justify-center text-xs font-bold">${i+1}</div></td>
+                    <td class="px-4 py-3 font-bold text-white">${x.p}</td>
+                    <td class="px-4 py-3 text-slate-400 truncate max-w-[100px]">${x.t}</td>
+                    <td class="px-4 py-3 text-center text-slate-300">${x.v}</td>
+                    <td class="px-4 py-3 text-right font-mono text-emerald-400">${x.vol.toLocaleString('pt-PT',{maximumFractionDigits:1})}</td>
+                    <td class="px-4 py-3 text-center">${badgeHtml}</td>
+                </tr>`;
+                bVol.insertAdjacentHTML('beforeend', tr);
+            });
+            
+            if (window.globalTopVol.length === 0) {
+                bVol.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-slate-500">Nenhum veículo encontrado no período.</td></tr>`;
+            }
+        }
+
+        const bCiclo = document.getElementById('leaderboardCicloBody');
+        if(bCiclo) {
+            bCiclo.innerHTML = '';
+            window.globalTopCiclo.forEach((x,i) => {
+                const tr = `<tr>
+                    <td class="px-4 py-3 text-center"><div class="w-6 h-6 rounded-full ${i<3?'bg-sky-500 text-white shadow-[0_0_10px_rgba(14,165,233,0.5)]':'bg-slate-800 text-slate-400'} flex items-center justify-center text-xs font-bold">${i+1}</div></td>
+                    <td class="px-4 py-3 font-bold text-white">${x.p}</td>
+                    <td class="px-4 py-3 text-slate-400 truncate max-w-[100px]">${x.t}</td>
+                    <td class="px-4 py-3 text-center text-slate-300">${x.v}</td>
+                    <td class="px-4 py-3 text-right font-mono text-sky-400">${formatarHorasMinutos(x.cMedio)}</td>
+                </tr>`;
+                bCiclo.insertAdjacentHTML('beforeend', tr);
+            });
+            
+            if (window.globalTopCiclo.length === 0) {
+                bCiclo.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-slate-500">Nenhum ciclo encontrado no período.</td></tr>`;
+            }
+        }
+    }
+
+    // Funcionalidades de Exportação CSV Nativa
+    window.exportarTopVolume = function() {
+        if (!window.globalTopVol || window.globalTopVol.length === 0) {
+            alert("Não há dados de Volume para exportar no período selecionado."); return;
+        }
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+        csvContent += "Posicao;Placa;Transportadora;Total Viagens;Volume Total;Media Viagens/Dia;Cumpriu Meta\n";
+        window.globalTopVol.forEach((x, i) => {
+            const viagensPorDia = window.diasConsideradosGlobais > 0 ? (x.v / window.diasConsideradosGlobais) : x.v;
+            const cumpriuMeta = viagensPorDia >= 2 ? 'SIM' : 'NAO';
+            csvContent += `${i + 1};${x.p};${x.t};${x.v};${x.vol.toString().replace('.', ',')};${viagensPorDia.toFixed(2).replace('.', ',')};${cumpriuMeta}\n`;
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Relatorio_Volume_Veiculos.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    window.exportarTopCiclo = function() {
+        if (!window.globalTopCiclo || window.globalTopCiclo.length === 0) {
+            alert("Não há dados de Ciclos para exportar no período selecionado."); return;
+        }
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+        csvContent += "Posicao;Placa;Transportadora;Viagens Realizadas;Ciclo Medio (Decimais)\n";
+        window.globalTopCiclo.forEach((x, i) => {
+            csvContent += `${i + 1};${x.p};${x.t};${x.v};${x.cMedio.toFixed(2).replace('.', ',')}\n`;
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Relatorio_Ciclos_Veiculos.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    setupOperacionalFilters();
+    loadOperacionalData();
 })();
 </script>
