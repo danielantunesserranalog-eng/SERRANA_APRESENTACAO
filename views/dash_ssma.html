@@ -85,7 +85,45 @@
     </div>
 </div>
 
-<!-- ================= ROW 3: TREINAMENTOS ================= -->
+<!-- ================= ROW 3: NOVOS MURAIS DE COMUNICAÇÃO ================= -->
+<div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 25px;">
+    <!-- APRESENTAÇÃO DE OCORRÊNCIAS -->
+    <div class="content-panel kpi-card" style="border-left: 4px solid var(--vermelho); padding: 20px;">
+        <h3 class="nav-label" style="color: var(--vermelho); margin-bottom: 15px;"><i class="fas fa-car-crash"></i> APRESENTAÇÃO DE OCORRÊNCIAS</h3>
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; min-height: 120px;">
+            <p id="mural-ocorrencias" style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap;">Carregando ocorrências...</p>
+        </div>
+    </div>
+
+    <!-- STATUS DAS FERRAMENTAS DE SEGURANÇA -->
+    <div class="content-panel kpi-card" style="border-left: 4px solid #3b82f6; padding: 20px;">
+        <h3 class="nav-label" style="color: #3b82f6; margin-bottom: 15px;"><i class="fas fa-toolbox"></i> STATUS DAS FERRAMENTAS DE SEGURANÇA</h3>
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; min-height: 120px;">
+            <p id="mural-ferramentas" style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap;">Carregando status...</p>
+        </div>
+    </div>
+</div>
+
+<!-- ================= ROW 4: AÇÕES E AVISOS ================= -->
+<div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 25px;">
+    <!-- AÇÕES DE SEGURANÇA -->
+    <div class="content-panel kpi-card" style="border-left: 4px solid var(--primary); padding: 20px;">
+        <h3 class="nav-label" style="color: var(--primary); margin-bottom: 15px;"><i class="fas fa-tasks"></i> AÇÕES DE SEGURANÇA</h3>
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; min-height: 120px;">
+            <p id="mural-acoes" style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap;">Carregando ações...</p>
+        </div>
+    </div>
+
+    <!-- DEMAIS AVISOS -->
+    <div class="content-panel kpi-card" style="border-left: 4px solid var(--amarelo); padding: 20px; background: linear-gradient(135deg, rgba(245,158,11,0.05) 0%, rgba(15,23,42,0.8) 100%);">
+        <h3 class="nav-label" style="color: var(--amarelo); margin-bottom: 15px;"><i class="fas fa-bullhorn"></i> DEMAIS AVISOS</h3>
+        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; min-height: 120px;">
+            <p id="mural-avisos" style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap;">Carregando avisos...</p>
+        </div>
+    </div>
+</div>
+
+<!-- ================= ROW 5: TREINAMENTOS ================= -->
 <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 50px;">
     <div class="table-box">
         <h3 class="nav-label"><i class="fas fa-user-graduate" style="color: var(--verde);"></i> TREINAMENTOS REALIZADOS (HISTÓRICO RECENTE)</h3>
@@ -124,11 +162,9 @@
             const [a, m, d] = dataIso.split('-');
             return `${d}/${m}/${a}`;
         }
-        
+
         try {
-            // ==========================================
             // 1. PUXAR META GLOBAL DO BANCO
-            // ==========================================
             let META_DIARIA_DNA = 2; // Valor Padrão
             try {
                 const { data: confData } = await _supa.from('configuracoes').select('valor').eq('chave', 'meta_diaria_dna').limit(1);
@@ -140,11 +176,15 @@
             }
             document.getElementById('label-meta-diaria').innerText = META_DIARIA_DNA;
 
-            // ==========================================
-            // 2. PUXAR INDICADORES GERAIS E COR DA CAMPANHA
-            // ==========================================
+            // 2. PUXAR INDICADORES GERAIS, COR DA CAMPANHA E MURAIS
             let dnasConcluidosMes = 0;
             const { data: indData } = await _supa.from('ssma_indicadores_gerais').select('*').order('data_registro', { ascending: false }).limit(1);
+            
+            const elOcorrencias = document.getElementById('mural-ocorrencias');
+            const elFerramentas = document.getElementById('mural-ferramentas');
+            const elAcoes = document.getElementById('mural-acoes');
+            const elAvisos = document.getElementById('mural-avisos');
+
             if (indData && indData.length > 0) {
                 const ind = indData[0];
                 document.getElementById('val-dias-sem-acidentes').innerText = ind.dias_sem_acidentes || 0;
@@ -158,11 +198,22 @@
                 document.getElementById('card-campanha-mes').style.background = `linear-gradient(135deg, ${corCampanha}cc 0%, ${corCampanha} 100%)`;
                 
                 dnasConcluidosMes = ind.dnas_concluidos || 0;
+
+                // Popula os murais com os dados do banco
+                if(elOcorrencias) elOcorrencias.innerText = ind.mural_ocorrencias || 'Nenhuma ocorrência registrada no mural.';
+                if(elFerramentas) elFerramentas.innerText = ind.mural_ferramentas || 'Sem atualizações.';
+                if(elAcoes) elAcoes.innerText = ind.mural_acoes || 'Nenhuma ação registrada no mural.';
+                if(elAvisos) elAvisos.innerText = ind.mural_avisos || 'Sem avisos importantes no momento.';
+
+            } else {
+                // Se não houver dados, mostra textos padrão nos murais
+                if(elOcorrencias) elOcorrencias.innerText = 'Nenhuma ocorrência registrada no mural.';
+                if(elFerramentas) elFerramentas.innerText = 'Sem atualizações.';
+                if(elAcoes) elAcoes.innerText = 'Nenhuma ação registrada no mural.';
+                if(elAvisos) elAvisos.innerText = 'Sem avisos importantes no momento.';
             }
 
-            // ==========================================
             // 3. PUXAR DNAS, CALCULAR METAS E GRÁFICO
-            // ==========================================
             const hoje = new Date();
             const mesAtualNum = hoje.getMonth() + 1;
             const anoAtualNum = hoje.getFullYear();
@@ -199,7 +250,6 @@
             const txtValDnas = document.getElementById('val-dnas-mes');
             
             barDna.style.width = `${percentAtingido}%`;
-
             if (dnasMesAtual >= metaProporcionalAteHoje) {
                 barDna.style.background = 'var(--verde)';
                 txtValDnas.style.color = 'var(--verde)';
@@ -226,7 +276,7 @@
                 for(let dia = 1; dia <= ultimoDiaDoMes; dia++) {
                     const mesStr = String(mesAtualNum).padStart(2, '0');
                     const diaStr = String(dia).padStart(2, '0');
-                    const isoKey = `${anoAtualNum}-${mesStr}-${diaStr}`; 
+                    const isoKey = `${anoAtualNum}-${mesStr}-${diaStr}`;
 
                     dataLabels.push(`${diaStr}/${mesStr}`);
                     dataValues.push(mapDnasPorDia[isoKey] || 0);
@@ -270,9 +320,7 @@
                 setTimeout(() => myChart.resize(), 100);
             }
 
-            // ==========================================
             // 4. PUXAR TREINAMENTOS
-            // ==========================================
             const { data: treiData } = await _supa.from('ssma_treinamentos').select('*').order('data_previsao', { ascending: false });
             
             const tbodyRealizado = document.getElementById('lista-treinamentos-realizados');
@@ -309,6 +357,7 @@
             }
 
             statusEl.innerHTML = '<i class="fas fa-check-circle" style="color: var(--verde);"></i> Atualizado agora';
+
         } catch (e) {
             console.error("Erro ao puxar SSMA:", e);
             statusEl.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: var(--vermelho);"></i> Erro na conexão';

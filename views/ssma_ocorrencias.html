@@ -37,7 +37,6 @@
             </div>
             <div class="input-group" style="grid-column: span 1;">
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Cor da Campanha</label>
-                <!-- Seletor de cores nativo -->
                 <input type="color" id="ssma-campanha-cor" class="config-input" value="#f59e0b" style="padding: 5px; height: 50px; cursor: pointer;">
             </div>
         </div>
@@ -45,6 +44,33 @@
             <i class="fas fa-save"></i> Salvar Indicadores e Meta
         </button>
         <span id="msg-ssma-geral" style="margin-left: 15px; font-weight: bold;"></span>
+    </div>
+
+    <!-- NOVO BLOCO: LANÇAMENTO DE MURAIS DE COMUNICAÇÃO -->
+    <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid #8b5cf6;">
+        <h3 class="nav-label" style="margin-bottom: 20px; color: #8b5cf6;"><i class="fas fa-chalkboard"></i> MURAIS DE COMUNICAÇÃO (TEXTO LIVRE)</h3>
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Apresentação de Ocorrências</label>
+                <textarea id="ssma-txt-ocorrencias" class="config-input" rows="4" placeholder="Ex: Tombamento do conjunto XYZ na pista principal..."></textarea>
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Status das Ferramentas de Segurança</label>
+                <textarea id="ssma-txt-ferramentas" class="config-input" rows="4" placeholder="Ex: Checklists 100% preenchidos no período da manhã..."></textarea>
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Ações de Segurança</label>
+                <textarea id="ssma-txt-acoes" class="config-input" rows="4" placeholder="Ex: Sinalização do pátio em andamento pela equipe local..."></textarea>
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Demais Avisos</label>
+                <textarea id="ssma-txt-avisos" class="config-input" rows="4" placeholder="Ex: Cuidado com chuva na serra a partir das 15h..."></textarea>
+            </div>
+        </div>
+        <button class="btn-salvar" style="background: #8b5cf6; width: 100%; margin-top: 15px;" onclick="salvarMuraisSSMA()">
+            <i class="fas fa-save"></i> Atualizar Murais no Banco
+        </button>
+        <span id="msg-murais" style="display: block; margin-top: 10px; font-weight: bold;"></span>
     </div>
 
     <!-- LANÇAR DNAS EM LOTE -->
@@ -107,13 +133,11 @@
             window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
         }
         const _supa = window.supabaseClientGlobal;
-
         const elDataGeral = document.getElementById('ssma-data-geral');
         const elDnaData = document.getElementById('dna-data');
         const elTreiData = document.getElementById('trei-data');
-
+        
         if (!elDataGeral || !elDnaData || !elTreiData) return;
-
         const hojeIso = new Date().toISOString().split('T')[0];
         elDataGeral.value = hojeIso;
         elDnaData.value = hojeIso;
@@ -126,15 +150,15 @@
                 if (configData && configData.length > 0) {
                     document.getElementById('ssma-meta-dna').value = configData[0].valor;
                 }
-
-                // Puxa os dados do dia
+                
+                // Puxa os dados do dia no banco
                 const dataSelecionada = elDataGeral.value;
                 const { data } = await _supa
                     .from('ssma_indicadores_gerais')
                     .select('*')
                     .eq('data_registro', dataSelecionada)
                     .limit(1);
-
+                    
                 if (data && data.length > 0) {
                     const ind = data[0];
                     document.getElementById('ssma-dias-acidente').value = ind.dias_sem_acidentes !== null ? ind.dias_sem_acidentes : '';
@@ -144,7 +168,14 @@
                     document.getElementById('ssma-campanha-tema').value = ind.campanha_tema || '';
                     document.getElementById('ssma-campanha-cor').value = ind.campanha_cor || '#f59e0b';
                     document.getElementById('ssma-dnas-concluidos').value = ind.dnas_concluidos !== null ? ind.dnas_concluidos : '';
+                    
+                    // Preenche os campos de Murais do banco
+                    document.getElementById('ssma-txt-ocorrencias').value = ind.mural_ocorrencias || '';
+                    document.getElementById('ssma-txt-ferramentas').value = ind.mural_ferramentas || '';
+                    document.getElementById('ssma-txt-acoes').value = ind.mural_acoes || '';
+                    document.getElementById('ssma-txt-avisos').value = ind.mural_avisos || '';
                 } else {
+                    // Limpa os campos se não houver dados para o dia
                     document.getElementById('ssma-dias-acidente').value = '';
                     document.getElementById('ssma-incidentes').value = '';
                     document.getElementById('ssma-visitas').value = '';
@@ -152,6 +183,11 @@
                     document.getElementById('ssma-campanha-tema').value = '';
                     document.getElementById('ssma-campanha-cor').value = '#f59e0b';
                     document.getElementById('ssma-dnas-concluidos').value = '';
+                    
+                    document.getElementById('ssma-txt-ocorrencias').value = '';
+                    document.getElementById('ssma-txt-ferramentas').value = '';
+                    document.getElementById('ssma-txt-acoes').value = '';
+                    document.getElementById('ssma-txt-avisos').value = '';
                 }
             } catch (err) {
                 console.error("Erro ao carregar indicadores:", err);
@@ -184,7 +220,7 @@
             };
 
             msg.style.color = 'var(--text-dim)'; 
-            msg.innerText = 'Salvando...';
+            msg.innerText = 'Salvando no banco...';
 
             try {
                 if (metaDna) {
@@ -192,7 +228,7 @@
                 }
 
                 const { data: existe } = await _supa.from('ssma_indicadores_gerais').select('id').eq('data_registro', dataSelecionada).limit(1);
-
+                
                 let res;
                 if (existe && existe.length > 0) {
                     res = await _supa.from('ssma_indicadores_gerais').update(dados).eq('data_registro', dataSelecionada);
@@ -206,13 +242,61 @@
                     msg.innerText = 'Erro ao salvar!'; 
                 } else { 
                     msg.style.color = 'var(--verde)'; 
-                    msg.innerText = 'Salvo com sucesso!'; 
+                    msg.innerText = 'Salvo no banco com sucesso!'; 
+                    setTimeout(() => msg.innerText='', 3000); 
+                }
+
+            } catch (err) {
+                console.error("Erro Crítico:", err);
+            }
+        };
+
+        // FUNÇÃO EXCLUSIVA PARA SALVAR OS MURAIS NO BANCO
+        window.salvarMuraisSSMA = async function() {
+            const msg = document.getElementById('msg-murais');
+            const dataSelecionada = document.getElementById('ssma-data-geral').value;
+
+            if(!dataSelecionada) {
+                msg.style.color = 'var(--vermelho)';
+                msg.innerText = 'Selecione a Data de Registro lá no topo!';
+                return;
+            }
+
+            const dados = {
+                data_registro: dataSelecionada,
+                mural_ocorrencias: document.getElementById('ssma-txt-ocorrencias').value || null,
+                mural_ferramentas: document.getElementById('ssma-txt-ferramentas').value || null,
+                mural_acoes: document.getElementById('ssma-txt-acoes').value || null,
+                mural_avisos: document.getElementById('ssma-txt-avisos').value || null
+            };
+
+            msg.style.color = 'var(--text-dim)'; 
+            msg.innerText = 'Atualizando o banco de dados...';
+
+            try {
+                const { data: existe } = await _supa.from('ssma_indicadores_gerais').select('id').eq('data_registro', dataSelecionada).limit(1);
+                let res;
+                if (existe && existe.length > 0) {
+                    res = await _supa.from('ssma_indicadores_gerais').update(dados).eq('data_registro', dataSelecionada);
+                } else {
+                    res = await _supa.from('ssma_indicadores_gerais').insert([dados]);
+                }
+                
+                if (res.error) { 
+                    console.error("Erro no Banco:", res.error);
+                    msg.style.color = 'var(--vermelho)'; 
+                    msg.innerText = 'Erro ao atualizar!'; 
+                } else { 
+                    msg.style.color = 'var(--verde)'; 
+                    msg.innerText = 'Murais salvos no banco com sucesso!'; 
                     setTimeout(() => msg.innerText='', 3000); 
                 }
             } catch (err) {
                 console.error("Erro Crítico:", err);
+                msg.style.color = 'var(--vermelho)'; 
+                msg.innerText = 'Falha de Conexão!';
             }
-        }
+        };
 
         window.salvarDNA = async function() {
             const msg = document.getElementById('msg-dna');
@@ -223,7 +307,7 @@
             if(!qtdDNA || qtdDNA <= 0) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Insira uma quantidade válida!'; return; }
             
             msg.style.color = 'var(--text-dim)'; msg.innerText = 'Registrando...';
-
+            
             const registrosEmLote = [];
             for(let i = 0; i < qtdDNA; i++) {
                 registrosEmLote.push({
@@ -262,6 +346,7 @@
             if(!dados.nome_treinamento) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Preencha o Nome!'; return; }
             
             msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando...';
+
             const { error } = await _supa.from('ssma_treinamentos').insert([dados]);
             
             if (error) { 
@@ -274,6 +359,5 @@
                 setTimeout(() => msg.innerText='', 3000); 
             }
         }
-
     }, 50); 
 </script>
