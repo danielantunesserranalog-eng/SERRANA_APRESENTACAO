@@ -1,11 +1,13 @@
 const menuData = [
     { id: 'ssma', title: 'SSMA', icon: 'fa-shield-alt', mainFile: 'dash_ssma.html', key: 'resp_ssma', def: 'Segurança do Trabalho',
         submenus: [{ id: 'ssma_ocorrencias', title: 'Lançar Ocorrências', file: 'ssma_ocorrencias.html', key: 'resp_ssma', def: 'Segurança do Trabalho' }] },
+    
+    // 👇 O submenu "Painel de Indicadores" foi removido daqui!
     { id: 'rh', title: 'RH', icon: 'fa-users', mainFile: 'dash_rh.html', key: 'resp_rh', def: 'Responsável RH',
         submenus: [
-            { id: 'rh_painel', title: 'Painel de Indicadores', file: 'dash_rh.html', key: 'resp_rh', def: 'Responsável RH' },
             { id: 'rh_lancamentos', title: 'Lançar Indicadores', file: 'rh_lancamentos.html', key: 'resp_rh', def: 'Responsável RH' }
         ] },
+        
     { id: 'operacional', title: 'OPERACIONAL', icon: 'fa-truck', mainFile: 'dash_operacional.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos',
         submenus: [
             { id: 'op_frentes', title: 'Lançar Frentes', file: 'op_frentes.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos' },
