@@ -1,9 +1,8 @@
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
 <style>
     .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); }
-    .glow-border-blue { box-shadow: 0 0 15px rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); }
-    .glow-border-emerald { box-shadow: 0 0 15px rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); }
-    .glow-border-amber { box-shadow: 0 0 15px rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); }
-    .glow-border-rose { box-shadow: 0 0 15px rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.4); }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.8); border-radius: 10px; }
@@ -13,8 +12,8 @@
     <div class="flex justify-between items-center mb-6 bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50 backdrop-blur-sm flex-wrap gap-4">
         <div class="flex items-center gap-4 flex-wrap">
             <div>
-                <h1 class="text-2xl font-extrabold text-white m-0">Indicadores Operacionais</h1>
-                <p class="text-sm text-slate-400 font-medium m-0">Painel Executivo: Realizado vs Meta Global</p>
+                <h1 class="text-2xl font-extrabold text-white m-0">Dashboard Analítico</h1>
+                <p class="text-sm text-slate-400 font-medium m-0">Análise do histórico acumulado de viagens</p>
             </div>
             <div id="indicadorAtualizacao" class="hidden flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] sm:text-xs font-bold uppercase tracking-widest shadow-inner transition-all duration-500">
                 <i id="iconeAtualizacao" class="fas fa-sync fa-spin"></i>
@@ -27,103 +26,148 @@
         <!-- Filtros Superiores -->
         <div class="glass-card p-5 rounded-2xl border border-slate-700/50 shadow-lg flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
             <div class="flex flex-wrap items-center gap-4 w-full md:w-auto">
-                <div class="bg-emerald-500/20 p-3 rounded-full border border-emerald-500/30 hidden sm:block">
-                    <i class="far fa-calendar-check text-emerald-400 text-xl"></i>
+                <div class="bg-sky-500/20 p-3 rounded-full border border-sky-500/30 hidden sm:block">
+                    <i class="far fa-calendar-check text-sky-400 text-xl"></i>
                 </div>
                 <div>
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Mês</p>
-                    <select id="filterMesOp" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white font-bold outline-none focus:border-emerald-500 shadow-inner cursor-pointer w-full sm:w-auto">
+                    <select id="filterMesOp" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white font-bold outline-none focus:border-sky-500 shadow-inner cursor-pointer w-full sm:w-auto">
                         <option value="ALL">Todos os Meses</option>
                     </select>
                 </div>
                 <div>
                     <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Dia Específico</p>
-                    <input type="date" id="opDatePicker" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white font-bold outline-none focus:border-emerald-500 shadow-inner cursor-pointer w-full sm:w-auto">
+                    <input type="date" id="opDatePicker" class="bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-white font-bold outline-none focus:border-sky-500 shadow-inner cursor-pointer w-full sm:w-auto">
                 </div>
                 
                 <div class="flex items-center gap-1 bg-slate-900/80 p-1 rounded-lg border border-slate-700/50 shadow-inner mt-2 sm:mt-0">
-                    <button data-op-qf="D-1" class="btn-op-qf border border-transparent text-xs font-bold text-slate-400 hover:text-emerald-300 hover:bg-slate-700/50 px-3 py-2 rounded transition-all">D-1</button>
-                    <button data-op-qf="D-2" class="btn-op-qf border border-transparent text-xs font-bold text-slate-400 hover:text-emerald-300 hover:bg-slate-700/50 px-3 py-2 rounded transition-all">D-2</button>
+                    <button data-op-qf="D-1" class="btn-op-qf border border-transparent text-xs font-bold text-slate-400 hover:text-sky-300 hover:bg-slate-700/50 px-3 py-2 rounded transition-all">D-1</button>
+                    <button data-op-qf="D-2" class="btn-op-qf border border-transparent text-xs font-bold text-slate-400 hover:text-sky-300 hover:bg-slate-700/50 px-3 py-2 rounded transition-all">D-2</button>
                     <div class="w-px h-5 bg-slate-700 mx-1"></div>
-                    <button data-op-qf="D-7" class="btn-op-qf border border-transparent text-xs font-bold text-slate-400 hover:text-emerald-300 hover:bg-slate-700/50 px-3 py-2 rounded transition-all">D-7</button>
-                    <button data-op-qf="D-30" class="btn-op-qf border border-transparent text-xs font-bold text-slate-400 hover:text-emerald-300 hover:bg-slate-700/50 px-3 py-2 rounded transition-all">D-30</button>
-                    <button data-op-qf="SEM" class="btn-op-qf border border-transparent text-xs font-bold text-slate-400 hover:text-emerald-300 hover:bg-slate-700/50 px-3 py-2 rounded transition-all">Semana</button>
-                    <button data-op-qf="ALL" class="btn-op-qf active border border-emerald-500/50 text-emerald-400 bg-emerald-900/30 text-xs font-bold px-3 py-2 rounded transition-all">Todos</button>
+                    <button data-op-qf="D-7" class="btn-op-qf border border-transparent text-xs font-bold text-slate-400 hover:text-sky-300 hover:bg-slate-700/50 px-3 py-2 rounded transition-all">D-7</button>
+                    <button data-op-qf="D-30" class="btn-op-qf border border-transparent text-xs font-bold text-slate-400 hover:text-sky-300 hover:bg-slate-700/50 px-3 py-2 rounded transition-all">D-30</button>
+                    <button data-op-qf="SEM" class="btn-op-qf border border-transparent text-xs font-bold text-slate-400 hover:text-sky-300 hover:bg-slate-700/50 px-3 py-2 rounded transition-all">Semana</button>
+                    <button data-op-qf="ALL" class="btn-op-qf active border border-sky-500/50 text-sky-400 bg-sky-900/30 text-xs font-bold px-3 py-2 rounded transition-all">Todos</button>
                 </div>
             </div>
-            <div class="text-right">
-                <span class="text-xs text-slate-500 font-mono" id="opStatusFetch">Carregando dados...</span>
+            <div class="text-right flex items-center gap-4">
+                <span class="text-xs text-slate-500 font-mono bg-slate-900 px-4 py-2 rounded-full border border-slate-700/50" id="opStatusFetch">Carregando dados...</span>
             </div>
         </div>
 
-        <!-- Painel de Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <!-- Painel de Cards 1 (Volumes e Gerais) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-5">
             <!-- Viagens -->
-            <div class="glass-card p-6 rounded-2xl glow-border-blue flex flex-col justify-between relative overflow-hidden group">
-                <div class="absolute -right-4 -top-4 text-blue-500/10 text-8xl group-hover:scale-110 transition-transform"><i class="fas fa-route"></i></div>
-                <div>
-                    <h3 class="text-blue-400 font-bold tracking-widest text-[11px] uppercase mb-4 relative z-10 m-0">Meta de Viagens</h3>
-                    <div class="flex justify-between items-end mb-6 relative z-10">
-                        <div class="w-1/2 pr-2"><label class="text-[10px] text-slate-500 uppercase font-bold">Meta do Filtro</label><p id="disp_v_prog" class="text-2xl font-black text-slate-300 m-0 mt-1">0</p></div>
-                        <div class="w-1/2 pl-2 text-right border-l border-slate-700/50"><label class="text-[10px] text-slate-500 uppercase font-bold">Realizado</label><p id="disp_v_real" class="text-3xl font-black text-white m-0 mt-1">0</p></div>
-                    </div>
-                </div>
-                <div class="relative z-10">
-                    <div class="flex justify-between text-[11px] mb-2 font-bold uppercase tracking-wider"><span class="text-slate-400">Atingimento</span><span id="disp_v_perc" class="text-blue-400 text-sm">0%</span></div>
-                    <div class="w-full bg-slate-800 rounded-full h-2.5 shadow-inner"><div id="bar_v_perc" class="bg-blue-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div></div>
-                </div>
+            <div class="bg-slate-800/60 rounded-xl p-5 border border-slate-700/50 border-l-4 border-l-blue-500 flex flex-col relative overflow-hidden shadow-lg">
+                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2 m-0">Viagens</p>
+                <p id="totalViagens" class="text-[32px] font-extrabold text-white leading-none m-0 mt-1">0</p>
+                <i class="fas fa-route text-blue-500 text-[26px] absolute bottom-4 right-4 opacity-80"></i>
             </div>
-
-            <!-- Volume -->
-            <div class="glass-card p-6 rounded-2xl glow-border-emerald flex flex-col justify-between relative overflow-hidden group">
-                <div class="absolute -right-4 -top-4 text-emerald-500/10 text-8xl group-hover:scale-110 transition-transform"><i class="fas fa-cubes"></i></div>
-                <div>
-                    <h3 class="text-emerald-400 font-bold tracking-widest text-[11px] uppercase mb-4 relative z-10 m-0">Volume Realizado (m³)</h3>
-                    <div class="flex justify-between items-end mb-6 relative z-10">
-                        <div class="w-1/2 pr-2"><label class="text-[10px] text-slate-500 uppercase font-bold">Meta do Filtro</label><p id="disp_vol_prog" class="text-2xl font-black text-slate-300 m-0 mt-1">0</p></div>
-                        <div class="w-1/2 pl-2 text-right border-l border-slate-700/50"><label class="text-[10px] text-slate-500 uppercase font-bold">Realizado</label><p id="disp_vol_real" class="text-3xl font-black text-white m-0 mt-1">0</p></div>
-                    </div>
-                </div>
-                <div class="relative z-10">
-                    <div class="flex justify-between text-[11px] mb-2 font-bold uppercase tracking-wider"><span class="text-slate-400">Atingimento</span><span id="disp_vol_perc" class="text-emerald-400 text-sm">0%</span></div>
-                    <div class="w-full bg-slate-800 rounded-full h-2.5 shadow-inner"><div id="bar_vol_perc" class="bg-emerald-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div></div>
-                </div>
+            <!-- Média de PBTC -->
+            <div class="bg-slate-800/60 rounded-xl p-5 border border-slate-700/50 border-l-4 border-l-cyan-400 flex flex-col relative overflow-hidden shadow-lg">
+                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2 m-0">Média de PBTC</p>
+                <p id="totalPesoLiq" class="text-[32px] font-extrabold text-white leading-none m-0 mt-1 flex items-center gap-2">0 t</p>
+                <i class="fas fa-weight-hanging text-cyan-400 text-[26px] absolute bottom-4 right-4 opacity-80"></i>
             </div>
-
-            <!-- Caixa Média -->
-            <div class="glass-card p-6 rounded-2xl glow-border-amber flex flex-col justify-between relative overflow-hidden group">
-                <div class="absolute -right-4 -top-4 text-amber-500/10 text-8xl group-hover:scale-110 transition-transform"><i class="fas fa-box-open"></i></div>
-                <div>
-                    <h3 class="text-amber-400 font-bold tracking-widest text-[11px] uppercase mb-4 relative z-10 m-0">Caixa de Carga Média (m³)</h3>
-                    <div class="flex justify-between items-end mb-6 relative z-10">
-                        <div class="w-1/2 pr-2"><label class="text-[10px] text-slate-500 uppercase font-bold">Meta Base</label><p id="disp_cx_prog" class="text-2xl font-black text-slate-300 m-0 mt-1">0</p></div>
-                        <div class="w-1/2 pl-2 text-right border-l border-slate-700/50"><label class="text-[10px] text-slate-500 uppercase font-bold">Realizada</label><p id="disp_cx_real" class="text-3xl font-black text-white m-0 mt-1">0</p></div>
-                    </div>
-                </div>
-                <div class="relative z-10">
-                    <div class="flex justify-between text-[11px] mb-2 font-bold uppercase tracking-wider"><span class="text-slate-400">Desempenho</span><span id="disp_cx_perc" class="text-amber-400 text-sm">0%</span></div>
-                    <div class="w-full bg-slate-800 rounded-full h-2.5 shadow-inner"><div id="bar_cx_perc" class="bg-amber-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div></div>
-                </div>
+            <!-- Média de Vol -->
+            <div class="bg-slate-800/60 rounded-xl p-5 border border-slate-700/50 border-l-4 border-l-indigo-500 flex flex-col relative overflow-hidden shadow-lg">
+                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2 m-0">Média de Vol (m³)</p>
+                <p id="mediaVolumeViagem" class="text-[32px] font-extrabold text-white leading-none m-0 mt-1">0 m³</p>
+                <i class="fas fa-box-open text-indigo-500 text-[26px] absolute bottom-4 right-4 opacity-80"></i>
             </div>
-
-            <!-- PBTC -->
-            <div class="glass-card p-6 rounded-2xl glow-border-rose flex flex-col justify-between relative overflow-hidden group">
-                <div class="absolute -right-4 -top-4 text-rose-500/10 text-8xl group-hover:scale-110 transition-transform"><i class="fas fa-truck-moving"></i></div>
-                <div>
-                    <h3 class="text-rose-400 font-bold tracking-widest text-[11px] uppercase mb-4 relative z-10 m-0">PBTC Médio Realizado</h3>
-                    <div class="flex justify-between items-end mb-6 relative z-10">
-                        <div class="w-1/2 pr-2"><label class="text-[10px] text-slate-500 uppercase font-bold">Meta Base</label><p id="disp_pbtc_prog" class="text-2xl font-black text-slate-300 m-0 mt-1">0</p></div>
-                        <div class="w-1/2 pl-2 text-right border-l border-slate-700/50"><label class="text-[10px] text-slate-500 uppercase font-bold">Realizado</label><p id="disp_pbtc_real" class="text-3xl font-black text-white m-0 mt-1 flex items-center justify-end">0.0</p></div>
-                    </div>
-                </div>
-                <div class="relative z-10">
-                    <div class="flex justify-between text-[11px] mb-2 font-bold uppercase tracking-wider"><span class="text-slate-400">Status</span><span id="disp_pbtc_perc" class="text-rose-400 text-sm">0%</span></div>
-                    <div class="w-full bg-slate-800 rounded-full h-2.5 shadow-inner"><div id="bar_pbtc_perc" class="bg-rose-500 h-2.5 rounded-full transition-all duration-500" style="width: 0%"></div></div>
+            <!-- Volume Total -->
+            <div class="bg-slate-800/60 rounded-xl p-5 border border-slate-700/50 border-l-4 border-l-amber-500 flex flex-col relative overflow-hidden shadow-lg">
+                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2 m-0">Volume Total</p>
+                <p id="totalVolumeReal" class="text-[32px] font-extrabold text-white leading-none m-0 mt-1">0 m³</p>
+                <i class="fas fa-cubes text-amber-500 text-[26px] absolute bottom-4 right-4 opacity-80"></i>
+            </div>
+            <!-- Dist. Média -->
+            <div class="bg-slate-800/60 rounded-xl p-5 border border-slate-700/50 border-l-4 border-l-emerald-500 flex flex-col relative overflow-hidden shadow-lg">
+                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2 m-0">Dist. Média</p>
+                <p id="mediaDistancia" class="text-[28px] font-extrabold text-white leading-none m-0 mt-1 mb-3">0 km</p>
+                <div class="flex flex-col gap-1 w-full text-xs font-bold mt-auto pb-1">
+                    <div class="flex justify-between items-center"><span class="text-slate-400 text-[11px]">Asfalto:</span> <span id="mediaAsfalto" class="text-sky-300 bg-sky-900/30 px-2 py-0.5 rounded border border-sky-800/30">0</span></div>
+                    <div class="flex justify-between items-center"><span class="text-slate-400 text-[11px]">Terra:</span> <span id="mediaTerra" class="text-amber-400 bg-amber-900/30 px-2 py-0.5 rounded border border-amber-800/30">0</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- Gráficos Centrais (Empilhados Verticalmente um debaixo do outro) -->
+        <!-- Painel de Cards 2 (Tempos e Padrões) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+            <!-- Ciclo Médio -->
+            <div class="bg-slate-800/60 rounded-xl p-5 border border-slate-700/50 border-l-4 border-l-sky-500 flex flex-col relative overflow-hidden shadow-lg">
+                <div class="flex justify-between items-start mb-2">
+                    <p class="text-sky-400 text-[10px] font-bold uppercase tracking-widest m-0">Ciclo Médio</p>
+                    <i class="fas fa-stopwatch text-sky-500/50 text-[22px]"></i>
+                </div>
+                <div class="mt-1 flex-1 flex items-center">
+                    <p id="cicloMedio" class="text-3xl font-black text-rose-500 flex items-center gap-2 m-0">0h 0m</p>
+                </div>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-4 m-0 pt-3 border-t border-slate-700/30">Padrão: <span class="text-white ml-1">10H 05M</span></p>
+            </div>
+            <!-- Tempo de Campo -->
+            <div class="bg-slate-800/60 rounded-xl p-5 border border-slate-700/50 border-l-4 border-l-amber-500 flex flex-col relative overflow-hidden shadow-lg">
+                <div class="flex justify-between items-start mb-2">
+                    <p class="text-amber-400 text-[10px] font-bold uppercase tracking-widest m-0">Tempo de Campo</p>
+                    <i class="fas fa-tractor text-amber-500/50 text-[22px]"></i>
+                </div>
+                <div class="mt-1 flex-1 flex items-center">
+                    <p id="filaCampo" class="text-3xl font-black text-emerald-400 flex items-center gap-2 m-0">0m</p>
+                </div>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-4 m-0 pt-3 border-t border-slate-700/30">Padrão: <span class="text-white ml-1">1H 20M</span></p>
+            </div>
+            <!-- Tempo Médio de Carga -->
+            <div class="bg-slate-800/60 rounded-xl p-5 border border-slate-700/50 border-l-4 border-l-emerald-500 flex flex-col relative overflow-hidden shadow-lg">
+                <div class="flex justify-between items-start mb-2">
+                    <p class="text-emerald-400 text-[10px] font-bold uppercase tracking-widest m-0">Tempo Médio de Carga</p>
+                    <i class="fas fa-truck-loading text-emerald-500/50 text-[22px]"></i>
+                </div>
+                <div class="mt-1 flex-1 flex items-center">
+                    <p id="tempoCarregamento" class="text-3xl font-black text-rose-500 flex items-center gap-2 m-0">0m</p>
+                </div>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-4 m-0 pt-3 border-t border-slate-700/30">Padrão: <span class="text-white ml-1">30M</span></p>
+            </div>
+            <!-- Tempo Médio de Fábrica -->
+            <div class="bg-slate-800/60 rounded-xl p-5 border border-slate-700/50 border-l-4 border-l-rose-500 flex flex-col relative overflow-hidden shadow-lg">
+                <div class="flex justify-between items-start mb-2">
+                    <p class="text-rose-400 text-[10px] font-bold uppercase tracking-widest m-0">Tempo Médio de Fábrica</p>
+                    <i class="fas fa-industry text-rose-500/50 text-[22px]"></i>
+                </div>
+                <div class="mt-1 flex-1 flex items-center">
+                    <p id="filaFabrica" class="text-3xl font-black text-emerald-400 flex items-center gap-2 m-0">0m</p>
+                </div>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-4 m-0 pt-3 border-t border-slate-700/30">Padrão: <span class="text-white ml-1">30M</span></p>
+            </div>
+        </div>
+
+        <!-- Comparativo por Cenários -->
+        <div id="comparativoContainer" class="glass-card rounded-xl border border-slate-700/50 shadow-xl overflow-hidden mb-6 bg-slate-900 relative">
+            <div class="bg-slate-800/90 px-6 py-5 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <h3 class="font-extrabold text-white tracking-wide uppercase text-sm flex items-center m-0">
+                    <i class="fas fa-balance-scale text-sky-400 mr-3 text-lg"></i> Comparativo de Desempenho Operacional por Cenários
+                </h3>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-xs text-left m-0">
+                    <thead class="bg-slate-900/95 text-white font-semibold uppercase text-[11px] tracking-wider border-b border-slate-700">
+                        <tr>
+                            <th class="px-6 py-4 text-slate-300">Indicador de Performance</th>
+                            <th class="px-6 py-4 text-white bg-emerald-900/10 text-right"><i class="fas fa-star mr-1 text-emerald-400"></i> C1: Serrana</th>
+                            <th class="px-6 py-4 text-white bg-rose-900/10 text-right"><i class="fas fa-truck-loading mr-1 text-rose-400"></i> C2: TRANSP. ASN</th>
+                            <th class="px-6 py-4 text-white bg-amber-900/10 text-right"><i class="fas fa-tree mr-1 text-amber-400"></i> C3: Reflorestar</th>
+                            <th class="px-6 py-4 text-white bg-indigo-900/10 text-right"><i class="fas fa-leaf mr-1 text-indigo-400"></i> C4: JSL</th>
+                            <th class="px-6 py-4 text-white bg-sky-900/10 text-right"><i class="fas fa-globe mr-1 text-sky-400"></i> Total (Geral)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="comparativoBody" class="divide-y divide-slate-800/80 text-slate-300">
+                        <tr><td colspan="6" class="px-6 py-4 text-center text-slate-500">Aguardando dados...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Gráficos Centrais (Empilhados Verticalmente) -->
         <div class="grid grid-cols-1 gap-6 mb-6">
             <!-- Gráfico Carregamento -->
             <div class="glass-card rounded-xl shadow-2xl p-5 border border-slate-700/50 flex flex-col w-full">
@@ -208,14 +252,13 @@
 
 <script>
 (function initNovoDashboardOperacional() {
-    // Configurações Globais do Chart.js
-    if (typeof Chart !== 'undefined') {
-        Chart.defaults.color = '#94a3b8';
-        Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
-        Chart.defaults.font.family = "'Inter', sans-serif";
+    // 1. TRAVA DE SEGURANÇA: Garante que as bibliotecas injetadas pela div já existem
+    if(typeof Chart === 'undefined') {
+        setTimeout(initNovoDashboardOperacional, 50);
+        return; 
     }
 
-    // Plugin Nativo para exibir valores sobre as barras sem depender da lib externa
+    // Plugin Nativo para exibir valores sobre as barras sem depender da lib externa de datalabels
     const chartDataLabelsPlugin = {
         id: 'customDataLabels',
         afterDatasetsDraw: (chart) => {
@@ -238,13 +281,16 @@
         }
     };
 
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
+    Chart.defaults.font.family = "'Inter', sans-serif";
+
     // Inicialização direta do Supabase
     const SUPABASE_URL = 'https://qnpwkvazkntbqjbwegcp.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_bjTFgpk-qAdpVuWzr4hbng_G8O9qlc8';
     const supabaseClientLocal = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let fullHistoricoDataOp = [];
-    let metasGlobais = {};
     let activeQuickFilterOp = 'ALL';
     
     window.diasConsideradosGlobais = 1;
@@ -264,10 +310,10 @@
                 activeQuickFilterOp = e.currentTarget.getAttribute('data-op-qf');
                 btnQFs.forEach(b => {
                     if(b.getAttribute('data-op-qf') === activeQuickFilterOp) {
-                        b.classList.add('active', 'border-emerald-500/50', 'text-emerald-400', 'bg-emerald-900/30');
+                        b.classList.add('active', 'border-sky-500/50', 'text-sky-400', 'bg-sky-900/30');
                         b.classList.remove('border-transparent', 'text-slate-400', 'hover:bg-slate-700/50');
                     } else {
-                        b.classList.remove('active', 'border-emerald-500/50', 'text-emerald-400', 'bg-emerald-900/30');
+                        b.classList.remove('active', 'border-sky-500/50', 'text-sky-400', 'bg-sky-900/30');
                         b.classList.add('border-transparent', 'text-slate-400', 'hover:bg-slate-700/50');
                     }
                 });
@@ -282,7 +328,7 @@
                 if(datePicker.value) {
                     activeQuickFilterOp = 'DATE';
                     btnQFs.forEach(b => {
-                        b.classList.remove('active', 'border-emerald-500/50', 'text-emerald-400', 'bg-emerald-900/30');
+                        b.classList.remove('active', 'border-sky-500/50', 'text-sky-400', 'bg-sky-900/30');
                         b.classList.add('border-transparent', 'text-slate-400', 'hover:bg-slate-700/50');
                     });
                     if(filterMesOp) filterMesOp.value = 'ALL';
@@ -296,7 +342,7 @@
                 if(filterMesOp.value !== 'ALL') {
                     activeQuickFilterOp = 'ALL';
                     btnQFs.forEach(b => {
-                        b.classList.remove('active', 'border-emerald-500/50', 'text-emerald-400', 'bg-emerald-900/30');
+                        b.classList.remove('active', 'border-sky-500/50', 'text-sky-400', 'bg-sky-900/30');
                         b.classList.add('border-transparent', 'text-slate-400', 'hover:bg-slate-700/50');
                     });
                     if(datePicker) datePicker.value = '';
@@ -359,10 +405,6 @@
 
     async function loadOperacionalData() {
         try {
-            // Busca as Metas Globais Atualizadas no Banco
-            const { data: metas } = await supabaseClientLocal.from('metas_globais').select('*').eq('id', 1).single();
-            if(metas) metasGlobais = metas;
-
             let historico = [];
             let from = 0;
             const step = 1000;
@@ -445,7 +487,6 @@
         } catch(e) { console.error("Erro operacionais:", e); }
     }
 
-    // Parse simplificado não dependente do XLSX
     function parseDateTime(dateVal) {
         if (!dateVal) return null;
         const str = String(dateVal).trim();
@@ -466,6 +507,79 @@
         if (!baseDate || isNaN(baseDate.getTime())) return null;
         baseDate.setHours(0, 0, 0, 0);
         return baseDate;
+    }
+
+    function formatarHorasMinutos(horasDecimais) {
+        if (horasDecimais === null || horasDecimais === undefined || isNaN(horasDecimais) || horasDecimais <= 0) return '-';
+        const horas = Math.floor(horasDecimais);
+        const minutos = Math.round((horasDecimais - horas) * 60);
+        if (horas === 0 && minutos === 0) return '0m';
+        if (horas === 0) return `${minutos}m`;
+        if (minutos === 0) return `${horas}h`;
+        return `${horas}h ${minutos.toString().padStart(2, '0')}m`;
+    }
+
+    function atualizarElementoTempo(idElemento, mediaReal, metaData) {
+        const el = document.getElementById(idElemento);
+        if (!el) return;
+        const strReal = formatarHorasMinutos(mediaReal);
+        
+        let corClasse = "text-white";
+        let icone = "";
+
+        if (metaData > 0) {
+            if (mediaReal > metaData) {
+                corClasse = "text-rose-500";
+                icone = `<i class="fas fa-exclamation-circle text-lg ml-2"></i>`;
+            } else {
+                corClasse = "text-emerald-400";
+                icone = `<i class="fas fa-check-circle text-lg ml-2"></i>`;
+            }
+        }
+
+        el.className = `text-[32px] font-extrabold leading-none m-0 ${corClasse} flex items-center`;
+        el.innerHTML = `${strReal} ${icone}`;
+    }
+
+    function calcStats(dataArr) {
+        const viagens = dataArr.length;
+        const vol = dataArr.reduce((s,d) => s + (parseFloat(String(d.volumeReal).replace(',','.'))||0), 0);
+        const medVol = viagens > 0 ? vol / viagens : 0;
+
+        const validCiclos = dataArr.filter(d => d.cicloHoras > 0);
+        const somaCiclos = validCiclos.reduce((s,d) => s + d.cicloHoras, 0);
+        const medCiclo = validCiclos.length > 0 ? somaCiclos / validCiclos.length : 0;
+
+        const validFilaCpo = dataArr.filter(d => d.filaCampoHoras > 0);
+        const medFilaCpo = validFilaCpo.length > 0 ? validFilaCpo.reduce((s,d) => s + d.filaCampoHoras, 0) / validFilaCpo.length : 0;
+
+        const validCarreg = dataArr.filter(d => d.tempoCarregamentoHoras > 0);
+        const medCarreg = validCarreg.length > 0 ? validCarreg.reduce((s,d) => s + d.tempoCarregamentoHoras, 0) / validCarreg.length : 0;
+
+        const validFilaFab = dataArr.filter(d => d.filaFabricaHoras > 0);
+        const medFilaFab = validFilaFab.length > 0 ? validFilaFab.reduce((s,d) => s + d.filaFabricaHoras, 0) / validFilaFab.length : 0;
+
+        const medAsfalto = viagens > 0 ? dataArr.reduce((s, d) => s + (d.distanciaAsfalto || 0), 0) / viagens : 0;
+        const medTerra = viagens > 0 ? dataArr.reduce((s, d) => s + (d.distanciaTerra || 0), 0) / viagens : 0;
+
+        return { volTotal: vol, medVol, medCiclo, medFilaCpo, medCarreg, medFilaFab, medAsfalto, medTerra };
+    }
+
+    function checkLoader(d, loaderArray) {
+        const val = String(d.carregadorFlorestal || d.grua || '').trim().toUpperCase();
+        if (val && val !== '-') return loaderArray.includes(val);
+        for (let key in d) {
+            if (d[key] && typeof d[key] === 'string') {
+                const v = d[key].trim().toUpperCase();
+                if (loaderArray.includes(v)) return true;
+            }
+        }
+        return false;
+    }
+    
+    function isSerranaTransp(d) {
+        const name = String(d.transportadora || '').toUpperCase();
+        return name.includes('SERRANALOG');
     }
 
     function atualizarPainelOperacional() {
@@ -535,60 +649,168 @@
         const opStatusFetch = document.getElementById('opStatusFetch');
         if(opStatusFetch) {
             opStatusFetch.innerHTML = `
-                <span class="text-sky-400 font-bold">F. Própria: ${placasUnicasSerrana}</span> | 
-                <span class="text-emerald-400 font-bold">F. Global: ${placasUnicasGlobal}</span> | 
-                ${diasConsiderados} dia(s)
+                <span class="text-sky-400 font-bold"><i class="fas fa-truck text-sky-500 mr-1"></i> Serrana: ${placasUnicasSerrana}</span> | 
+                <span class="text-emerald-400 font-bold"><i class="fas fa-globe text-emerald-500 mr-1"></i> Geral: ${placasUnicasGlobal}</span>
             `;
         }
         
-        // --- Atualização de Metas Globais ---
+        // --- Atualização de Cards (Topo 1) ---
         const totalV_Global = filteredGlobal.length;
-        const frotaRealOuConfigurada = metasGlobais.tamanho_frota || (placasUnicasGlobal === 0 ? 0 : placasUnicasGlobal);
-        const metaV = frotaRealOuConfigurada * (metasGlobais.v_prog || 0) * diasConsiderados;
-        
-        document.getElementById('disp_v_prog').innerText = metaV;
-        document.getElementById('disp_v_real').innerText = totalV_Global;
-        atualizarBarra('bar_v_perc', 'disp_v_perc', totalV_Global, metaV);
+        document.getElementById('totalViagens').innerText = totalV_Global;
 
-        const totalVol_Global = filteredGlobal.reduce((s,x)=>s+(parseFloat(String(x.volumeReal).replace(',','.'))||0), 0);
-        const metaVol = (metasGlobais.vol_prog || 0) * diasConsiderados;
-        
-        document.getElementById('disp_vol_prog').innerText = metaVol.toLocaleString('pt-PT');
-        document.getElementById('disp_vol_real').innerText = totalVol_Global.toLocaleString('pt-PT', {maximumFractionDigits:1});
-        atualizarBarra('bar_vol_perc', 'disp_vol_perc', totalVol_Global, metaVol);
-
-        const mediaCx = totalV_Global > 0 ? (totalVol_Global / totalV_Global) : 0;
-        const metaCx = metasGlobais.cx_prog || 0;
-
-        document.getElementById('disp_cx_prog').innerText = metaCx;
-        document.getElementById('disp_cx_real').innerText = mediaCx.toLocaleString('pt-PT', {maximumFractionDigits:2});
-        atualizarBarra('bar_cx_perc', 'disp_cx_perc', mediaCx, metaCx);
-
-        // PBTC calculado na Média
         const totalP_Global = filteredGlobal.reduce((s,x)=>s+(parseFloat(String(x.pesoLiquido).replace(',','.'))||0), 0)/1000;
         const mediaPbtc = totalV_Global > 0 ? (totalP_Global / totalV_Global) : 0;
-        const metaPbtc = metasGlobais.pbtc_prog || 0;
-
-        document.getElementById('disp_pbtc_prog').innerText = metaPbtc;
         
         let pbtcCor = "text-white";
         let pbtcIcone = "";
-        
         if (mediaPbtc > 0) {
             if (mediaPbtc < 74) {
                 pbtcCor = "text-yellow-400";
-                pbtcIcone = '<i class="fas fa-exclamation-triangle text-yellow-400 text-sm ml-2" title="Abaixo do ideal"></i>';
+                pbtcIcone = '<i class="fas fa-exclamation-triangle text-yellow-400 text-xl ml-2" title="Abaixo do ideal"></i>';
             } else if (mediaPbtc >= 74 && mediaPbtc <= 77.7) {
-                pbtcCor = "text-green-400";
-                pbtcIcone = '<i class="fas fa-check-circle text-green-400 text-sm ml-2" title="Ideal"></i>';
+                pbtcCor = "text-emerald-400";
+                pbtcIcone = '<i class="fas fa-check-circle text-emerald-400 text-xl ml-2" title="Ideal"></i>';
             } else if (mediaPbtc > 77.7) {
-                pbtcCor = "text-red-500";
-                pbtcIcone = '<i class="fas fa-times-circle text-red-500 text-sm ml-2" title="Acima do ideal"></i>';
+                pbtcCor = "text-rose-500";
+                pbtcIcone = '<i class="fas fa-times-circle text-rose-500 text-xl ml-2" title="Acima do ideal"></i>';
             }
         }
+        document.getElementById('totalPesoLiq').innerHTML = `<span class="${pbtcCor}">${mediaPbtc.toLocaleString('pt-PT', {maximumFractionDigits:1})} t</span>${pbtcIcone}`;
 
-        document.getElementById('disp_pbtc_real').innerHTML = `<span class="${pbtcCor}">${mediaPbtc.toLocaleString('pt-PT', {maximumFractionDigits:2})}</span>${pbtcIcone}`;
-        atualizarBarra('bar_pbtc_perc', 'disp_pbtc_perc', mediaPbtc, metaPbtc);
+        const totalVol_Global = filteredGlobal.reduce((s,x)=>s+(parseFloat(String(x.volumeReal).replace(',','.'))||0), 0);
+        const mediaCx = totalV_Global > 0 ? (totalVol_Global / totalV_Global) : 0;
+        
+        document.getElementById('mediaVolumeViagem').innerText = mediaCx.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
+        document.getElementById('totalVolumeReal').innerText = totalVol_Global.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
+
+        const mediaAsfalto = totalV_Global > 0 ? filteredGlobal.reduce((s, r) => s + (r.distanciaAsfalto||0), 0) / totalV_Global : 0;
+        const mediaTerra = totalV_Global > 0 ? filteredGlobal.reduce((s, r) => s + (r.distanciaTerra||0), 0) / totalV_Global : 0;
+        const mediaDistTotal = mediaAsfalto + mediaTerra;
+
+        document.getElementById('mediaDistancia').innerText = mediaDistTotal.toLocaleString('pt-PT', {maximumFractionDigits:2}) + ' km';
+        document.getElementById('mediaAsfalto').innerText = mediaAsfalto.toLocaleString('pt-PT', {maximumFractionDigits:2});
+        document.getElementById('mediaTerra').innerText = mediaTerra.toLocaleString('pt-PT', {maximumFractionDigits:2});
+
+        // --- Atualização de Cards (Tempos - Topo 2) ---
+        const validCycles = filteredGlobal.filter(d => d.cicloHoras > 0);
+        const somaCiclosTotais = validCycles.reduce((s, d) => s + d.cicloHoras, 0);
+        const mediaCiclo = validCycles.length > 0 ? somaCiclosTotais / validCycles.length : 0;
+
+        const validFilaCampo = filteredGlobal.filter(d => d.filaCampoHoras > 0);
+        const mediaFilaCampo = validFilaCampo.length > 0 ? validFilaCampo.reduce((s, d) => s + d.filaCampoHoras, 0) / validFilaCampo.length : 0;
+
+        const validTempoCarregamento = filteredGlobal.filter(d => d.tempoCarregamentoHoras > 0);
+        const mediaTempoCarregamento = validTempoCarregamento.length > 0 ? validTempoCarregamento.reduce((s, d) => s + d.tempoCarregamentoHoras, 0) / validTempoCarregamento.length : 0;
+
+        const validFilaFabrica = filteredGlobal.filter(d => d.filaFabricaHoras > 0);
+        const mediaFilaFabrica = validFilaFabrica.length > 0 ? validFilaFabrica.reduce((s, d) => s + d.filaFabricaHoras, 0) / validFilaFabrica.length : 0;
+
+        atualizarElementoTempo('cicloMedio', mediaCiclo, 10.083); // 10H 05M
+        atualizarElementoTempo('filaCampo', mediaFilaCampo, 1.333); // 1H 20M
+        atualizarElementoTempo('tempoCarregamento', mediaTempoCarregamento, 0.5); // 30M
+        atualizarElementoTempo('filaFabrica', mediaFilaFabrica, 0.5); // 30M
+
+
+        // --- Comparativo por Cenários ---
+        const tbodyComp = document.getElementById('comparativoBody');
+        if (tbodyComp) {
+            let serranaLoaders = ['GSR0001', 'GSR0002', 'GSR0003', 'GSR0007', 'GSR0008', 'GRB0015', 'GRB0022'];
+            let reflorestarLoaders = ['GRB0017', 'GRB0020', 'GRB0029'];
+            let jslLoaders = ['GSL0012', 'GSL0016'];
+            
+            const dataC1 = filteredGlobal.filter(d => checkLoader(d, serranaLoaders) && isSerranaTransp(d));
+            const dataC2 = filteredGlobal.filter(d => checkLoader(d, serranaLoaders) && !isSerranaTransp(d));
+            const dataC3 = filteredGlobal.filter(d => checkLoader(d, reflorestarLoaders) && isSerranaTransp(d));
+            const dataC4 = filteredGlobal.filter(d => checkLoader(d, jslLoaders) && isSerranaTransp(d));
+            
+            const stC1 = calcStats(dataC1);
+            const stC2 = calcStats(dataC2);
+            const stC3 = calcStats(dataC3);
+            const stC4 = calcStats(dataC4);
+            const stGlobal = calcStats(filteredGlobal);
+
+            tbodyComp.innerHTML = `
+                <tr class="hover:bg-slate-800/30 transition-colors">
+                    <td class="px-6 py-4 font-bold text-white text-[11px]"><i class="fas fa-route text-slate-400 w-5"></i> Viagens Realizadas</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${dataC1.length}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${dataC2.length}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${dataC3.length}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${dataC4.length}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${filteredGlobal.length}</td>
+                </tr>
+                <tr class="hover:bg-slate-800/30 transition-colors">
+                    <td class="px-6 py-4 font-bold text-white text-[11px]"><i class="fas fa-box-open text-indigo-400 w-5"></i> Caixa de Carga Média</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stC1.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stC2.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stC3.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stC4.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stGlobal.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                </tr>
+                <tr class="hover:bg-slate-800/30 transition-colors">
+                    <td class="px-6 py-4 font-bold text-white text-[11px]"><i class="fas fa-cubes text-cyan-400 w-5"></i> Volume Total</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stC1.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stC2.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stC3.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stC4.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stGlobal.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                </tr>
+                <tr class="hover:bg-slate-800/30 transition-colors">
+                    <td class="px-6 py-4 font-bold text-white text-[11px]"><i class="fas fa-stopwatch text-blue-400 w-5"></i> Ciclo Médio Total</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC1.medCiclo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC2.medCiclo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC3.medCiclo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC4.medCiclo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stGlobal.medCiclo)}</td>
+                </tr>
+                <tr class="hover:bg-slate-800/30 transition-colors border-t border-slate-700/50">
+                    <td class="px-6 py-4 font-bold text-slate-300 text-[10px] uppercase tracking-wider"><i class="fas fa-hourglass-half text-amber-500 w-5"></i> Espera Média no Campo</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC1.medFilaCpo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC2.medFilaCpo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC3.medFilaCpo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC4.medFilaCpo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stGlobal.medFilaCpo)}</td>
+                </tr>
+                <tr class="hover:bg-slate-800/30 transition-colors">
+                    <td class="px-6 py-4 font-bold text-slate-300 text-[10px] uppercase tracking-wider"><i class="fas fa-truck-loading text-emerald-500 w-5"></i> Tempo Médio Carregamento</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC1.medCarreg)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC2.medCarreg)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC3.medCarreg)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC4.medCarreg)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stGlobal.medCarreg)}</td>
+                </tr>
+                <tr class="hover:bg-slate-800/30 transition-colors">
+                    <td class="px-6 py-4 font-bold text-slate-300 text-[10px] uppercase tracking-wider"><i class="fas fa-industry text-rose-500 w-5"></i> Espera Média na Fábrica</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC1.medFilaFab)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC2.medFilaFab)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC3.medFilaFab)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC4.medFilaFab)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stGlobal.medFilaFab)}</td>
+                </tr>
+                <tr class="hover:bg-slate-800/30 transition-colors border-t border-slate-700">
+                    <td class="px-6 py-4 font-bold text-slate-300 text-[10px] uppercase tracking-wider"><i class="fas fa-road text-slate-400 w-5"></i> Dist. Média (Asfalto / Terra)</td>
+                    <td class="px-6 py-4 font-mono text-white text-[11px] font-bold text-right">
+                        <span class="text-sky-300" title="Asfalto">Asf: ${stC1.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
+                        <span class="text-amber-400" title="Terra">Ter: ${stC1.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
+                    </td>
+                    <td class="px-6 py-4 font-mono text-white text-[11px] font-bold text-right">
+                        <span class="text-sky-300" title="Asfalto">Asf: ${stC2.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
+                        <span class="text-amber-400" title="Terra">Ter: ${stC2.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
+                    </td>
+                    <td class="px-6 py-4 font-mono text-white text-[11px] font-bold text-right">
+                        <span class="text-sky-300" title="Asfalto">Asf: ${stC3.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
+                        <span class="text-amber-400" title="Terra">Ter: ${stC3.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
+                    </td>
+                    <td class="px-6 py-4 font-mono text-white text-[11px] font-bold text-right">
+                        <span class="text-sky-300" title="Asfalto">Asf: ${stC4.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
+                        <span class="text-amber-400" title="Terra">Ter: ${stC4.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
+                    </td>
+                    <td class="px-6 py-4 font-mono text-white text-[11px] font-bold text-right">
+                        <span class="text-sky-300" title="Asfalto">Asf: ${stGlobal.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
+                        <span class="text-amber-400" title="Terra">Ter: ${stGlobal.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
+                    </td>
+                </tr>
+            `;
+        }
 
         const baseEvolucao = filteredGlobal.length > 0 ? filteredGlobal : fullHistoricoDataOp;
         renderCarregamentoChart(baseEvolucao);
@@ -598,26 +820,7 @@
             return transp.includes('SERRANALOG') && !transp.includes('ASN');
         });
         renderTransporteChart(baseTransporte);
-
         renderLeaderboards(filteredSerrana, diasConsiderados);
-    }
-
-    function atualizarBarra(barId, txtId, real, meta) {
-        const perc = meta > 0 ? Math.min((real/meta)*100, 100) : 0;
-        const b = document.getElementById(barId);
-        const t = document.getElementById(txtId);
-        if(b) b.style.width = `${perc}%`;
-        if(t) t.innerText = `${perc.toFixed(1)}%`;
-    }
-
-    function formatarHorasMinutos(horasDecimais) {
-        if (horasDecimais === null || horasDecimais === undefined || isNaN(horasDecimais) || horasDecimais <= 0) return '-';
-        const horas = Math.floor(horasDecimais);
-        const minutos = Math.round((horasDecimais - horas) * 60);
-        if (horas === 0 && minutos === 0) return '0m';
-        if (horas === 0) return `${minutos}m`;
-        if (minutos === 0) return `${horas}h`;
-        return `${horas}h ${minutos.toString().padStart(2, '0')}m`;
     }
 
     function renderCarregamentoChart(data) {
