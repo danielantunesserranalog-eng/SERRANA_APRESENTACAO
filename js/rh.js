@@ -33,23 +33,33 @@ window.salvarDadosRH = async function() {
     };
     
     try {
+        if (!_supa) throw new Error("Conexão com Supabase não estabelecida.");
+
         // Usa upsert: se já tiver registro hoje, ele atualiza. Se não tiver, ele cria novo.
         const { error } = await _supa.from('rh_indicadores').upsert([dados], { onConflict: 'data_registro' });
         
-        if (error) throw error;
+        // SE O BANCO RECUSAR, MOSTRA O ERRO EXATO NA TELA
+        if (error) {
+            console.error("Erro detalhado do Supabase:", error);
+            if (msg) {
+                msg.style.color = 'var(--vermelho)';
+                msg.innerText = "ERRO NO BANCO: " + error.message;
+            }
+            return;
+        }
         
         if (msg) {
             msg.style.color = 'var(--verde)';
             msg.innerText = "Indicadores e Murais salvos no banco com sucesso!";
-            setTimeout(() => msg.innerText = "", 3000);
+            setTimeout(() => msg.innerText = "", 4000);
         }
         
         window.carregarDadosRH();
     } catch (err) {
-        console.error("Erro ao salvar indicadores de RH no banco:", err);
+        console.error("Erro de execução no salvamento de RH:", err);
         if (msg) {
             msg.style.color = 'var(--vermelho)';
-            msg.innerText = "Erro ao salvar no banco de dados.";
+            msg.innerText = "Falha de conexão ao tentar salvar!";
         }
     }
 };
@@ -72,7 +82,11 @@ window.adicionarVaga = async function() {
             status: 'Aberta'
         }]);
         
-        if (error) throw error;
+        if (error) {
+            console.error("Erro do Supabase ao adicionar vaga:", error);
+            alert("ERRO NO BANCO: " + error.message);
+            return;
+        }
         
         document.getElementById('vaga-cargo').value = '';
         document.getElementById('vaga-setor').value = '';
@@ -80,8 +94,8 @@ window.adicionarVaga = async function() {
         
         window.carregarDadosRH();
     } catch (err) {
-        console.error("Erro ao adicionar vaga no banco:", err);
-        alert("Erro ao adicionar vaga. Verifique a conexão.");
+        console.error("Erro de conexão ao adicionar vaga:", err);
+        alert("Erro de conexão. Verifique sua rede.");
     }
 };
 
@@ -89,11 +103,17 @@ window.concluirVaga = async function(id) {
     if(confirm("Deseja marcar esta vaga como concluída? Ela sairá do painel, mas ficará no histórico do banco.")) {
         try {
             const { error } = await _supa.from('rh_vagas').update({ status: 'Concluída' }).eq('id', id);
-            if (error) throw error;
+            
+            if (error) {
+                console.error("Erro do Supabase ao concluir vaga:", error);
+                alert("ERRO NO BANCO: " + error.message);
+                return;
+            }
+            
             window.carregarDadosRH();
         } catch (err) {
-            console.error("Erro ao concluir vaga no banco:", err);
-            alert("Erro ao concluir vaga.");
+            console.error("Erro de execução ao concluir vaga:", err);
+            alert("Falha de conexão ao tentar concluir a vaga.");
         }
     }
 };
@@ -102,7 +122,7 @@ window.carregarDadosRH = async function() {
     if (!_supa) return;
     
     try {
-        // 1. Puxa os indicadores e murais
+        // 1. Puxa os indicadores e murais 100% DO BANCO DE DADOS
         const { data: indData, error: indError } = await _supa.from('rh_indicadores').select('*').order('data_registro', { ascending: false }).limit(1);
         
         if (!indError && indData && indData.length > 0) {
@@ -130,7 +150,16 @@ window.carregarDadosRH = async function() {
             if(document.getElementById('mural-avisos-rh')) document.getElementById('mural-avisos-rh').innerText = dados.mural_avisos || 'Sem avisos no momento.';
             if(document.getElementById('mural-liberacoes-rh')) document.getElementById('mural-liberacoes-rh').innerText = dados.mural_liberacoes || 'Sem atualizações.';
             if(document.getElementById('mural-aniversariantes-rh')) document.getElementById('mural-aniversariantes-rh').innerText = dados.mural_aniversariantes || 'Nenhum aniversariante registrado.';
-            if(document.getElementById('mural-calendario-rh')) document.getElementById('mural-calendario-rh').innerText = dados.mural_calendario || 'Sem eventos programados.';
+            
+            // Caso o calendário esteja sendo lido pela função gerarCalendarioVisual, ela faz o tratamento
+            if(typeof window.gerarCalendarioVisual === 'function') {
+                window.gerarCalendarioVisual(dados.mural_calendario || '');
+            } else if (document.getElementById('mural-calendario-rh')) {
+                document.getElementById('mural-calendario-rh').innerText = dados.mural_calendario || 'Sem eventos programados.';
+            }
+
+        } else if (typeof window.gerarCalendarioVisual === 'function') {
+            window.gerarCalendarioVisual('');
         }
         
         // 2. Puxa as vagas que estão com status 'Aberta'
@@ -187,7 +216,7 @@ window.carregarDadosRH = async function() {
             }
         }
     } catch (err) {
-        console.error("Erro ao puxar dados do banco:", err);
+        console.error("Erro geral ao puxar dados do banco:", err);
     }
 };
 
