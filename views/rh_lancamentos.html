@@ -1,4 +1,5 @@
 <div class="dashboard-grid">
+    <!-- Bloco 1: Indicadores Gerais -->
     <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid var(--primary);">
         <h3 class="nav-label" style="margin-bottom: 20px; color: var(--primary);"><i class="fas fa-edit"></i> LANÇAMENTO DIÁRIO DE INDICADORES - RH</h3>
         
@@ -7,42 +8,70 @@
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Total de Colaboradores (Headcount)</label>
                 <input type="number" id="input-headcount" class="config-input" placeholder="Ex: 250">
             </div>
-            
             <div class="input-group">
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Total de Atestados</label>
                 <input type="number" id="input-atestados" class="config-input" placeholder="Ex: 5">
             </div>
-            
             <div class="input-group">
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Total de Afastamentos</label>
                 <input type="number" id="input-afastamentos" class="config-input" placeholder="Ex: 2">
             </div>
-            
             <div class="input-group">
-                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Processos de Admissão</label>
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Processos de Admissão (Em andamento)</label>
                 <input type="number" id="input-admissoes" class="config-input" placeholder="Ex: 3">
             </div>
-            
             <div class="input-group">
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Integrações Realizadas</label>
                 <input type="number" id="input-integracoes" class="config-input" placeholder="Ex: 4">
-            </div>
-            
-            <div class="input-group">
-                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Total Vagas Abertas</label>
-                <input type="number" id="input-vagas" class="config-input" placeholder="Ex: 8">
             </div>
         </div>
         
         <button class="btn-salvar" onclick="salvarDadosRH()" style="margin-top: 20px;">
             <i class="fas fa-save"></i> Salvar Indicadores
         </button>
-        <span id="msg-rh" style="margin-left: 15px; font-weight: bold; color: var(--verde);"></span>
+        <span id="msg-rh" style="margin-left: 15px; font-weight: bold;"></script>
+    </div>
+
+    <!-- Bloco 2: Gestão de Vagas -->
+    <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid var(--amarelo); margin-top: 10px;">
+        <h3 class="nav-label" style="margin-bottom: 20px; color: var(--amarelo);"><i class="fas fa-briefcase"></i> GESTÃO DE VAGAS (RECRUTAMENTO E SELEÇÃO)</h3>
+        
+        <div class="form-grid" style="grid-template-columns: 2fr 2fr 1fr;">
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Cargo / Função</label>
+                <input type="text" id="vaga-cargo" class="config-input" placeholder="Ex: Motorista Tritrem">
+            </div>
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Setor</label>
+                <input type="text" id="vaga-setor" class="config-input" placeholder="Ex: Operacional">
+            </div>
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Quantidade</label>
+                <input type="number" id="vaga-qtd" class="config-input" placeholder="Ex: 2" min="1">
+            </div>
+        </div>
+        
+        <button class="btn-salvar" style="background: var(--amarelo); color: var(--bg-dark); margin-top: 15px;" onclick="adicionarVaga()">
+            <i class="fas fa-plus"></i> Adicionar Vaga
+        </button>
+
+        <div class="table-box" style="margin-top: 30px;">
+            <table class="exec-table">
+                <thead>
+                    <tr>
+                        <th style="color: var(--text-dim);">Cargo</th>
+                        <th style="color: var(--text-dim);">Setor</th>
+                        <th style="text-align: center; color: var(--text-dim);">Qtd</th>
+                        <th style="text-align: right; color: var(--text-dim);">Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela-vagas-lancamento"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 <script>
-    // Força o carregamento dos dados salvos quando a tela abre
     setTimeout(function() {
         if (typeof window.carregarDadosRH === 'function') {
             window.carregarDadosRH();

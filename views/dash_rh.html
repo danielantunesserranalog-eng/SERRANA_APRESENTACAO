@@ -26,14 +26,32 @@
     </div>
     
     <div class="kpi-card" style="border-left: 4px solid var(--amarelo);">
-        <p class="nav-label" style="color: var(--amarelo);">RECRUTAMENTO E SELEÇÃO</p>
+        <p class="nav-label" style="color: var(--amarelo);">TOTAL DE VAGAS ABERTAS</p>
         <div class="kpi-value status-amarelo" id="val-vagas">0</div>
-        <p class="status-msg"><i class="fas fa-briefcase"></i> Vagas Abertas em Andamento</p>
+        <p class="status-msg"><i class="fas fa-briefcase"></i> Somatório de cargos pendentes</p>
+    </div>
+</div>
+
+<!-- NOVA TABELA DE VAGAS NO PAINEL -->
+<div class="content-panel" style="margin-top: 30px; border-left: 5px solid var(--amarelo); background: rgba(15, 23, 42, 0.8); border-radius: 16px;">
+    <div style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <h3 class="nav-label" style="margin: 0; color: var(--amarelo); font-size: 1rem;"><i class="fas fa-search"></i> VAGAS EM ABERTO DETALHADAS</h3>
+    </div>
+    <div class="table-box" style="padding: 20px;">
+        <table class="exec-table" style="width: 100%; border-collapse: collapse; margin-top: 0;">
+            <thead>
+                <tr>
+                    <th style="color: var(--text-dim); padding-bottom: 10px;">Cargo / Função</th>
+                    <th style="color: var(--text-dim); padding-bottom: 10px;">Setor / Departamento</th>
+                    <th style="text-align: center; color: var(--text-dim); padding-bottom: 10px;">Quantidade Pendente</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-vagas-dash"></tbody>
+        </table>
     </div>
 </div>
 
 <script>
-    // Força o carregamento dos indicadores no painel quando a tela abre
     setTimeout(function() {
         if (typeof window.carregarDadosRH === 'function') {
             window.carregarDadosRH();
