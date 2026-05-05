@@ -46,7 +46,7 @@
         <span id="msg-ssma-geral" style="margin-left: 15px; font-weight: bold;"></span>
     </div>
 
-    <!-- NOVO BLOCO: LANÇAMENTO DE MURAIS DE COMUNICAÇÃO -->
+    <!-- MURAIS DE COMUNICAÇÃO -->
     <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid #8b5cf6;">
         <h3 class="nav-label" style="margin-bottom: 20px; color: #8b5cf6;"><i class="fas fa-chalkboard"></i> MURAIS DE COMUNICAÇÃO (TEXTO LIVRE)</h3>
         <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
@@ -125,6 +125,111 @@
         </button>
         <span id="msg-trei" style="display: block; margin-top: 10px; font-weight: bold;"></span>
     </div>
+
+    <!-- MATRIZ DE SEGURANÇA (EMPILHADA - 1 EMBAIXO DO OUTRO) -->
+    <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid #10b981; margin-top: 10px;">
+        <h3 class="nav-label" style="margin-bottom: 20px; color: #10b981;">
+            <i class="fas fa-users-cog"></i> CADASTRAR E LANÇAR: MATRIZ DE SEGURANÇA
+        </h3>
+        
+        <!-- Form para adicionar novo colaborador -->
+        <div class="form-grid" style="grid-template-columns: 2fr 2fr auto; margin-bottom: 25px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Nome do Colaborador</label>
+                <input type="text" id="nova-matriz-nome" class="config-input" placeholder="Ex: João Silva">
+            </div>
+            <div class="input-group">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Função / Cargo</label>
+                <input type="text" id="nova-matriz-funcao" class="config-input" placeholder="Ex: Lider de Campo">
+            </div>
+            <div class="input-group" style="display: flex; align-items: flex-end;">
+                <button class="btn-salvar" style="background: #10b981; padding: 15px 20px; width: 100%;" onclick="adicionarMembroMatriz()">
+                    <i class="fas fa-plus"></i> Adicionar à Matriz
+                </button>
+            </div>
+        </div>
+
+        <!-- 3 TABELAS EMPILHADAS (FLEX COLUMN) -->
+        <div style="display: flex; flex-direction: column; gap: 30px; width: 100%;">
+            
+            <!-- Tabela SEGURANÇA NA ÁREA -->
+            <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
+                <h4 style="color: #10b981; margin-bottom: 15px; font-size: 1rem; text-align: left; border-bottom: 1px solid var(--border); padding-bottom: 10px;"><i class="fas fa-shield-alt"></i> 1. SEGURANÇA NA ÁREA</h4>
+                <div class="table-box" style="overflow-x: auto;">
+                    <table class="exec-table" style="width: 100%; text-align: center; margin-top: 0;">
+                        <thead>
+                            <tr style="background: rgba(255,255,255,0.05);">
+                                <th style="text-align: left; padding: 12px; width: 50%; border-right: 1px solid var(--border);">COLABORADOR</th>
+                                <th style="padding: 12px; width: 15%;">Programado</th>
+                                <th style="padding: 12px; width: 15%;">Realizado</th>
+                                <th style="padding: 12px; width: 10%;"><i class="fas fa-trash"></i></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tb-edit-seg"></tbody>
+                        <tfoot style="background: rgba(0,0,0,0.3); border-top: 2px solid var(--border);">
+                            <tr><td style="text-align:right; font-weight:bold; padding: 12px; color: var(--text-dim);">Total Previsto</td><td id="edit-tot-p-seg" colspan="3" style="color:#10b981; font-weight:bold; text-align:left; padding-left:20px; font-size: 1.1rem;">0</td></tr>
+                            <tr><td style="text-align:right; font-weight:bold; padding: 12px; color: var(--text-dim);">Total Realizado</td><td id="edit-tot-r-seg" colspan="3" style="color:white; font-weight:bold; text-align:left; padding-left:20px; font-size: 1.1rem;">0</td></tr>
+                            <tr><td style="text-align:right; font-weight:bold; padding: 12px; color: var(--text-dim);">% Executado</td><td id="edit-perc-seg" colspan="3" style="font-weight:bold; text-align:left; padding-left:20px; font-size: 1.1rem;">0%</td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tabela OPA -->
+            <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
+                <h4 style="color: #3b82f6; margin-bottom: 15px; font-size: 1rem; text-align: left; border-bottom: 1px solid var(--border); padding-bottom: 10px;"><i class="fas fa-eye"></i> 2. OPA</h4>
+                <div class="table-box" style="overflow-x: auto;">
+                    <table class="exec-table" style="width: 100%; text-align: center; margin-top: 0;">
+                        <thead>
+                            <tr style="background: rgba(255,255,255,0.05);">
+                                <th style="text-align: left; padding: 12px; width: 50%; border-right: 1px solid var(--border);">COLABORADOR</th>
+                                <th style="padding: 12px; width: 15%;">Programado</th>
+                                <th style="padding: 12px; width: 15%;">Realizado</th>
+                                <th style="padding: 12px; width: 10%;"><i class="fas fa-trash"></i></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tb-edit-opa"></tbody>
+                        <tfoot style="background: rgba(0,0,0,0.3); border-top: 2px solid var(--border);">
+                            <tr><td style="text-align:right; font-weight:bold; padding: 12px; color: var(--text-dim);">Total Previsto</td><td id="edit-tot-p-opa" colspan="3" style="color:#3b82f6; font-weight:bold; text-align:left; padding-left:20px; font-size: 1.1rem;">0</td></tr>
+                            <tr><td style="text-align:right; font-weight:bold; padding: 12px; color: var(--text-dim);">Total Realizado</td><td id="edit-tot-r-opa" colspan="3" style="color:white; font-weight:bold; text-align:left; padding-left:20px; font-size: 1.1rem;">0</td></tr>
+                            <tr><td style="text-align:right; font-weight:bold; padding: 12px; color: var(--text-dim);">% Executado</td><td id="edit-perc-opa" colspan="3" style="font-weight:bold; text-align:left; padding-left:20px; font-size: 1.1rem;">0%</td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tabela ABORDAGEM -->
+            <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
+                <h4 style="color: #f59e0b; margin-bottom: 15px; font-size: 1rem; text-align: left; border-bottom: 1px solid var(--border); padding-bottom: 10px;"><i class="fas fa-comments"></i> 3. ABORDAGEM COMP.</h4>
+                <div class="table-box" style="overflow-x: auto;">
+                    <table class="exec-table" style="width: 100%; text-align: center; margin-top: 0;">
+                        <thead>
+                            <tr style="background: rgba(255,255,255,0.05);">
+                                <th style="text-align: left; padding: 12px; width: 50%; border-right: 1px solid var(--border);">COLABORADOR</th>
+                                <th style="padding: 12px; width: 15%;">Programado</th>
+                                <th style="padding: 12px; width: 15%;">Realizado</th>
+                                <th style="padding: 12px; width: 10%;"><i class="fas fa-trash"></i></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tb-edit-abo"></tbody>
+                        <tfoot style="background: rgba(0,0,0,0.3); border-top: 2px solid var(--border);">
+                            <tr><td style="text-align:right; font-weight:bold; padding: 12px; color: var(--text-dim);">Total Previsto</td><td id="edit-tot-p-abo" colspan="3" style="color:#f59e0b; font-weight:bold; text-align:left; padding-left:20px; font-size: 1.1rem;">0</td></tr>
+                            <tr><td style="text-align:right; font-weight:bold; padding: 12px; color: var(--text-dim);">Total Realizado</td><td id="edit-tot-r-abo" colspan="3" style="color:white; font-weight:bold; text-align:left; padding-left:20px; font-size: 1.1rem;">0</td></tr>
+                            <tr><td style="text-align:right; font-weight:bold; padding: 12px; color: var(--text-dim);">% Executado</td><td id="edit-perc-abo" colspan="3" style="font-weight:bold; text-align:left; padding-left:20px; font-size: 1.1rem;">0%</td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <div style="margin-top: 25px; display: flex; align-items: center; justify-content: center;">
+            <button class="btn-salvar" style="background: #10b981; padding: 15px 40px; font-size: 1.1rem;" onclick="salvarMatrizSSMA()">
+                <i class="fas fa-save"></i> Salvar Matriz de Segurança no Banco
+            </button>
+            <span id="msg-matriz" style="margin-left: 20px; font-weight: bold; font-size: 1.1rem;"></span>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -143,22 +248,17 @@
         elDnaData.value = hojeIso;
         elTreiData.value = hojeIso;
 
+        // ---------- LÓGICA DE INDICADORES GERAIS, MURAIS E DNAS ----------
         async function carregarIndicadoresDeHoje() {
             try {
-                // Puxa a Meta Global de DNA
                 const { data: configData } = await _supa.from('configuracoes').select('valor').eq('chave', 'meta_diaria_dna').limit(1);
                 if (configData && configData.length > 0) {
                     document.getElementById('ssma-meta-dna').value = configData[0].valor;
                 }
                 
-                // Puxa os dados do dia no banco
                 const dataSelecionada = elDataGeral.value;
-                const { data } = await _supa
-                    .from('ssma_indicadores_gerais')
-                    .select('*')
-                    .eq('data_registro', dataSelecionada)
-                    .limit(1);
-                    
+                const { data } = await _supa.from('ssma_indicadores_gerais').select('*').eq('data_registro', dataSelecionada).limit(1);
+                
                 if (data && data.length > 0) {
                     const ind = data[0];
                     document.getElementById('ssma-dias-acidente').value = ind.dias_sem_acidentes !== null ? ind.dias_sem_acidentes : '';
@@ -169,13 +269,11 @@
                     document.getElementById('ssma-campanha-cor').value = ind.campanha_cor || '#f59e0b';
                     document.getElementById('ssma-dnas-concluidos').value = ind.dnas_concluidos !== null ? ind.dnas_concluidos : '';
                     
-                    // Preenche os campos de Murais do banco
                     document.getElementById('ssma-txt-ocorrencias').value = ind.mural_ocorrencias || '';
                     document.getElementById('ssma-txt-ferramentas').value = ind.mural_ferramentas || '';
                     document.getElementById('ssma-txt-acoes').value = ind.mural_acoes || '';
                     document.getElementById('ssma-txt-avisos').value = ind.mural_avisos || '';
                 } else {
-                    // Limpa os campos se não houver dados para o dia
                     document.getElementById('ssma-dias-acidente').value = '';
                     document.getElementById('ssma-incidentes').value = '';
                     document.getElementById('ssma-visitas').value = '';
@@ -196,18 +294,14 @@
         
         carregarIndicadoresDeHoje();
         elDataGeral.addEventListener('change', carregarIndicadoresDeHoje);
-
+        
         window.salvarIndicadoresGerais = async function() {
             const msg = document.getElementById('msg-ssma-geral');
             const dataSelecionada = document.getElementById('ssma-data-geral').value;
             const metaDna = document.getElementById('ssma-meta-dna').value;
             
-            if(!dataSelecionada) {
-                msg.style.color = 'var(--vermelho)';
-                msg.innerText = 'Selecione uma data!';
-                return;
-            }
-
+            if(!dataSelecionada) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Selecione uma data!'; return; }
+            
             const dados = {
                 data_registro: dataSelecionada,
                 dias_sem_acidentes: parseInt(document.getElementById('ssma-dias-acidente').value, 10) || 0,
@@ -218,50 +312,26 @@
                 campanha_cor: document.getElementById('ssma-campanha-cor').value || '#f59e0b',
                 dnas_concluidos: parseInt(document.getElementById('ssma-dnas-concluidos').value, 10) || 0
             };
-
-            msg.style.color = 'var(--text-dim)'; 
-            msg.innerText = 'Salvando no banco...';
-
+            msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando no banco...';
             try {
                 if (metaDna) {
                     await _supa.from('configuracoes').upsert([{ chave: 'meta_diaria_dna', valor: metaDna }], { onConflict: 'chave' });
                 }
-
                 const { data: existe } = await _supa.from('ssma_indicadores_gerais').select('id').eq('data_registro', dataSelecionada).limit(1);
-                
                 let res;
-                if (existe && existe.length > 0) {
-                    res = await _supa.from('ssma_indicadores_gerais').update(dados).eq('data_registro', dataSelecionada);
-                } else {
-                    res = await _supa.from('ssma_indicadores_gerais').insert([dados]);
-                }
+                if (existe && existe.length > 0) { res = await _supa.from('ssma_indicadores_gerais').update(dados).eq('data_registro', dataSelecionada); } 
+                else { res = await _supa.from('ssma_indicadores_gerais').insert([dados]); }
                 
-                if (res.error) { 
-                    console.error("Erro no Banco:", res.error);
-                    msg.style.color = 'var(--vermelho)'; 
-                    msg.innerText = 'Erro ao salvar!'; 
-                } else { 
-                    msg.style.color = 'var(--verde)'; 
-                    msg.innerText = 'Salvo no banco com sucesso!'; 
-                    setTimeout(() => msg.innerText='', 3000); 
-                }
-
-            } catch (err) {
-                console.error("Erro Crítico:", err);
-            }
+                if (res.error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!'; } 
+                else { msg.style.color = 'var(--verde)'; msg.innerText = 'Salvo no banco com sucesso!'; setTimeout(() => msg.innerText='', 3000); }
+            } catch (err) { console.error("Erro Crítico:", err); }
         };
 
-        // FUNÇÃO EXCLUSIVA PARA SALVAR OS MURAIS NO BANCO
         window.salvarMuraisSSMA = async function() {
             const msg = document.getElementById('msg-murais');
             const dataSelecionada = document.getElementById('ssma-data-geral').value;
-
-            if(!dataSelecionada) {
-                msg.style.color = 'var(--vermelho)';
-                msg.innerText = 'Selecione a Data de Registro lá no topo!';
-                return;
-            }
-
+            if(!dataSelecionada) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Selecione a Data!'; return; }
+            
             const dados = {
                 data_registro: dataSelecionada,
                 mural_ocorrencias: document.getElementById('ssma-txt-ocorrencias').value || null,
@@ -269,72 +339,34 @@
                 mural_acoes: document.getElementById('ssma-txt-acoes').value || null,
                 mural_avisos: document.getElementById('ssma-txt-avisos').value || null
             };
-
-            msg.style.color = 'var(--text-dim)'; 
-            msg.innerText = 'Atualizando o banco de dados...';
-
+            msg.style.color = 'var(--text-dim)'; msg.innerText = 'Atualizando o banco de dados...';
             try {
                 const { data: existe } = await _supa.from('ssma_indicadores_gerais').select('id').eq('data_registro', dataSelecionada).limit(1);
                 let res;
-                if (existe && existe.length > 0) {
-                    res = await _supa.from('ssma_indicadores_gerais').update(dados).eq('data_registro', dataSelecionada);
-                } else {
-                    res = await _supa.from('ssma_indicadores_gerais').insert([dados]);
-                }
+                if (existe && existe.length > 0) { res = await _supa.from('ssma_indicadores_gerais').update(dados).eq('data_registro', dataSelecionada); } 
+                else { res = await _supa.from('ssma_indicadores_gerais').insert([dados]); }
                 
-                if (res.error) { 
-                    console.error("Erro no Banco:", res.error);
-                    msg.style.color = 'var(--vermelho)'; 
-                    msg.innerText = 'Erro ao atualizar!'; 
-                } else { 
-                    msg.style.color = 'var(--verde)'; 
-                    msg.innerText = 'Murais salvos no banco com sucesso!'; 
-                    setTimeout(() => msg.innerText='', 3000); 
-                }
-            } catch (err) {
-                console.error("Erro Crítico:", err);
-                msg.style.color = 'var(--vermelho)'; 
-                msg.innerText = 'Falha de Conexão!';
-            }
+                if (res.error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao atualizar!'; } 
+                else { msg.style.color = 'var(--verde)'; msg.innerText = 'Murais salvos no banco com sucesso!'; setTimeout(() => msg.innerText='', 3000); }
+            } catch (err) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Falha de Conexão!'; }
         };
 
         window.salvarDNA = async function() {
             const msg = document.getElementById('msg-dna');
             const dataDNA = document.getElementById('dna-data').value;
             const qtdDNA = parseInt(document.getElementById('dna-qtd').value, 10);
-
-            if(!dataDNA) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Selecione a data!'; return; }
-            if(!qtdDNA || qtdDNA <= 0) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Insira uma quantidade válida!'; return; }
+            if(!dataDNA || !qtdDNA || qtdDNA <= 0) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Dados inválidos!'; return; }
             
             msg.style.color = 'var(--text-dim)'; msg.innerText = 'Registrando...';
+            const registros = Array.from({length: qtdDNA}, () => ({ data_abertura: dataDNA, setor: 'Lançamento em Lote', descricao: 'DNA via painel executivo', status: 'Aberto' }));
+            const { error } = await _supa.from('ssma_dnas').insert(registros);
             
-            const registrosEmLote = [];
-            for(let i = 0; i < qtdDNA; i++) {
-                registrosEmLote.push({
-                    data_abertura: dataDNA,
-                    setor: 'Lançamento em Lote',
-                    descricao: 'DNA registrado por quantidade via painel executivo',
-                    status: 'Aberto'
-                });
-            }
-
-            const { error } = await _supa.from('ssma_dnas').insert(registrosEmLote);
-            
-            if (error) { 
-                console.error("Erro no Banco:", error);
-                msg.style.color = 'var(--vermelho)'; 
-                msg.innerText = 'Erro ao salvar!'; 
-            } else { 
-                msg.style.color = 'var(--verde)'; 
-                msg.innerText = `${qtdDNA} DNA(s) Registrado(s)!`; 
-                document.getElementById('dna-qtd').value = '';
-                setTimeout(() => msg.innerText='', 3000); 
-            }
+            if (error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!'; } 
+            else { msg.style.color = 'var(--verde)'; msg.innerText = `${qtdDNA} DNA(s) Registrado(s)!`; document.getElementById('dna-qtd').value = ''; setTimeout(() => msg.innerText='', 3000); }
         }
 
         window.salvarTreinamento = async function() {
             const msg = document.getElementById('msg-trei');
-            
             const dados = {
                 nome_treinamento: document.getElementById('trei-nome').value,
                 data_previsao: document.getElementById('trei-data').value,
@@ -342,22 +374,190 @@
                 quantidade_colaboradores: parseInt(document.getElementById('trei-qtd').value, 10) || 0,
                 localizacao: document.getElementById('trei-local').value || null
             };
-
             if(!dados.nome_treinamento) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Preencha o Nome!'; return; }
-            
             msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando...';
-
             const { error } = await _supa.from('ssma_treinamentos').insert([dados]);
-            
-            if (error) { 
-                msg.style.color = 'var(--vermelho)'; 
-                msg.innerText = 'Erro ao salvar!'; 
-            } else { 
-                msg.style.color = 'var(--verde)'; 
-                msg.innerText = 'Salvo!'; 
-                document.getElementById('trei-nome').value = '';
-                setTimeout(() => msg.innerText='', 3000); 
-            }
+            if (error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!'; } 
+            else { msg.style.color = 'var(--verde)'; msg.innerText = 'Salvo!'; document.getElementById('trei-nome').value = ''; setTimeout(() => msg.innerText='', 3000); }
         }
-    }, 50); 
+
+        // ================= LÓGICA DA NOVA TABELA DEDICADA ssma_matriz =================
+        window.matrizSSMAData = [];
+
+        window.renderizarMatrizInput = function() {
+            const tbSeg = document.getElementById('tb-edit-seg');
+            const tbOpa = document.getElementById('tb-edit-opa');
+            const tbAbo = document.getElementById('tb-edit-abo');
+
+            tbSeg.innerHTML = ''; tbOpa.innerHTML = ''; tbAbo.innerHTML = '';
+
+            if (window.matrizSSMAData.length === 0) {
+                const emptyMsg = '<tr><td colspan="4" style="text-align:center; color: var(--text-dim); padding: 15px;">Sem dados cadastrados.</td></tr>';
+                tbSeg.innerHTML = emptyMsg; tbOpa.innerHTML = emptyMsg; tbAbo.innerHTML = emptyMsg;
+                window.calcularTotaisInput();
+                return;
+            }
+
+            window.matrizSSMAData.forEach((m, idx) => {
+                const colabHTML = `
+                    <td style="text-align: left; padding: 12px; border-right: 1px solid var(--border);">
+                        <div style="font-weight: bold; color: white; font-size: 0.95rem;">${m.nome}</div>
+                        <div style="color: var(--text-dim); font-size: 0.8rem; margin-top: 3px;">${m.funcao}</div>
+                    </td>
+                `;
+
+                tbSeg.insertAdjacentHTML('beforeend', `
+                    <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);">
+                        ${colabHTML}
+                        <td style="text-align: center; padding: 10px;"><input type="number" class="config-input" value="${m.pSeg}" oninput="window.updateMatrizData(${idx}, 'pSeg', this.value)" style="width: 70px; padding: 8px; text-align: center; border-color: #10b981;"></td>
+                        <td style="text-align: center; padding: 10px;"><input type="number" class="config-input" value="${m.rSeg}" oninput="window.updateMatrizData(${idx}, 'rSeg', this.value)" style="width: 70px; padding: 8px; text-align: center;"></td>
+                        <td style="text-align: center; padding: 10px;"><button class="btn-kanban" style="background: var(--vermelho); padding: 8px 12px;" onclick="window.removerMembroMatriz(${idx})"><i class="fas fa-trash"></i></button></td>
+                    </tr>
+                `);
+
+                tbOpa.insertAdjacentHTML('beforeend', `
+                    <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);">
+                        ${colabHTML}
+                        <td style="text-align: center; padding: 10px;"><input type="number" class="config-input" value="${m.pOpa}" oninput="window.updateMatrizData(${idx}, 'pOpa', this.value)" style="width: 70px; padding: 8px; text-align: center; border-color: #3b82f6;"></td>
+                        <td style="text-align: center; padding: 10px;"><input type="number" class="config-input" value="${m.rOpa}" oninput="window.updateMatrizData(${idx}, 'rOpa', this.value)" style="width: 70px; padding: 8px; text-align: center;"></td>
+                        <td style="text-align: center; padding: 10px;"><button class="btn-kanban" style="background: var(--vermelho); padding: 8px 12px;" onclick="window.removerMembroMatriz(${idx})"><i class="fas fa-trash"></i></button></td>
+                    </tr>
+                `);
+
+                tbAbo.insertAdjacentHTML('beforeend', `
+                    <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);">
+                        ${colabHTML}
+                        <td style="text-align: center; padding: 10px;"><input type="number" class="config-input" value="${m.pAbo}" oninput="window.updateMatrizData(${idx}, 'pAbo', this.value)" style="width: 70px; padding: 8px; text-align: center; border-color: #f59e0b;"></td>
+                        <td style="text-align: center; padding: 10px;"><input type="number" class="config-input" value="${m.rAbo}" oninput="window.updateMatrizData(${idx}, 'rAbo', this.value)" style="width: 70px; padding: 8px; text-align: center;"></td>
+                        <td style="text-align: center; padding: 10px;"><button class="btn-kanban" style="background: var(--vermelho); padding: 8px 12px;" onclick="window.removerMembroMatriz(${idx})"><i class="fas fa-trash"></i></button></td>
+                    </tr>
+                `);
+            });
+
+            window.calcularTotaisInput();
+        };
+
+        window.updateMatrizData = function(index, field, value) {
+            window.matrizSSMAData[index][field] = Number(value) || 0;
+            window.calcularTotaisInput();
+        };
+
+        window.calcularTotaisInput = function() {
+            let tPSeg=0, tRSeg=0, tPOpa=0, tROpa=0, tPAbo=0, tRAbo=0;
+            window.matrizSSMAData.forEach(m => {
+                tPSeg += m.pSeg; tRSeg += m.rSeg;
+                tPOpa += m.pOpa; tROpa += m.rOpa;
+                tPAbo += m.pAbo; tRAbo += m.rAbo;
+            });
+
+            document.getElementById('edit-tot-p-seg').innerText = tPSeg;
+            document.getElementById('edit-tot-r-seg').innerText = tRSeg;
+            document.getElementById('edit-tot-p-opa').innerText = tPOpa;
+            document.getElementById('edit-tot-r-opa').innerText = tROpa;
+            document.getElementById('edit-tot-p-abo').innerText = tPAbo;
+            document.getElementById('edit-tot-r-abo').innerText = tRAbo;
+
+            const calcPerc = (real, prog) => prog > 0 ? Math.round((real / prog) * 100) : 0;
+            const applyColor = (id, val) => {
+                const el = document.getElementById(id);
+                el.innerText = `${val}%`;
+                el.style.color = val >= 100 ? 'var(--verde)' : 'var(--vermelho)';
+            };
+
+            applyColor('edit-perc-seg', calcPerc(tRSeg, tPSeg));
+            applyColor('edit-perc-opa', calcPerc(tROpa, tPOpa));
+            applyColor('edit-perc-abo', calcPerc(tRAbo, tPAbo));
+        };
+
+        window.removerMembroMatriz = async function(index) {
+            if(!confirm('Remover colaborador da Matriz?')) return;
+            const membro = window.matrizSSMAData[index];
+            
+            // Se já tem ID, apaga do banco imediatamente
+            if (membro.id) {
+                await _supa.from('ssma_matriz').delete().eq('id', membro.id);
+            }
+            
+            window.matrizSSMAData.splice(index, 1);
+            window.renderizarMatrizInput();
+        };
+
+        window.adicionarMembroMatriz = function() {
+            const nome = document.getElementById('nova-matriz-nome').value.trim();
+            const funcao = document.getElementById('nova-matriz-funcao').value.trim();
+            if(!nome || !funcao) { alert("Preencha o Nome e a Função!"); return; }
+            
+            window.matrizSSMAData.push({
+                id: null, // Será gerado ao salvar no banco
+                nome: nome.toUpperCase(), funcao: funcao.toUpperCase(),
+                pSeg: 0, rSeg: 0, pOpa: 0, rOpa: 0, pAbo: 0, rAbo: 0
+            });
+            
+            document.getElementById('nova-matriz-nome').value = '';
+            document.getElementById('nova-matriz-funcao').value = '';
+            window.renderizarMatrizInput();
+        };
+
+        window.carregarMatrizDoBanco = async function() {
+            try {
+                // Traz os dados da NOVA TABELA
+                const { data, error } = await _supa.from('ssma_matriz').select('*').order('created_at', { ascending: true });
+                
+                if (data && data.length > 0) {
+                    window.matrizSSMAData = data.map(d => ({
+                        id: d.id, nome: d.nome, funcao: d.funcao,
+                        pSeg: d.p_seg, rSeg: d.r_seg,
+                        pOpa: d.p_opa, rOpa: d.r_opa,
+                        pAbo: d.p_abo, rAbo: d.r_abo
+                    }));
+                } else {
+                    window.matrizSSMAData = [];
+                }
+                window.renderizarMatrizInput();
+            } catch (e) {
+                console.error("Erro ao carregar Matriz:", e);
+            }
+        };
+
+        window.salvarMatrizSSMA = async function() {
+            const msg = document.getElementById('msg-matriz');
+            msg.style.color = 'var(--text-dim)';
+            msg.innerText = 'Salvando no banco de dados...';
+            
+            try {
+                // Separar quem é novo (Insert) de quem já existe (Update)
+                const toInsert = window.matrizSSMAData.filter(m => !m.id).map(m => ({
+                    nome: m.nome, funcao: m.funcao,
+                    p_seg: m.pSeg, r_seg: m.rSeg, p_opa: m.pOpa, r_opa: m.rOpa, p_abo: m.pAbo, r_abo: m.rAbo
+                }));
+
+                const toUpdate = window.matrizSSMAData.filter(m => m.id).map(m => ({
+                    id: m.id, nome: m.nome, funcao: m.funcao,
+                    p_seg: m.pSeg, r_seg: m.rSeg, p_opa: m.pOpa, r_opa: m.rOpa, p_abo: m.pAbo, r_abo: m.rAbo
+                }));
+
+                if (toInsert.length > 0) {
+                    await _supa.from('ssma_matriz').insert(toInsert);
+                }
+                
+                if (toUpdate.length > 0) {
+                    await _supa.from('ssma_matriz').upsert(toUpdate);
+                }
+
+                // Recarrega para puxar os novos IDs gerados pelo banco
+                await window.carregarMatrizDoBanco();
+                
+                msg.style.color = 'var(--verde)';
+                msg.innerText = 'Matriz salva na Tabela SSMA_MATRIZ com sucesso!';
+                setTimeout(() => msg.innerText='', 4000);
+            } catch(e) {
+                msg.style.color = 'var(--vermelho)';
+                msg.innerText = 'Erro de conexão ao salvar!';
+            }
+        };
+
+        // Dispara o carregamento inicial
+        window.carregarMatrizDoBanco();
+
+    }, 50);
 </script>
