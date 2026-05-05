@@ -12,22 +12,22 @@
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Total de Atestados</label>
                 <input type="number" id="input-atestados" class="config-input" placeholder="Ex: 5">
             </div>
-
+            
             <div class="input-group">
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Total de Afastamentos</label>
                 <input type="number" id="input-afastamentos" class="config-input" placeholder="Ex: 2">
             </div>
-
+            
             <div class="input-group">
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Processos de Admissão</label>
                 <input type="number" id="input-admissoes" class="config-input" placeholder="Ex: 3">
             </div>
-
+            
             <div class="input-group">
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Integrações Realizadas</label>
                 <input type="number" id="input-integracoes" class="config-input" placeholder="Ex: 4">
             </div>
-
+            
             <div class="input-group">
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Total Vagas Abertas</label>
                 <input type="number" id="input-vagas" class="config-input" placeholder="Ex: 8">
@@ -41,4 +41,11 @@
     </div>
 </div>
 
-<script src="./js/rh.js"></script>
+<script>
+    // Força o carregamento dos dados salvos quando a tela abre
+    setTimeout(function() {
+        if (typeof window.carregarDadosRH === 'function') {
+            window.carregarDadosRH();
+        }
+    }, 100);
+</script>

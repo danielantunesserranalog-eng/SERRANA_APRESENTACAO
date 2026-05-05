@@ -4,25 +4,21 @@
         <div class="kpi-value status-verde" id="val-headcount">0</div>
         <p class="status-msg"><i class="fas fa-users"></i> Headcount atual</p>
     </div>
-
     <div class="kpi-card" style="border-left: 4px solid #f59e0b;">
         <p class="nav-label" style="color: #f59e0b;">TOTAL DE ATESTADOS</p>
         <div class="kpi-value status-amarelo" id="val-atestados">0</div>
         <p class="status-msg"><i class="fas fa-file-medical"></i> Entregues no mês</p>
     </div>
-
     <div class="kpi-card" style="border-left: 4px solid #ef4444;">
         <p class="nav-label" style="color: #ef4444;">AFASTAMENTOS</p>
         <div class="kpi-value status-vermelho" id="val-afastamentos">0</div>
         <p class="status-msg"><i class="fas fa-user-injured"></i> INSS / Acidentes</p>
     </div>
-
     <div class="kpi-card" style="border-left: 4px solid #0ea5e9;">
         <p class="nav-label" style="color: #0ea5e9;">PROCESSOS DE ADMISSÃO</p>
         <div class="kpi-value" id="val-admissoes" style="color: #0ea5e9;">0</div>
         <p class="status-msg"><i class="fas fa-user-plus"></i> Em andamento</p>
     </div>
-
     <div class="kpi-card" style="border-left: 4px solid #8b5cf6;">
         <p class="nav-label" style="color: #8b5cf6;">INTEGRAÇÕES</p>
         <div class="kpi-value" id="val-integracoes" style="color: #8b5cf6;">0</div>
@@ -36,4 +32,11 @@
     </div>
 </div>
 
-<script src="./js/rh.js"></script>
+<script>
+    // Força o carregamento dos indicadores no painel quando a tela abre
+    setTimeout(function() {
+        if (typeof window.carregarDadosRH === 'function') {
+            window.carregarDadosRH();
+        }
+    }, 100);
+</script>
