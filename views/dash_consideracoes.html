@@ -1,26 +1,13 @@
-<div class="dashboard-grid">
-    <div class="kpi-card">
-        <div class="farol-indicator bg-verde"></div>
-        <p class="nav-label">CUMPRIMENTO DAS METAS GERAIS</p>
-        <div class="kpi-value status-verde">0 <span class="kpi-unit">%</span></div>
-        <p class="status-msg">Global Serrana Florestal</p>
-    </div>
-    <div class="kpi-card">
-        <div class="farol-indicator bg-verde"></div>
-        <p class="nav-label">EFETIVIDADE DE PRAZOS</p>
-        <div class="kpi-value status-verde">0 <span class="kpi-unit">%</span></div>
-        <p class="status-msg">Aderência aos compromissos firmados</p>
-    </div>
-    <div class="kpi-card">
-        <div class="farol-indicator bg-amarelo"></div>
-        <p class="nav-label">PONTOS DE ATENÇÃO PARA O PERÍODO</p>
-        <div class="kpi-value status-amarelo">0 <span class="kpi-unit">Itens Críticos</span></div>
-        <p class="status-msg">Nenhum ponto de atenção pendente</p>
-    </div>
+<!-- ================= HEADER COM BOTÃO PDF ================= -->
+<div class="action-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(15, 23, 42, 0.8); padding: 15px 20px; border-radius: 12px; border-left: 5px solid #eab308;">
+    <h2 style="color: white; margin: 0; font-size: 1.2rem;"><i class="fas fa-clipboard-list" style="color: #eab308;"></i> Resumo e Considerações do Dia</h2>
+    <button class="btn-salvar" onclick="gerarPDFConsideracoes(event)" style="background: #eab308; color: #0f172a; padding: 10px 20px; font-size: 0.9rem; font-weight: bold; border: none; border-radius: 8px; cursor: pointer;">
+        <i class="fas fa-file-pdf"></i> Gerar PDF
+    </button>
 </div>
 
 <!-- ================= RESUMO DO DIA: LANÇAMENTOS DE HOJE ================= -->
-<div class="content-panel" style="margin-top: 30px; border-left: 5px solid #0ea5e9; background: rgba(15, 23, 42, 0.8); border-radius: 12px; overflow: hidden;">
+<div class="content-panel" style="margin-top: 15px; border-left: 5px solid #0ea5e9; background: rgba(15, 23, 42, 0.8); border-radius: 12px; overflow: hidden;">
     <h3 class="nav-label" style="font-size: 1rem; color: white; padding: 15px 20px 0;"><i class="fas fa-calendar-day" style="color: #0ea5e9;"></i> AÇÕES E METAS ADICIONADAS HOJE</h3>
     <div id="resumo-dia-lista" style="padding: 15px 20px; display: flex; flex-direction: column; gap: 10px;">
         <p style="color: var(--text-dim); font-size: 0.85rem;">Carregando resumo do dia...</p>
@@ -50,26 +37,21 @@
 <script>
     // --- LÓGICA DO DRAG AND DROP ---
     let draggedItemId = null;
-
     window.dragStart = function(event) {
         draggedItemId = event.currentTarget.getAttribute('data-id');
         event.currentTarget.classList.add('dragging');
     };
-
     window.dragEnd = function(event) {
         event.currentTarget.classList.remove('dragging');
         document.querySelectorAll('.kanban-col').forEach(col => col.classList.remove('drag-over'));
     };
-
     window.permitirDrop = function(event) {
         event.preventDefault();
         event.currentTarget.classList.add('drag-over');
     };
-
     window.sairDrop = function(event) {
         event.currentTarget.classList.remove('drag-over');
     };
-
     window.soltarDrop = function(event) {
         event.preventDefault();
         const coluna = event.currentTarget;
@@ -80,7 +62,6 @@
             window.moverKanban(draggedItemId, novoStatus);
         }
     };
-    // -------------------------------
 
     function formatarDataBR(dataIso) {
         if (!dataIso) return '';
@@ -100,9 +81,10 @@
         resumoDia.innerHTML = '';
 
         let dadosKanban = [];
-
         try {
-            const _supa = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            const _supa = window.supabaseClientGlobal;
+            
             const { data, error } = await _supa.from('kanban_metas').select('*').neq('status', 'ARCHIVED').order('data_criacao', { ascending: false });
             if (error) throw error;
             dadosKanban = data || [];
@@ -114,7 +96,6 @@
 
         colTodo.innerHTML = '';
         
-        // Pega a string da data de hoje
         const hojeStr = new Date().toISOString().split('T')[0];
         let itensCriadosHoje = 0;
 
@@ -150,7 +131,6 @@
                     ${item.data_previsao ? `<span class="badge-data"><i class="fas fa-calendar-alt"></i> ${formatarDataBR(item.data_previsao)}</span>` : ''}
                 </div>
                 
-                <!-- BOTÕES RESTAURADOS -->
                 <div class="kanban-actions">
                     ${item.status !== 'TODO' ? `<button class="btn-kanban" onclick="moverKanban('${item.id}', 'TODO')"><i class="fas fa-arrow-left"></i> A Fazer</button>` : ''}
                     ${item.status !== 'DOING' ? `<button class="btn-kanban" onclick="moverKanban('${item.id}', 'DOING')">${item.status==='TODO' ? 'Iniciar <i class="fas fa-arrow-right"></i>' : 'Voltar'}</button>` : ''}
@@ -176,7 +156,9 @@
 
     window.moverKanban = async function(id, novoStatus) {
         try {
-            const _supa = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            const _supa = window.supabaseClientGlobal;
+            
             const { error } = await _supa.from('kanban_metas').update({ status: novoStatus }).eq('id', id);
             if (error) throw error;
         } catch(e) {
@@ -195,7 +177,9 @@
     window.excluirKanban = async function(id) {
         if(!confirm('Excluir definitivamente esta meta?')) return;
         try {
-            const _supa = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            const _supa = window.supabaseClientGlobal;
+            
             const { error } = await _supa.from('kanban_metas').delete().eq('id', id);
             if (error) throw error;
         } catch(e) {
@@ -205,6 +189,51 @@
         }
         carregarKanbanDash();
     }
+
+    // --- LÓGICA DE GERAÇÃO DO PDF ---
+    window.gerarPDFConsideracoes = async function(event) {
+        if (!window.jspdf || !window.jspdf.jsPDF) {
+            alert("Biblioteca de PDF não carregou corretamente. Recarregue a página.");
+            return;
+        }
+        
+        const btn = event.currentTarget;
+        const btnOriginalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
+        btn.disabled = true;
+
+        try {
+            const contentArea = document.getElementById('content-area');
+            const kanbanActions = contentArea.querySelectorAll('.kanban-actions');
+            kanbanActions.forEach(el => el.style.display = 'none');
+            
+            const canvas = await html2canvas(contentArea, { 
+                scale: 1.5, 
+                backgroundColor: '#0f172a',
+                useCORS: true
+            });
+            
+            kanbanActions.forEach(el => el.style.display = 'flex');
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            
+            const dataHoje = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+            pdf.save(`Resumo_Diario_Serrana_${dataHoje}.pdf`);
+            
+        } catch (error) {
+            console.error("Erro na geração do PDF: ", error);
+            alert("Houve um erro ao tentar gerar o PDF.");
+        } finally {
+            btn.innerHTML = btnOriginalHTML;
+            btn.disabled = false;
+        }
+    };
 
     // Inicializa
     setTimeout(carregarKanbanDash, 300);

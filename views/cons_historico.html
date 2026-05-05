@@ -31,9 +31,10 @@
     async function carregarHistorico() {
         const tbody = document.getElementById('tabela-historico');
         let dadosArquivados = [];
-
         try {
-            const _supa = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            const _supa = window.supabaseClientGlobal;
+            
             const { data, error } = await _supa.from('kanban_metas').select('*').eq('status', 'ARCHIVED').order('data_criacao', { ascending: false });
             if (error) throw error;
             dadosArquivados = data || [];
@@ -69,7 +70,9 @@
     window.desarquivarKanban = async function(id) {
         if(!confirm('Voltar este card para o Kanban (Concluído)?')) return;
         try {
-            const _supa = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            const _supa = window.supabaseClientGlobal;
+            
             await _supa.from('kanban_metas').update({ status: 'DONE' }).eq('id', id);
         } catch(e) {
             let local = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');
@@ -82,7 +85,9 @@
     window.excluirKanbanHistorico = async function(id) {
         if(!confirm('Excluir definitivamente esta meta arquivada?')) return;
         try {
-            const _supa = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            const _supa = window.supabaseClientGlobal;
+            
             await _supa.from('kanban_metas').delete().eq('id', id);
         } catch(e) {
             let local = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');

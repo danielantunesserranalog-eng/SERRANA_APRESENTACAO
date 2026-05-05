@@ -1,13 +1,10 @@
 const menuData = [
     { id: 'ssma', title: 'SSMA', icon: 'fa-shield-alt', mainFile: 'dash_ssma.html', key: 'resp_ssma', def: 'Segurança do Trabalho',
         submenus: [{ id: 'ssma_ocorrencias', title: 'Lançar Ocorrências', file: 'ssma_ocorrencias.html', key: 'resp_ssma', def: 'Segurança do Trabalho' }] },
-    
-    // 👇 O submenu "Painel de Indicadores" foi removido daqui!
     { id: 'rh', title: 'RH', icon: 'fa-users', mainFile: 'dash_rh.html', key: 'resp_rh', def: 'Responsável RH',
         submenus: [
             { id: 'rh_lancamentos', title: 'Lançar Indicadores', file: 'rh_lancamentos.html', key: 'resp_rh', def: 'Responsável RH' }
         ] },
-        
     { id: 'operacional', title: 'OPERACIONAL', icon: 'fa-truck', mainFile: 'dash_operacional.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos',
         submenus: [
             { id: 'op_frentes', title: 'Lançar Frentes', file: 'op_frentes.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos' },
@@ -109,8 +106,8 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
             document.body.removeChild(newScript);
         });
         
-        // Aqui removemos o Kanban da tela de Lançamentos do RH, além de outros arquivos
-        if (!['dash_consideracoes.html', 'cons_historico.html', 'conf_sistema.html', 'rh_lancamentos.html'].includes(fileName)) {
+        // Retiramos 'dash_consideracoes.html' do array de bloqueio, para que o Kanban apareça lá também
+        if (!['cons_historico.html', 'conf_sistema.html', 'rh_lancamentos.html'].includes(fileName)) {
             injectKanbanLauncher(subTitle);
         }
     } catch (e) {
@@ -240,8 +237,8 @@ window.salvarKanbanItem = async function() {
         return; 
     }
     
-    const item = { 
-        id: Date.now(), 
+    // Removendo o ID manual (Date.now()) para que o Supabase gere sozinho e pare de dar erro
+    const item = {
         setor: setor, 
         responsavel: responsavel, 
         meta: meta, 
@@ -254,14 +251,21 @@ window.salvarKanbanItem = async function() {
     msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando...';
     
     try {
-        if (typeof supabase !== 'undefined' && SUPABASE_CONFIG) {
-            const _supa = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+        if (!window.supabaseClientGlobal && typeof supabase !== 'undefined' && SUPABASE_CONFIG) {
+            window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+        }
+        
+        if (window.supabaseClientGlobal) {
+            const _supa = window.supabaseClientGlobal;
             const { error } = await _supa.from('kanban_metas').insert([item]);
             if (error) throw error;
         } else {
             throw new Error("Supabase não carregado");
         }
     } catch(e) {
+        console.warn("Erro ao salvar no Supabase, salvando local", e);
+        // Fallback local: Apenas aqui usamos o id manual
+        item.id = Date.now();
         let localKanban = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');
         localKanban.push(item);
         localStorage.setItem('kanban_metas_local', JSON.stringify(localKanban));
@@ -272,6 +276,12 @@ window.salvarKanbanItem = async function() {
     document.getElementById('kb-consideracao').value = '';
     document.getElementById('kb-responsavel-final').value = '';
     renderResponsaveisKb();
+    
+    // Atualiza a tela do Kanban na mesma hora, se ela estiver aberta
+    if (typeof window.carregarKanbanDash === 'function') {
+        window.carregarKanbanDash();
+    }
+    
     setTimeout(() => msg.innerText = '', 4000);
 }
 
