@@ -1,3 +1,6 @@
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
 <style>
     .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); }
     .glow-border-blue { box-shadow: 0 0 15px rgba(59, 130, 246, 0.15); border: 1px solid rgba(59, 130, 246, 0.4); }
@@ -28,7 +31,7 @@
 
     <section class="animate-fade-in space-y-6">
         
-        <!-- Barra de Filtros (Igual à Imagem) -->
+        <!-- Barra de Filtros -->
         <div class="flex flex-col gap-4 mb-6">
             <div class="flex items-center gap-4 bg-slate-900/80 p-2 rounded-xl border border-sky-800 shadow-lg shadow-sky-900/20 flex-wrap">
                 <!-- MES -->
@@ -74,7 +77,7 @@
             </div>
         </div>
 
-        <!-- Painel de Cards 1 (Volumes e Gerais - Igual Imagem) -->
+        <!-- Painel de Cards 1 (Volumes e Gerais) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-5">
             <div class="glass-card rounded-2xl p-5 glow-border-blue card-hover flex flex-col justify-between">
                 <div>
@@ -120,45 +123,73 @@
             </div>
         </div>
 
-        <!-- Painel de Cards 2 (Tempos e Padrões - Igual Imagem) -->
+        <!-- Painel de Cards 2 (Tempos e Padrões - Estrutura REFEITA para 100% alinhamento e distribuição) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
-            <div class="glass-card rounded-2xl p-5 glow-border-blue card-hover flex flex-col justify-between">
-                <div class="flex justify-between items-start mb-2">
-                    <p class="text-sky-400 text-[10px] font-bold uppercase tracking-widest m-0">Ciclo Médio</p>
-                    <i class="fas fa-stopwatch text-sky-500/50 text-[22px]"></i>
+            <!-- Ciclo Médio -->
+            <div class="glass-card rounded-2xl p-5 glow-border-blue card-hover flex flex-col h-full relative">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-sky-400 text-[11px] font-bold uppercase tracking-widest m-0">Ciclo Médio</p>
+                    <i class="fas fa-stopwatch text-sky-500/50 text-[24px]"></i>
                 </div>
-                <div id="cicloMedio" class="mt-1 flex-1 flex items-center">
-                    <p class="text-[32px] font-black text-rose-500 flex items-center gap-2 m-0">0h 0m</p>
-                </div>
-            </div>
-            
-            <div class="glass-card rounded-2xl p-5 glow-border-amber card-hover flex flex-col justify-between">
-                <div class="flex justify-between items-start mb-2">
-                    <p class="text-amber-400 text-[10px] font-bold uppercase tracking-widest m-0">Tempo de Campo</p>
-                    <i class="fas fa-tractor text-amber-500/50 text-[22px]"></i>
-                </div>
-                <div id="filaCampo" class="mt-1 flex-1 flex items-center">
-                    <p class="text-[32px] font-black text-emerald-400 flex items-center gap-2 m-0">0m</p>
+                <div id="cicloMedio" class="flex-1 flex flex-col justify-between">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="text-[38px] font-black text-rose-500 leading-none m-0">0h 0m</span>
+                    </div>
+                    <div class="w-full mt-auto pt-3 border-t border-slate-700/50 flex justify-between items-center">
+                        <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest m-0">Padrão</p>
+                        <span class="text-[13px] font-black text-white">10H 05M</span>
+                    </div>
                 </div>
             </div>
             
-            <div class="glass-card rounded-2xl p-5 glow-border-emerald card-hover flex flex-col justify-between">
-                <div class="flex justify-between items-start mb-2">
-                    <p class="text-emerald-400 text-[10px] font-bold uppercase tracking-widest m-0">Tempo Médio de Carga</p>
-                    <i class="fas fa-truck-loading text-emerald-500/50 text-[22px]"></i>
+            <!-- Tempo de Campo -->
+            <div class="glass-card rounded-2xl p-5 glow-border-amber card-hover flex flex-col h-full relative">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-amber-400 text-[11px] font-bold uppercase tracking-widest m-0">Tempo de Campo</p>
+                    <i class="fas fa-tractor text-amber-500/50 text-[24px]"></i>
                 </div>
-                <div id="tempoCarregamento" class="mt-1 flex-1 flex items-center">
-                    <p class="text-[32px] font-black text-rose-500 flex items-center gap-2 m-0">0m</p>
+                <div id="filaCampo" class="flex-1 flex flex-col justify-between">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="text-[38px] font-black text-emerald-400 leading-none m-0">0m</span>
+                    </div>
+                    <div class="w-full mt-auto pt-3 border-t border-slate-700/50 flex justify-between items-center">
+                        <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest m-0">Padrão</p>
+                        <span class="text-[13px] font-black text-white">1H 20M</span>
+                    </div>
                 </div>
             </div>
             
-            <div class="glass-card rounded-2xl p-5 glow-border-rose card-hover flex flex-col justify-between">
-                <div class="flex justify-between items-start mb-2">
-                    <p class="text-rose-400 text-[10px] font-bold uppercase tracking-widest m-0">Tempo Médio de Fábrica</p>
-                    <i class="fas fa-industry text-rose-500/50 text-[22px]"></i>
+            <!-- Tempo Médio de Carga -->
+            <div class="glass-card rounded-2xl p-5 glow-border-emerald card-hover flex flex-col h-full relative">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-emerald-400 text-[11px] font-bold uppercase tracking-widest m-0">Tempo Médio de Carga</p>
+                    <i class="fas fa-truck-loading text-emerald-500/50 text-[24px]"></i>
                 </div>
-                <div id="filaFabrica" class="mt-1 flex-1 flex items-center">
-                    <p class="text-[32px] font-black text-emerald-400 flex items-center gap-2 m-0">0m</p>
+                <div id="tempoCarregamento" class="flex-1 flex flex-col justify-between">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="text-[38px] font-black text-rose-500 leading-none m-0">0m</span>
+                    </div>
+                    <div class="w-full mt-auto pt-3 border-t border-slate-700/50 flex justify-between items-center">
+                        <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest m-0">Padrão</p>
+                        <span class="text-[13px] font-black text-white">30M</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tempo Médio de Fábrica -->
+            <div class="glass-card rounded-2xl p-5 glow-border-rose card-hover flex flex-col h-full relative">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-rose-400 text-[11px] font-bold uppercase tracking-widest m-0">Tempo Médio de Fábrica</p>
+                    <i class="fas fa-industry text-rose-500/50 text-[24px]"></i>
+                </div>
+                <div id="filaFabrica" class="flex-1 flex flex-col justify-between">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span class="text-[38px] font-black text-emerald-400 leading-none m-0">0m</span>
+                    </div>
+                    <div class="w-full mt-auto pt-3 border-t border-slate-700/50 flex justify-between items-center">
+                        <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest m-0">Padrão</p>
+                        <span class="text-[13px] font-black text-white">30M</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -172,19 +203,19 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="min-w-full text-xs text-left m-0">
-                    <thead class="bg-slate-900/95 text-white font-semibold uppercase text-[11px] tracking-wider border-b border-slate-700">
+                <table class="min-w-full text-left m-0">
+                    <thead class="bg-slate-900/95 text-white font-semibold uppercase text-[12px] tracking-wider border-b border-slate-700">
                         <tr>
                             <th class="px-6 py-4 text-slate-300">Indicador de Performance</th>
-                            <th class="px-6 py-4 text-white bg-emerald-900/10 text-right"><i class="fas fa-star mr-1 text-emerald-400"></i> C1: Serrana</th>
-                            <th class="px-6 py-4 text-white bg-rose-900/10 text-right"><i class="fas fa-truck-loading mr-1 text-rose-400"></i> C2: TRANSP. ASN</th>
-                            <th class="px-6 py-4 text-white bg-amber-900/10 text-right"><i class="fas fa-tree mr-1 text-amber-400"></i> C3: Reflorestar</th>
-                            <th class="px-6 py-4 text-white bg-indigo-900/10 text-right"><i class="fas fa-leaf mr-1 text-indigo-400"></i> C4: JSL</th>
-                            <th class="px-6 py-4 text-white bg-sky-900/10 text-right"><i class="fas fa-globe mr-1 text-sky-400"></i> Total (Geral)</th>
+                            <th class="px-6 py-4 text-emerald-400 bg-emerald-900/10 text-right"><i class="fas fa-star mr-1"></i> C1: Serrana</th>
+                            <th class="px-6 py-4 text-rose-400 bg-rose-900/10 text-right"><i class="fas fa-truck-loading mr-1"></i> C2: Transp. ASN</th>
+                            <th class="px-6 py-4 text-amber-400 bg-amber-900/10 text-right"><i class="fas fa-tree mr-1"></i> C3: Reflorestar</th>
+                            <th class="px-6 py-4 text-indigo-400 bg-indigo-900/10 text-right"><i class="fas fa-leaf mr-1"></i> C4: JSL</th>
+                            <th class="px-6 py-4 text-sky-400 bg-sky-900/10 text-right"><i class="fas fa-globe mr-1"></i> Total (Geral)</th>
                         </tr>
                     </thead>
                     <tbody id="comparativoBody" class="divide-y divide-slate-800/80 text-slate-300">
-                        <tr><td colspan="6" class="px-6 py-4 text-center text-slate-500">Aguardando dados...</td></tr>
+                        <tr><td colspan="6" class="px-6 py-6 text-center text-[15px] text-slate-500">Aguardando dados...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -214,18 +245,71 @@
                 </div>
             </div>
         </div>
+
+        <!-- Leaderboards -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="glass-card rounded-xl shadow-2xl overflow-hidden border border-slate-700/50 flex flex-col">
+                <div class="bg-slate-800/80 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
+                    <h3 class="font-bold text-white tracking-wide flex items-center text-[13px] uppercase m-0">
+                        <i class="fas fa-trophy text-emerald-400 mr-2 text-lg"></i> Volume por Veículo (Serrana)
+                    </h3>
+                    <button onclick="window.exportarTopVolume()" class="text-[11px] bg-slate-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg border border-slate-600 hover:border-emerald-500 transition-all flex items-center gap-2 font-bold shadow-md">
+                        <i class="fas fa-file-csv"></i> Exportar
+                    </button>
+                </div>
+                <div class="overflow-x-auto max-h-[350px] overflow-y-auto custom-scrollbar">
+                    <table class="min-w-full text-xs text-left m-0">
+                        <thead class="bg-slate-900/95 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-700 sticky top-0 z-10 shadow-md backdrop-blur-sm">
+                            <tr>
+                                <th class="px-4 py-3 w-10 text-center">Pos</th>
+                                <th class="px-4 py-3">Placa</th>
+                                <th class="px-4 py-3">Transp.</th>
+                                <th class="px-4 py-3 text-center">Viagens</th>
+                                <th class="px-4 py-3 text-right">Vol (m³)</th>
+                                <th class="px-4 py-3 text-center">Meta ≥ 2</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardBody" class="divide-y divide-slate-800/80 text-slate-300"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="glass-card rounded-xl shadow-2xl overflow-hidden border border-slate-700/50 flex flex-col">
+                <div class="bg-slate-800/80 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
+                    <h3 class="font-bold text-white tracking-wide flex items-center text-[13px] uppercase m-0">
+                        <i class="fas fa-stopwatch text-sky-400 mr-2 text-lg"></i> Ciclo Médio por Veículo
+                    </h3>
+                    <button onclick="window.exportarTopCiclo()" class="text-[11px] bg-slate-700 hover:bg-sky-600 text-white px-3 py-1.5 rounded-lg border border-slate-600 hover:border-sky-500 transition-all flex items-center gap-2 font-bold shadow-md">
+                        <i class="fas fa-file-csv"></i> Exportar
+                    </button>
+                </div>
+                <div class="overflow-x-auto max-h-[350px] overflow-y-auto custom-scrollbar">
+                    <table class="min-w-full text-xs text-left m-0">
+                        <thead class="bg-slate-900/95 text-slate-400 font-semibold uppercase text-[10px] tracking-wider border-b border-slate-700 sticky top-0 z-10 shadow-md backdrop-blur-sm">
+                            <tr>
+                                <th class="px-4 py-3 w-10 text-center">Pos</th>
+                                <th class="px-4 py-3">Placa</th>
+                                <th class="px-4 py-3">Transp.</th>
+                                <th class="px-4 py-3 text-center">Viagens</th>
+                                <th class="px-4 py-3 text-right">T. Médio</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardCicloBody" class="divide-y divide-slate-800/80 text-slate-300"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </section>
 </div>
 
 <script>
 (function initNovoDashboardOperacional() {
-    // 1. TRAVA DE SEGURANÇA: Garante que o Chart.js foi carregado no navegador antes de iniciar
+    // 1. TRAVA DE SEGURANÇA
     if(typeof Chart === 'undefined') {
         setTimeout(initNovoDashboardOperacional, 50);
         return; 
     }
 
-    // Configuração dos Rótulos (DataLabels nativo para não depender do plugin externo)
     const chartDataLabelsPlugin = {
         id: 'customDataLabels',
         afterDatasetsDraw: (chart) => {
@@ -252,7 +336,6 @@
     Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.05)';
     Chart.defaults.font.family = "'Inter', sans-serif";
 
-    // Conexão com o Supabase 
     const SUPABASE_URL = 'https://qnpwkvazkntbqjbwegcp.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_bjTFgpk-qAdpVuWzr4hbng_G8O9qlc8';
     const supabaseClientLocal = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -264,7 +347,6 @@
     let chartCarregamento = null;
     let chartTransporte = null; 
 
-    // Identificadores de Gruas (Lógica Central)
     const serranaLoaders = ['GSR0001', 'GSR0002', 'GSR0003', 'GSR0007', 'GSR0008', 'GRB0015', 'GRB0022'];
     const reflorestarLoaders = ['GRB0017', 'GRB0020', 'GRB0029'];
     const jslLoaders = ['GSL0012', 'GSL0016'];
@@ -372,7 +454,6 @@
                 fullHistoricoDataOp = historico.reverse();
             }
 
-            // Preenche Filtro de Meses e Transportadoras
             const filterMesOp = document.getElementById('filterMesOp');
             const filterTransp = document.getElementById('filterTransportadora');
 
@@ -405,7 +486,6 @@
                         filterMesOp.insertAdjacentHTML('beforeend', `<option value="${mStr}">${nomeMes}</option>`);
                     });
                     
-                    // Seta o mês atual automaticamente
                     const hj = new Date();
                     const mesAtualStr = String(hj.getMonth() + 1).padStart(2, '0') + '/' + hj.getFullYear();
                     if(allMeses.includes(mesAtualStr)) {
@@ -447,7 +527,6 @@
         return baseDate;
     }
 
-    // FORMATAÇÃO E ARREDONDAMENTO DE HORAS
     function formatarHorasMinutos(horasDecimais) {
         if (horasDecimais === null || horasDecimais === undefined || isNaN(horasDecimais) || horasDecimais <= 0) return '-';
         let horas = Math.floor(horasDecimais);
@@ -462,6 +541,7 @@
         return `${horas}h ${minutos.toString().padStart(2, '0')}m`;
     }
 
+    // NOVA FUNÇÃO DO CARD DE TEMPO COM DESIGN DISTRIBUÍDO E ALINHADO
     function atualizarElementoTempo(idElemento, mediaReal, metaData) {
         const el = document.getElementById(idElemento);
         if (!el) return;
@@ -475,18 +555,22 @@
         if (metaData > 0) {
             if (mediaReal > metaData) {
                 corClasse = "text-rose-500";
-                icone = `<i class="fas fa-exclamation-circle text-lg ml-2"></i>`;
+                icone = `<i class="fas fa-exclamation-circle text-2xl text-rose-500 shadow-sm rounded-full bg-rose-500/10 p-1"></i>`;
             } else {
                 corClasse = "text-emerald-400";
-                icone = `<i class="fas fa-check-circle text-lg ml-2"></i>`;
+                icone = `<i class="fas fa-check-circle text-2xl text-emerald-400 shadow-sm rounded-full bg-emerald-500/10 p-1"></i>`;
             }
         }
 
         el.innerHTML = `
-            <p class="text-[32px] font-black ${corClasse} flex items-center gap-2 m-0">${strReal} ${icone}</p>
-            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-4 m-0 pt-3 border-t border-slate-700/30">
-                Padrão: <span class="text-white ml-1">${strMeta}</span>
-            </p>
+            <div class="flex items-center gap-3 mb-4">
+                <span class="text-[38px] font-black leading-none m-0 ${corClasse} drop-shadow-md">${strReal}</span>
+                ${icone}
+            </div>
+            <div class="w-full mt-auto pt-3 border-t border-slate-700/50 flex justify-between items-center">
+                <p class="text-[11px] text-slate-400 font-bold uppercase tracking-widest m-0">Padrão</p>
+                <span class="text-[13px] font-black text-white">${strMeta}</span>
+            </div>
         `;
     }
 
@@ -521,7 +605,6 @@
         const filterTransp = document.getElementById('filterTransportadora');
         const activeT = filterTransp ? filterTransp.value : 'ALL';
 
-        // Filtro de Data Global
         const filteredGlobal = fullHistoricoDataOp.filter(d => {
             const parsed = parseDateTime(d.dataDaBaseExcel);
             if(!parsed) return false;
@@ -563,9 +646,7 @@
             return mesRef !== 'ALL' && mTransp;
         });
 
-        // REGRAS DE EXIBIÇÃO: Se o filtro é 'ALL' transportadoras, as métricas dos cards consideram SÓ Serrana.
         let cardsData = filteredGlobal;
-        let serranaCount = filteredGlobal.filter(d => checkLoader(d, serranaLoaders) && isSerranaTransp(d)).length;
 
         const opStatusFetch = document.getElementById('opStatusFetch');
         if (activeT === 'ALL') {
@@ -579,7 +660,7 @@
             }
         }
 
-        // --- Atualização de Cards Principais ---
+        // --- Atualização de Cards (Principais) ---
         const totalViagens = cardsData.length;
         document.getElementById('totalViagens').innerText = totalViagens;
 
@@ -616,8 +697,7 @@
         document.getElementById('mediaAsfalto').innerText = mediaAsfalto.toLocaleString('pt-PT', {maximumFractionDigits:2});
         document.getElementById('mediaTerra').innerText = mediaTerra.toLocaleString('pt-PT', {maximumFractionDigits:2});
 
-
-        // --- Atualização de Cards Secundários (Tempos) ---
+        // --- Atualização de Cards (Tempos - Distribuídos) ---
         const validCycles = cardsData.filter(d => d.cicloHoras > 0);
         const mediaCiclo = validCycles.length > 0 ? validCycles.reduce((s, d) => s + d.cicloHoras, 0) / validCycles.length : 0;
 
@@ -630,13 +710,13 @@
         const validFilaFabrica = cardsData.filter(d => d.filaFabricaHoras > 0);
         const mediaFilaFabrica = validFilaFabrica.length > 0 ? validFilaFabrica.reduce((s, d) => s + d.filaFabricaHoras, 0) / validFilaFabrica.length : 0;
 
-        atualizarElementoTempo('cicloMedio', mediaCiclo, 10.083); // Padrão: 10H 05M
-        atualizarElementoTempo('filaCampo', mediaFilaCampo, 1.333); // Padrão: 1H 20M
-        atualizarElementoTempo('tempoCarregamento', mediaTempoCarregamento, 0.5); // Padrão: 30M
-        atualizarElementoTempo('filaFabrica', mediaFilaFabrica, 0.5); // Padrão: 30M
+        atualizarElementoTempo('cicloMedio', mediaCiclo, 10.083); 
+        atualizarElementoTempo('filaCampo', mediaFilaCampo, 1.333); 
+        atualizarElementoTempo('tempoCarregamento', mediaTempoCarregamento, 0.5); 
+        atualizarElementoTempo('filaFabrica', mediaFilaFabrica, 0.5); 
 
 
-        // --- Atualização do Comparativo (Sempre usa filteredGlobal) ---
+        // --- Atualização do Comparativo (Fontes Ampliadas) ---
         const tbodyComp = document.getElementById('comparativoBody');
         if (tbodyComp) {
             const dataC1 = filteredGlobal.filter(d => checkLoader(d, serranaLoaders) && isSerranaTransp(d));
@@ -652,64 +732,64 @@
 
             tbodyComp.innerHTML = `
                 <tr class="hover:bg-slate-800/30 transition-colors">
-                    <td class="px-6 py-4 font-bold text-white text-[11px]"><i class="fas fa-route text-slate-400 w-5"></i> Viagens Realizadas</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${dataC1.length}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${dataC2.length}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${dataC3.length}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${dataC4.length}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${filteredGlobal.length}</td>
+                    <td class="px-6 py-4 font-bold text-white text-[13px]"><i class="fas fa-route text-slate-400 w-5"></i> Viagens Realizadas</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${dataC1.length}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${dataC2.length}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${dataC3.length}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${dataC4.length}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${filteredGlobal.length}</td>
                 </tr>
                 <tr class="hover:bg-slate-800/30 transition-colors">
-                    <td class="px-6 py-4 font-bold text-white text-[11px]"><i class="fas fa-box-open text-indigo-400 w-5"></i> Caixa de Carga Média</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stC1.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stC2.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stC3.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stC4.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stGlobal.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-bold text-white text-[13px]"><i class="fas fa-box-open text-indigo-400 w-5"></i> Caixa de Carga Média</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC1.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC2.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC3.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC4.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stGlobal.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
                 </tr>
                 <tr class="hover:bg-slate-800/30 transition-colors">
-                    <td class="px-6 py-4 font-bold text-white text-[11px]"><i class="fas fa-cubes text-cyan-400 w-5"></i> Volume Total</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stC1.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stC2.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stC3.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stC4.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${stGlobal.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-bold text-white text-[13px]"><i class="fas fa-cubes text-cyan-400 w-5"></i> Volume Total</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC1.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC2.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC3.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC4.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stGlobal.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
                 </tr>
                 <tr class="hover:bg-slate-800/30 transition-colors border-t border-slate-700/50">
-                    <td class="px-6 py-4 font-bold text-slate-300 text-[10px] uppercase tracking-wider"><i class="fas fa-stopwatch text-blue-400 w-5"></i> Ciclo Médio Total</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC1.medCiclo)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC2.medCiclo)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC3.medCiclo)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC4.medCiclo)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stGlobal.medCiclo)}</td>
+                    <td class="px-6 py-4 font-bold text-slate-300 text-[12px] uppercase tracking-wider"><i class="fas fa-stopwatch text-blue-400 w-5"></i> Ciclo Médio Total</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${formatarHorasMinutos(stC1.medCiclo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${formatarHorasMinutos(stC2.medCiclo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${formatarHorasMinutos(stC3.medCiclo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${formatarHorasMinutos(stC4.medCiclo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${formatarHorasMinutos(stGlobal.medCiclo)}</td>
                 </tr>
                 <tr class="hover:bg-slate-800/30 transition-colors">
-                    <td class="px-6 py-4 font-bold text-slate-300 text-[10px] uppercase tracking-wider"><i class="fas fa-hourglass-half text-amber-500 w-5"></i> Espera Média Campo</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC1.medFilaCpo)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC2.medFilaCpo)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC3.medFilaCpo)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stC4.medFilaCpo)}</td>
-                    <td class="px-6 py-4 font-mono text-white text-[13px] font-bold text-right">${formatarHorasMinutos(stGlobal.medFilaCpo)}</td>
+                    <td class="px-6 py-4 font-bold text-slate-300 text-[12px] uppercase tracking-wider"><i class="fas fa-hourglass-half text-amber-500 w-5"></i> Espera Média Campo</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${formatarHorasMinutos(stC1.medFilaCpo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${formatarHorasMinutos(stC2.medFilaCpo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${formatarHorasMinutos(stC3.medFilaCpo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${formatarHorasMinutos(stC4.medFilaCpo)}</td>
+                    <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${formatarHorasMinutos(stGlobal.medFilaCpo)}</td>
                 </tr>
                 <tr class="hover:bg-slate-800/30 transition-colors border-t border-slate-700">
-                    <td class="px-6 py-4 font-bold text-slate-300 text-[10px] uppercase tracking-wider"><i class="fas fa-road text-slate-400 w-5"></i> Dist. Média (Asfalto/Terra)</td>
-                    <td class="px-6 py-4 font-mono text-white text-[11px] font-bold text-right">
+                    <td class="px-6 py-4 font-bold text-slate-300 text-[12px] uppercase tracking-wider"><i class="fas fa-road text-slate-400 w-5"></i> Dist. Média (Asfalto/Terra)</td>
+                    <td class="px-6 py-4 font-mono text-white text-[14px] font-bold text-right">
                         <span class="text-sky-300">Asf: ${stC1.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
                         <span class="text-amber-400">Ter: ${stC1.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
                     </td>
-                    <td class="px-6 py-4 font-mono text-white text-[11px] font-bold text-right">
+                    <td class="px-6 py-4 font-mono text-white text-[14px] font-bold text-right">
                         <span class="text-sky-300">Asf: ${stC2.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
                         <span class="text-amber-400">Ter: ${stC2.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
                     </td>
-                    <td class="px-6 py-4 font-mono text-white text-[11px] font-bold text-right">
+                    <td class="px-6 py-4 font-mono text-white text-[14px] font-bold text-right">
                         <span class="text-sky-300">Asf: ${stC3.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
                         <span class="text-amber-400">Ter: ${stC3.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
                     </td>
-                    <td class="px-6 py-4 font-mono text-white text-[11px] font-bold text-right">
+                    <td class="px-6 py-4 font-mono text-white text-[14px] font-bold text-right">
                         <span class="text-sky-300">Asf: ${stC4.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
                         <span class="text-amber-400">Ter: ${stC4.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
                     </td>
-                    <td class="px-6 py-4 font-mono text-white text-[11px] font-bold text-right">
+                    <td class="px-6 py-4 font-mono text-white text-[14px] font-bold text-right">
                         <span class="text-sky-300">Asf: ${stGlobal.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br>
                         <span class="text-amber-400">Ter: ${stGlobal.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span>
                     </td>
@@ -726,6 +806,7 @@
             return transp.includes('SERRANALOG') && !transp.includes('ASN');
         });
         renderTransporteChart(baseTransporte);
+        renderLeaderboards(filteredSerrana, diasConsiderados);
     }
 
     function renderCarregamentoChart(data) {
@@ -836,7 +917,109 @@
         });
     }
 
-    // Inicializar chamadas
+    function renderLeaderboards(data, diasConsiderados = 1) {
+        const pMap = new Map();
+        data.forEach(d => {
+            const pl = d.placa || 'N/A';
+            const volNum = parseFloat(String(d.volumeReal).replace(',', '.')) || 0;
+            if(!pMap.has(pl)) pMap.set(pl, {p: pl, t: d.transportadora||'-', vol: 0, v: 0, ciclos: 0, cCount: 0});
+            const o = pMap.get(pl);
+            o.vol += volNum; o.v++;
+            if(d.cicloHoras > 0) { o.ciclos += d.cicloHoras; o.cCount++; }
+        });
+
+        const arr = Array.from(pMap.values());
+        
+        window.diasConsideradosGlobais = diasConsiderados;
+        window.globalTopVol = [...arr].sort((a,b)=>b.vol - a.vol);
+        window.globalTopCiclo = [...arr].filter(x=>x.cCount > 0).map(x=>({...x, cMedio: x.ciclos/x.cCount})).sort((a,b)=>a.cMedio - b.cMedio);
+
+        const bVol = document.getElementById('leaderboardBody');
+        if(bVol) {
+            bVol.innerHTML = '';
+            window.globalTopVol.forEach((x,i) => {
+                const viagensPorDia = diasConsiderados > 0 ? (x.v / diasConsiderados) : x.v;
+                const cumpriuMeta = viagensPorDia >= 2;
+                
+                const badgeHtml = cumpriuMeta 
+                    ? `<span class="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded text-[10px] font-bold" title="${viagensPorDia.toFixed(1)} viagens/dia"><i class="fas fa-check mr-1"></i>SIM</span>`
+                    : `<span class="bg-rose-500/20 text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded text-[10px] font-bold" title="${viagensPorDia.toFixed(1)} viagens/dia"><i class="fas fa-times mr-1"></i>NÃO</span>`;
+
+                const tr = `<tr>
+                    <td class="px-4 py-3 text-center"><div class="w-6 h-6 rounded-full ${i<3?'bg-emerald-500 text-white shadow-[0_0_10px_rgba(16,185,129,0.5)]':'bg-slate-800 text-slate-400'} flex items-center justify-center text-xs font-bold">${i+1}</div></td>
+                    <td class="px-4 py-3 font-bold text-white">${x.p}</td>
+                    <td class="px-4 py-3 text-slate-400 truncate max-w-[100px]">${x.t}</td>
+                    <td class="px-4 py-3 text-center text-slate-300">${x.v}</td>
+                    <td class="px-4 py-3 text-right font-mono text-emerald-400">${x.vol.toLocaleString('pt-PT',{maximumFractionDigits:1})}</td>
+                    <td class="px-4 py-3 text-center">${badgeHtml}</td>
+                </tr>`;
+                bVol.insertAdjacentHTML('beforeend', tr);
+            });
+            
+            if (window.globalTopVol.length === 0) {
+                bVol.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-slate-500">Nenhum veículo encontrado no período.</td></tr>`;
+            }
+        }
+
+        const bCiclo = document.getElementById('leaderboardCicloBody');
+        if(bCiclo) {
+            bCiclo.innerHTML = '';
+            window.globalTopCiclo.forEach((x,i) => {
+                const tr = `<tr>
+                    <td class="px-4 py-3 text-center"><div class="w-6 h-6 rounded-full ${i<3?'bg-sky-500 text-white shadow-[0_0_10px_rgba(14,165,233,0.5)]':'bg-slate-800 text-slate-400'} flex items-center justify-center text-xs font-bold">${i+1}</div></td>
+                    <td class="px-4 py-3 font-bold text-white">${x.p}</td>
+                    <td class="px-4 py-3 text-slate-400 truncate max-w-[100px]">${x.t}</td>
+                    <td class="px-4 py-3 text-center text-slate-300">${x.v}</td>
+                    <td class="px-4 py-3 text-right font-mono text-sky-400">${formatarHorasMinutos(x.cMedio)}</td>
+                </tr>`;
+                bCiclo.insertAdjacentHTML('beforeend', tr);
+            });
+            
+            if (window.globalTopCiclo.length === 0) {
+                bCiclo.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-slate-500">Nenhum ciclo encontrado no período.</td></tr>`;
+            }
+        }
+    }
+
+    // Funcionalidades de Exportação CSV Nativa
+    window.exportarTopVolume = function() {
+        if (!window.globalTopVol || window.globalTopVol.length === 0) {
+            alert("Não há dados de Volume para exportar no período selecionado."); return;
+        }
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+        csvContent += "Posicao;Placa;Transportadora;Total Viagens;Volume Total;Media Viagens/Dia;Cumpriu Meta\n";
+        window.globalTopVol.forEach((x, i) => {
+            const viagensPorDia = window.diasConsideradosGlobais > 0 ? (x.v / window.diasConsideradosGlobais) : x.v;
+            const cumpriuMeta = viagensPorDia >= 2 ? 'SIM' : 'NAO';
+            csvContent += `${i + 1};${x.p};${x.t};${x.v};${x.vol.toString().replace('.', ',')};${viagensPorDia.toFixed(2).replace('.', ',')};${cumpriuMeta}\n`;
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Relatorio_Volume_Veiculos.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    window.exportarTopCiclo = function() {
+        if (!window.globalTopCiclo || window.globalTopCiclo.length === 0) {
+            alert("Não há dados de Ciclos para exportar no período selecionado."); return;
+        }
+        let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+        csvContent += "Posicao;Placa;Transportadora;Viagens Realizadas;Ciclo Medio (Decimais)\n";
+        window.globalTopCiclo.forEach((x, i) => {
+            csvContent += `${i + 1};${x.p};${x.t};${x.v};${x.cMedio.toFixed(2).replace('.', ',')}\n`;
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "Relatorio_Ciclos_Veiculos.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     setupOperacionalFilters();
     loadOperacionalData();
 })();
