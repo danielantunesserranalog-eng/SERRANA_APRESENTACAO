@@ -1,367 +1,354 @@
-<!-- ================= HEADER COM BOTÃO PDF ================= -->
-<div class="action-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(15, 23, 42, 0.8); padding: 15px 20px; border-radius: 12px; border-left: 5px solid #eab308;">
-    <h2 style="color: white; margin: 0; font-size: 1.2rem;"><i class="fas fa-clipboard-list" style="color: #eab308;"></i> Resumo e Considerações do Dia</h2>
-    <button class="btn-salvar" onclick="window.gerarPDFConsideracoes(event)" style="background: #eab308; color: #0f172a; padding: 10px 20px; font-size: 0.9rem; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
-        <i class="fas fa-file-pdf"></i> Gerar Relatório PDF
-    </button>
-</div>
+<!-- ================= HEADER COM BOT O PDF ================= --> 
+<div class="action-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(15, 23, 42, 0.8); padding: 15px 20px; border-radius: 12px; border-left: 5px solid #eab308;">     
+    <h2 style="color: white; margin: 0; font-size: 1.2rem;"><i class="fas fa-clipboard-list" style="color: #eab308;"></i> Resumo e Considera es do Dia</h2>     
+    <button class="btn-salvar" onclick="window.gerarPDFConsideracoes(event)" style="background: #eab308; color: #0f172a; padding: 10px 20px; font-size: 0.9rem; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px;">         
+        <i class="fas fa-file-pdf"></i> Gerar Relat rio PDF     
+    </button> 
+</div> 
 
-<!-- ================= RESUMO DO DIA: LANÇAMENTOS DE HOJE ================= -->
-<div class="content-panel" style="margin-top: 15px; border-left: 5px solid #0ea5e9; background: rgba(15, 23, 42, 0.8); border-radius: 12px; overflow: hidden;">
-    <h3 class="nav-label" style="font-size: 1rem; color: white; padding: 15px 20px 0;"><i class="fas fa-calendar-day" style="color: #0ea5e9;"></i> AÇÕES E METAS ADICIONADAS HOJE</h3>
-    <div id="resumo-dia-lista" style="padding: 15px 20px; display: flex; flex-direction: column; gap: 10px;">
-        <p style="color: var(--text-dim); font-size: 0.85rem;">Carregando resumo do dia...</p>
-    </div>
-</div>
+<!-- ================= RESUMO DO DIA: LAN AMENTOS DE HOJE ================= --> 
+<div class="content-panel" style="margin-top: 15px; border-left: 5px solid #0ea5e9; background: rgba(15, 23, 42, 0.8); border-radius: 12px; overflow: hidden;">     
+    <h3 class="nav-label" style="font-size: 1rem; color: white; padding: 15px 20px 0;"><i class="fas fa-calendar-day" style="color: #0ea5e9;"></i> A ES E METAS ADICIONADAS HOJE</h3>     
+    <div id="resumo-dia-lista" style="padding: 15px 20px; display: flex; flex-direction: column; gap: 10px;">         
+        <p style="color: var(--text-dim); font-size: 0.85rem;">Carregando resumo do dia...</p>     
+    </div> 
+</div> 
 
-<!-- ================= QUADRO KANBAN ================= -->
-<div class="content-panel kanban-container" style="margin-top: 30px;">
-    <h3 class="nav-label" style="font-size: 1rem; color: white;"><i class="fas fa-columns" style="color: var(--primary);"></i> QUADRO KANBAN - METAS E AÇÕES</h3>
+<!-- ================= QUADRO KANBAN ================= --> 
+<div class="content-panel kanban-container" style="margin-top: 30px;">     
+    <h3 class="nav-label" style="font-size: 1rem; color: white;"><i class="fas fa-columns" style="color: var(--primary);"></i> QUADRO KANBAN - METAS E A ES</h3>          
+    <div class="kanban-board">         
+        <div class="kanban-col" data-status="TODO" ondragover="window.permitirDrop(event)" ondragleave="window.sairDrop(event)" ondrop="window.soltarDrop(event)">             
+            <div class="kanban-col-header todo">A CUMPRIR</div>             
+            <div class="kanban-cards" id="kb-col-todo"></div>         
+        </div>         
+        <div class="kanban-col" data-status="DOING" ondragover="window.permitirDrop(event)" ondragleave="window.sairDrop(event)" ondrop="window.soltarDrop(event)">             
+            <div class="kanban-col-header doing">EM ANDAMENTO</div>             
+            <div class="kanban-cards" id="kb-col-doing"></div>         
+        </div>         
+        <div class="kanban-col" data-status="DONE" ondragover="window.permitirDrop(event)" ondragleave="window.sairDrop(event)" ondrop="window.soltarDrop(event)">             
+            <div class="kanban-col-header done">CONCLU DO</div>             
+            <div class="kanban-cards" id="kb-col-done"></div>         
+        </div>     
+    </div> 
+</div> 
+
+<script>     
+    // --- L GICA DO DRAG AND DROP ---     
+    window.draggedItemId = null;     
+    window.dragStart = function(event) {         
+        window.draggedItemId = event.currentTarget.getAttribute('data-id');         
+        event.currentTarget.classList.add('dragging');     
+    };     
+    window.dragEnd = function(event) {         
+        event.currentTarget.classList.remove('dragging');         
+        document.querySelectorAll('.kanban-col').forEach(col => col.classList.remove('drag-over'));     
+    };     
+    window.permitirDrop = function(event) {         
+        event.preventDefault();         
+        event.currentTarget.classList.add('drag-over');     
+    };     
+    window.sairDrop = function(event) {         
+        event.currentTarget.classList.remove('drag-over');     
+    };     
+    window.soltarDrop = function(event) {         
+        event.preventDefault();         
+        const coluna = event.currentTarget;         
+        coluna.classList.remove('drag-over');         
+        const novoStatus = coluna.getAttribute('data-status');                  
+        if (window.draggedItemId && novoStatus) {             
+            window.moverKanban(window.draggedItemId, novoStatus);         
+        }     
+    };     
     
-    <div class="kanban-board">
-        <div class="kanban-col" data-status="TODO" ondragover="window.permitirDrop(event)" ondragleave="window.sairDrop(event)" ondrop="window.soltarDrop(event)">
-            <div class="kanban-col-header todo">A CUMPRIR</div>
-            <div class="kanban-cards" id="kb-col-todo"></div>
-        </div>
-        <div class="kanban-col" data-status="DOING" ondragover="window.permitirDrop(event)" ondragleave="window.sairDrop(event)" ondrop="window.soltarDrop(event)">
-            <div class="kanban-col-header doing">EM ANDAMENTO</div>
-            <div class="kanban-cards" id="kb-col-doing"></div>
-        </div>
-        <div class="kanban-col" data-status="DONE" ondragover="window.permitirDrop(event)" ondragleave="window.sairDrop(event)" ondrop="window.soltarDrop(event)">
-            <div class="kanban-col-header done">CONCLUÍDO</div>
-            <div class="kanban-cards" id="kb-col-done"></div>
-        </div>
-    </div>
-</div>
-
-<script>
-    // --- LÓGICA DO DRAG AND DROP ---
-    window.draggedItemId = null;
-
-    window.dragStart = function(event) {
-        window.draggedItemId = event.currentTarget.getAttribute('data-id');
-        event.currentTarget.classList.add('dragging');
-    };
-    window.dragEnd = function(event) {
-        event.currentTarget.classList.remove('dragging');
-        document.querySelectorAll('.kanban-col').forEach(col => col.classList.remove('drag-over'));
-    };
-    window.permitirDrop = function(event) {
-        event.preventDefault();
-        event.currentTarget.classList.add('drag-over');
-    };
-    window.sairDrop = function(event) {
-        event.currentTarget.classList.remove('drag-over');
-    };
-    window.soltarDrop = function(event) {
-        event.preventDefault();
-        const coluna = event.currentTarget;
-        coluna.classList.remove('drag-over');
-        const novoStatus = coluna.getAttribute('data-status');
+    window.formatarDataBR = function(dataIso) {         
+        if (!dataIso) return '';         
+        const [ano, mes, dia] = dataIso.split('-');         
+        return `${dia}/${mes}/${ano}`;     
+    };     
+    
+    window.carregarKanbanDash = async function() {         
+        const colTodo = document.getElementById('kb-col-todo');         
+        const colDoing = document.getElementById('kb-col-doing');         
+        const colDone = document.getElementById('kb-col-done');         
+        const resumoDia = document.getElementById('resumo-dia-lista');         
         
-        if (window.draggedItemId && novoStatus) {
-            window.moverKanban(window.draggedItemId, novoStatus);
-        }
-    };
-
-    window.formatarDataBR = function(dataIso) {
-        if (!dataIso) return '';
-        const [ano, mes, dia] = dataIso.split('-');
-        return `${dia}/${mes}/${ano}`;
-    };
-
-    window.carregarKanbanDash = async function() {
-        const colTodo = document.getElementById('kb-col-todo');
-        const colDoing = document.getElementById('kb-col-doing');
-        const colDone = document.getElementById('kb-col-done');
-        const resumoDia = document.getElementById('resumo-dia-lista');
-
-        if(colTodo) colTodo.innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i></div>';
-        if(colDoing) colDoing.innerHTML = '';
-        if(colDone) colDone.innerHTML = '';
-        if(resumoDia) resumoDia.innerHTML = '';
-
-        let dadosKanban = [];
-        try {
-            if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-            const _supa = window.supabaseClientGlobal;
-            
-            const { data, error } = await _supa.from('kanban_metas').select('*').neq('status', 'ARCHIVED').order('data_criacao', { ascending: false });
-            if (error) throw error;
-            dadosKanban = data || [];
-        } catch(e) {
-            let local = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');
-            dadosKanban = local.filter(i => i.status !== 'ARCHIVED');
-            dadosKanban.sort((a,b) => new Date(b.data_criacao) - new Date(a.data_criacao));
-        }
-
-        if(colTodo) colTodo.innerHTML = '';
+        if(colTodo) colTodo.innerHTML = '<div style="text-align:center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i></div>';         
+        if(colDoing) colDoing.innerHTML = '';         
+        if(colDone) colDone.innerHTML = '';         
+        if(resumoDia) resumoDia.innerHTML = '';         
         
-        const hojeStr = new Date().toISOString().split('T')[0];
-        let itensCriadosHoje = 0;
-
-        dadosKanban.forEach(item => {
-            if (item.data_criacao && item.data_criacao.startsWith(hojeStr) && resumoDia) {
-                itensCriadosHoje++;
-                let badgeStatus = '';
-                if(item.status === 'TODO') badgeStatus = '<span style="color:#f43f5e; font-weight:bold;">[A CUMPRIR]</span>';
-                if(item.status === 'DOING') badgeStatus = '<span style="color:#f59e0b; font-weight:bold;">[EM ANDAMENTO]</span>';
-                if(item.status === 'DONE') badgeStatus = '<span style="color:#10b981; font-weight:bold;">[CONCLUÍDO]</span>';
-
-                resumoDia.insertAdjacentHTML('beforeend', `
-                    <div style="background: rgba(255,255,255,0.05); padding: 12px 15px; border-radius: 8px; border-left: 3px solid #0ea5e9; display: flex; flex-direction: column; gap: 5px;">
-                        <div>${badgeStatus} <strong style="color: white; font-size: 1.05rem;">${item.meta}</strong></div>
-                        <div style="font-size: 0.85rem; color: var(--text-dim);">
-                            <i class="fas fa-users"></i> Resp: <span style="color: var(--primary);">${item.responsavel}</span> &nbsp;|&nbsp; 
-                            <i class="fas fa-building"></i> Setor: ${item.setor}
-                        </div>
-                    </div>
-                `);
-            }
-
-            const card = `
-            <div class="kanban-card" draggable="true" data-id="${item.id}" ondragstart="window.dragStart(event)" ondragend="window.dragEnd(event)">
-                <div class="kanban-card-title">${item.meta}</div>
-                ${item.consideracao ? `<div class="kanban-card-desc">${item.consideracao}</div>` : ''}
-                <div class="kanban-card-meta">
-                    <span class="badge-setor"><i class="fas fa-building"></i> ${item.setor}</span>
-                    <span style="color: var(--primary);"><i class="fas fa-users"></i> ${item.responsavel}</span>
-                    ${item.data_previsao ? `<span class="badge-data"><i class="fas fa-calendar-alt"></i> ${window.formatarDataBR(item.data_previsao)}</span>` : ''}
-                </div>
-                
-                <div class="kanban-actions">
-                    ${item.status !== 'TODO' ? `<button class="btn-kanban" onclick="window.moverKanban('${item.id}', 'TODO')"><i class="fas fa-arrow-left"></i> A Fazer</button>` : ''}
-                    ${item.status !== 'DOING' ? `<button class="btn-kanban" onclick="window.moverKanban('${item.id}', 'DOING')">${item.status==='TODO' ? 'Iniciar <i class="fas fa-arrow-right"></i>' : 'Voltar'}</button>` : ''}
-                    ${item.status !== 'DONE' ? `<button class="btn-kanban" onclick="window.moverKanban('${item.id}', 'DONE')"><i class="fas fa-check"></i> Concluir</button>` : ''}
-                    ${item.status === 'DONE' ? `<button class="btn-kanban archive" onclick="window.arquivarKanban('${item.id}')"><i class="fas fa-archive"></i> Arquivar</button>` : ''}
-                    <button class="btn-kanban delete" onclick="window.excluirKanban('${item.id}')"><i class="fas fa-trash"></i></button>
-                </div>
-            </div>`;
-
-            if(item.status === 'TODO' && colTodo) colTodo.insertAdjacentHTML('beforeend', card);
-            else if(item.status === 'DOING' && colDoing) colDoing.insertAdjacentHTML('beforeend', card);
-            else if(item.status === 'DONE' && colDone) colDone.insertAdjacentHTML('beforeend', card);
-        });
-
-        if (itensCriadosHoje === 0 && resumoDia) {
-            resumoDia.innerHTML = '<p style="color: var(--text-dim); font-size: 0.85rem;"><i class="fas fa-info-circle"></i> Nenhuma meta ou ação foi lançada hoje até o momento.</p>';
-        }
-
-        if(colTodo && !colTodo.innerHTML) colTodo.innerHTML = '<p style="color:var(--text-dim);text-align:center;font-size:0.85rem;">Solte cartões aqui</p>';
-        if(colDoing && !colDoing.innerHTML) colDoing.innerHTML = '<p style="color:var(--text-dim);text-align:center;font-size:0.85rem;">Solte cartões aqui</p>';
-        if(colDone && !colDone.innerHTML) colDone.innerHTML = '<p style="color:var(--text-dim);text-align:center;font-size:0.85rem;">Solte cartões aqui</p>';
-    };
-
-    window.moverKanban = async function(id, novoStatus) {
-        try {
-            if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-            const _supa = window.supabaseClientGlobal;
-            
-            const { error } = await _supa.from('kanban_metas').update({ status: novoStatus }).eq('id', id);
-            if (error) throw error;
-        } catch(e) {
-            let local = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');
-            const index = local.findIndex(i => String(i.id) === String(id));
-            if (index > -1) { local[index].status = novoStatus; localStorage.setItem('kanban_metas_local', JSON.stringify(local)); }
-        }
-        window.carregarKanbanDash();
-    };
-
-    window.arquivarKanban = async function(id) {
-        if(!confirm('Deseja arquivar esta meta? Ela irá para o Histórico.')) return;
-        window.moverKanban(id, 'ARCHIVED');
-    };
-
-    window.excluirKanban = async function(id) {
-        if(!confirm('Excluir definitivamente esta meta?')) return;
-        try {
-            if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-            const _supa = window.supabaseClientGlobal;
-            
-            const { error } = await _supa.from('kanban_metas').delete().eq('id', id);
-            if (error) throw error;
-        } catch(e) {
-            let local = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');
-            local = local.filter(i => String(i.id) !== String(id));
-            localStorage.setItem('kanban_metas_local', JSON.stringify(local));
-        }
-        window.carregarKanbanDash();
-    };
-
-    // --- NOVA LÓGICA DE GERAÇÃO DO PDF EXECUTIVO ---
-    window.gerarPDFConsideracoes = async function(event) {
-        if (!window.jspdf || !window.jspdf.jsPDF) {
-            alert("Biblioteca de PDF não carregou corretamente. Recarregue a página.");
-            return;
-        }
+        let dadosKanban = [];         
+        try {             
+            if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);             
+            const _supa = window.supabaseClientGlobal;                          
+            const { data, error } = await _supa.from('kanban_metas').select('*').neq('status', 'ARCHIVED').order('data_criacao', { ascending: false });             
+            if (error) throw error;             
+            dadosKanban = data || [];         
+        } catch(e) {             
+            let local = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');             
+            dadosKanban = local.filter(i => i.status !== 'ARCHIVED');             
+            dadosKanban.sort((a,b) => new Date(b.data_criacao) - new Date(a.data_criacao));         
+        }         
         
-        const btn = event.currentTarget;
-        const btnOriginalHTML = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando Relatório...';
-        btn.disabled = true;
-
-        let reportDiv = null;
-
-        try {
-            // 1. Busca os dados mais atualizados do Kanban
-            let dadosKanban = [];
-            try {
-                if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-                const _supa = window.supabaseClientGlobal;
-                const { data, error } = await _supa.from('kanban_metas').select('*').neq('status', 'ARCHIVED').order('data_criacao', { ascending: false });
-                if (error) throw error;
-                dadosKanban = data || [];
-            } catch(e) {
-                let local = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');
-                dadosKanban = local.filter(i => i.status !== 'ARCHIVED');
-                dadosKanban.sort((a,b) => new Date(b.data_criacao) - new Date(a.data_criacao));
-            }
-
-            // 2. Cria um elemento HTML temporário formatado como um documento A4 real
-            reportDiv = document.createElement('div');
-            reportDiv.id = 'relatorio-pdf-temp';
-            reportDiv.style.width = '800px';
-            reportDiv.style.padding = '40px';
-            reportDiv.style.backgroundColor = '#ffffff';
-            reportDiv.style.color = '#000000';
-            reportDiv.style.fontFamily = 'Arial, sans-serif'; 
-            reportDiv.style.position = 'absolute';
-            reportDiv.style.top = '-9999px';
-            reportDiv.style.left = '-9999px';
-            reportDiv.style.zIndex = '-1';
-
-            const dataHoje = new Date().toLocaleDateString('pt-BR');
-            const horaAtual = new Date().toLocaleTimeString('pt-BR').slice(0, 5);
-
-            let htmlContent = `
-                <div style="border-bottom: 3px solid #10b981; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
-                    <div style="display: flex; align-items: center; gap: 20px;">
-                        <img src="./assets/logoverde.png" alt="Logo Serrana" style="height: 55px; object-fit: contain;">
-                        <div>
-                            <h1 style="color: #0f172a; font-size: 24px; font-weight: bold; margin: 0; text-transform: uppercase;">Serrana Florestal</h1>
-                            <h2 style="color: #475569; font-size: 15px; margin: 5px 0 0 0;">Relatório Executivo de Reunião Diária</h2>
-                        </div>
-                    </div>
-                    <div style="text-align: right;">
-                        <p style="font-size: 14px; font-weight: bold; margin: 0; color: #0f172a;">Data: ${dataHoje}</p>
-                        <p style="font-size: 12px; margin: 2px 0 0 0; color: #64748b;">Gerado às: ${horaAtual}</p>
-                    </div>
-                </div>
+        if(colTodo) colTodo.innerHTML = '';                  
+        const hojeStr = new Date().toISOString().split('T')[0];         
+        let itensCriadosHoje = 0;         
+        
+        dadosKanban.forEach(item => {             
+            if (item.data_criacao && item.data_criacao.startsWith(hojeStr) && resumoDia) {                 
+                itensCriadosHoje++;                 
+                let badgeStatus = '';                 
+                if(item.status === 'TODO') badgeStatus = '<span style="color:#f43f5e; font-weight:bold;">[A CUMPRIR]</span>';                 
+                if(item.status === 'DOING') badgeStatus = '<span style="color:#f59e0b; font-weight:bold;">[EM ANDAMENTO]</span>';                 
+                if(item.status === 'DONE') badgeStatus = '<span style="color:#10b981; font-weight:bold;">[CONCLU DO]</span>';                 
                 
-                <div style="margin-bottom: 20px;">
-                    <h3 style="color: #0f172a; font-size: 18px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">Plano de Ação e Metas</h3>
-                </div>
-            `;
-
-            if (dadosKanban.length === 0) {
-                htmlContent += `<p style="color: #64748b; font-size: 14px; text-align: center; margin-top: 40px;">Nenhuma meta ou ação registrada para o painel atual.</p>`;
-            } else {
-                htmlContent += `<table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
-                    <thead>
-                        <tr style="background-color: #f8fafc; border-bottom: 2px solid #cbd5e1;">
-                            <th style="padding: 12px; color: #334155;">Status</th>
-                            <th style="padding: 12px; color: #334155;">Ação / Meta</th>
-                            <th style="padding: 12px; color: #334155;">Responsável</th>
-                            <th style="padding: 12px; color: #334155;">Setor</th>
-                            <th style="padding: 12px; color: #334155;">Prazo</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
-                
-                // Ordenação lógica para o relatório (A cumprir -> Em andamento -> Concluído)
-                const ordenacao = { 'TODO': 1, 'DOING': 2, 'DONE': 3 };
-                dadosKanban.sort((a, b) => ordenacao[a.status] - ordenacao[b.status]);
-
-                dadosKanban.forEach((item, index) => {
-                    let statusText = item.status === 'TODO' ? 'A Cumprir' : (item.status === 'DOING' ? 'Em Andamento' : 'Concluído');
-                    let statusColor = item.status === 'TODO' ? '#e11d48' : (item.status === 'DOING' ? '#d97706' : '#059669');
-                    let bgColor = index % 2 === 0 ? '#ffffff' : '#f8fafc';
+                resumoDia.insertAdjacentHTML('beforeend', `                     
+                    <div style="background: rgba(255,255,255,0.05); padding: 12px 15px; border-radius: 8px; border-left: 3px solid #0ea5e9; display: flex; flex-direction: column; gap: 5px;">                         
+                        <div>${badgeStatus} <strong style="color: white; font-size: 1.05rem;">${item.meta}</strong></div>                         
+                        ${item.consideracao ? `<div style="font-size: 0.9rem; color: #cbd5e1; margin-top: 2px; margin-bottom: 2px;"><i>${item.consideracao}</i></div>` : ''}
+                        <div style="font-size: 0.85rem; color: var(--text-dim);">                             
+                            <i class="fas fa-users"></i> Resp: <span style="color: var(--primary);">${item.responsavel}</span> &nbsp;|&nbsp;                              
+                            <i class="fas fa-building"></i> Setor: ${item.setor}                         
+                        </div>                     
+                    </div>                 
+                `);             
+            }             
+            const card = `             
+            <div class="kanban-card" draggable="true" data-id="${item.id}" ondragstart="window.dragStart(event)" ondragend="window.dragEnd(event)">                 
+                <div class="kanban-card-title">${item.meta}</div>                 
+                ${item.consideracao ? `<div class="kanban-card-desc">${item.consideracao}</div>` : ''}                 
+                <div class="kanban-card-meta">                     
+                    <span class="badge-setor"><i class="fas fa-building"></i> ${item.setor}</span>                     
+                    <span style="color: var(--primary);"><i class="fas fa-users"></i> ${item.responsavel}</span>                     
+                    ${item.data_previsao ? `<span class="badge-data"><i class="fas fa-calendar-alt"></i> ${window.formatarDataBR(item.data_previsao)}</span>` : ''}                 
+                </div>                                  
+                <div class="kanban-actions">                     
+                    ${item.status !== 'TODO' ? `<button class="btn-kanban" onclick="window.moverKanban('${item.id}', 'TODO')"><i class="fas fa-arrow-left"></i> A Fazer</button>` : ''}                     
+                    ${item.status !== 'DOING' ? `<button class="btn-kanban" onclick="window.moverKanban('${item.id}', 'DOING')">${item.status==='TODO' ? 'Iniciar <i class="fas fa-arrow-right"></i>' : 'Voltar'}</button>` : ''}                     
+                    ${item.status !== 'DONE' ? `<button class="btn-kanban" onclick="window.moverKanban('${item.id}', 'DONE')"><i class="fas fa-check"></i> Concluir</button>` : ''}                     
+                    ${item.status === 'DONE' ? `<button class="btn-kanban archive" onclick="window.arquivarKanban('${item.id}')"><i class="fas fa-archive"></i> Arquivar</button>` : ''}                     
+                    <button class="btn-kanban delete" onclick="window.excluirKanban('${item.id}')"><i class="fas fa-trash"></i></button>                 
+                </div>             
+            </div>`;             
+            
+            if(item.status === 'TODO' && colTodo) colTodo.insertAdjacentHTML('beforeend', card);             
+            else if(item.status === 'DOING' && colDoing) colDoing.insertAdjacentHTML('beforeend', card);             
+            else if(item.status === 'DONE' && colDone) colDone.insertAdjacentHTML('beforeend', card);         
+        });         
+        
+        if (itensCriadosHoje === 0 && resumoDia) {             
+            resumoDia.innerHTML = '<p style="color: var(--text-dim); font-size: 0.85rem;"><i class="fas fa-info-circle"></i> Nenhuma meta ou a o foi lan ada hoje at  o momento.</p>';         
+        }         
+        
+        if(colTodo && !colTodo.innerHTML) colTodo.innerHTML = '<p style="color:var(--text-dim);text-align:center;font-size:0.85rem;">Solte cart es aqui</p>';         
+        if(colDoing && !colDoing.innerHTML) colDoing.innerHTML = '<p style="color:var(--text-dim);text-align:center;font-size:0.85rem;">Solte cart es aqui</p>';         
+        if(colDone && !colDone.innerHTML) colDone.innerHTML = '<p style="color:var(--text-dim);text-align:center;font-size:0.85rem;">Solte cart es aqui</p>';     
+    };     
+    
+    window.moverKanban = async function(id, novoStatus) {         
+        try {             
+            if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);             
+            const _supa = window.supabaseClientGlobal;                          
+            const { error } = await _supa.from('kanban_metas').update({ status: novoStatus }).eq('id', id);             
+            if (error) throw error;         
+        } catch(e) {             
+            let local = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');             
+            const index = local.findIndex(i => String(i.id) === String(id));             
+            if (index > -1) { local[index].status = novoStatus; localStorage.setItem('kanban_metas_local', JSON.stringify(local)); }         
+        }         
+        window.carregarKanbanDash();     
+    };     
+    
+    window.arquivarKanban = async function(id) {         
+        if(!confirm('Deseja arquivar esta meta? Ela ir  para o Hist rico.')) return;         
+        window.moverKanban(id, 'ARCHIVED');     
+    };     
+    
+    window.excluirKanban = async function(id) {         
+        if(!confirm('Excluir definitivamente esta meta?')) return;         
+        try {             
+            if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);             
+            const _supa = window.supabaseClientGlobal;                          
+            const { error } = await _supa.from('kanban_metas').delete().eq('id', id);             
+            if (error) throw error;         
+        } catch(e) {             
+            let local = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');             
+            local = local.filter(i => String(i.id) !== String(id));             
+            localStorage.setItem('kanban_metas_local', JSON.stringify(local));         
+        }         
+        window.carregarKanbanDash();     
+    };     
+    
+    // --- NOVA L GICA DE GERA O DO PDF EXECUTIVO ---     
+    window.gerarPDFConsideracoes = async function(event) {         
+        if (!window.jspdf || !window.jspdf.jsPDF) {             
+            alert("Biblioteca de PDF n o carregou corretamente. Recarregue a p gina.");             
+            return;         
+        }                  
+        const btn = event.currentTarget;         
+        const btnOriginalHTML = btn.innerHTML;         
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando Relat rio...';         
+        btn.disabled = true;         
+        let reportDiv = null;         
+        
+        try {             
+            // 1. Busca os dados mais atualizados do Kanban             
+            let dadosKanban = [];             
+            try {                 
+                if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);                 
+                const _supa = window.supabaseClientGlobal;                 
+                const { data, error } = await _supa.from('kanban_metas').select('*').neq('status', 'ARCHIVED').order('data_criacao', { ascending: false });                 
+                if (error) throw error;                 
+                dadosKanban = data || [];             
+            } catch(e) {                 
+                let local = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');                 
+                dadosKanban = local.filter(i => i.status !== 'ARCHIVED');                 
+                dadosKanban.sort((a,b) => new Date(b.data_criacao) - new Date(a.data_criacao));             
+            }             
+            
+            // 2. Cria um elemento HTML tempor rio formatado como um documento A4 real             
+            reportDiv = document.createElement('div');             
+            reportDiv.id = 'relatorio-pdf-temp';             
+            reportDiv.style.width = '800px';             
+            reportDiv.style.padding = '40px';             
+            reportDiv.style.backgroundColor = '#ffffff';             
+            reportDiv.style.color = '#000000';             
+            reportDiv.style.fontFamily = 'Arial, sans-serif';              
+            reportDiv.style.position = 'absolute';             
+            reportDiv.style.top = '-9999px';             
+            reportDiv.style.left = '-9999px';             
+            reportDiv.style.zIndex = '-1';             
+            
+            const dataHoje = new Date().toLocaleDateString('pt-BR');             
+            const horaAtual = new Date().toLocaleTimeString('pt-BR').slice(0, 5);             
+            let htmlContent = `                 
+                <div style="border-bottom: 3px solid #10b981; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end;">                     
+                    <div style="display: flex; align-items: center; gap: 20px;">                         
+                        <img src="./assets/logoverde.png" alt="Logo Serrana" style="height: 55px; object-fit: contain;">                         
+                        <div>                             
+                            <h1 style="color: #0f172a; font-size: 24px; font-weight: bold; margin: 0; text-transform: uppercase;">Serrana Florestal</h1>                             
+                            <h2 style="color: #475569; font-size: 15px; margin: 5px 0 0 0;">Relat rio Executivo de Reuni o Di ria</h2>                         
+                        </div>                     
+                    </div>                     
+                    <div style="text-align: right;">                         
+                        <p style="font-size: 14px; font-weight: bold; margin: 0; color: #0f172a;">Data: ${dataHoje}</p>                         
+                        <p style="font-size: 12px; margin: 2px 0 0 0; color: #64748b;">Gerado  s: ${horaAtual}</p>                     
+                    </div>                 
+                </div>                                  
+                <div style="margin-bottom: 20px;">                     
+                    <h3 style="color: #0f172a; font-size: 18px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">Plano de A o e Metas</h3>                 
+                </div>             
+            `;             
+            
+            if (dadosKanban.length === 0) {                 
+                htmlContent += `<p style="color: #64748b; font-size: 14px; text-align: center; margin-top: 40px;">Nenhuma meta ou a o registrada para o painel atual.</p>`;             
+            } else {                 
+                htmlContent += `<table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">                     
+                    <thead>                         
+                        <tr style="background-color: #f8fafc; border-bottom: 2px solid #cbd5e1;">                             
+                            <th style="padding: 12px; color: #334155;">Status</th>                             
+                            <th style="padding: 12px; color: #334155;">A o / Meta</th>                             
+                            <th style="padding: 12px; color: #334155;">Respons vel</th>                             
+                            <th style="padding: 12px; color: #334155;">Setor</th>                             
+                            <th style="padding: 12px; color: #334155;">Prazo</th>                         
+                        </tr>                     
+                    </thead>                     
+                    <tbody>`;                                  
                     
-                    htmlContent += `
-                        <tr style="background-color: ${bgColor}; border-bottom: 1px solid #e2e8f0;">
-                            <td style="padding: 12px; font-weight: bold; color: ${statusColor}; width: 15%; vertical-align: top;">${statusText}</td>
-                            <td style="padding: 12px; color: #0f172a; width: 40%; vertical-align: top;">
-                                <strong style="display: block; margin-bottom: 4px;">${item.meta}</strong>
-                                ${item.consideracao ? `<span style="color: #64748b; font-size: 11px; line-height: 1.4; display: block;">${item.consideracao}</span>` : ''}
-                            </td>
-                            <td style="padding: 12px; color: #334155; font-weight: 600; width: 15%; vertical-align: top;">${item.responsavel}</td>
-                            <td style="padding: 12px; color: #475569; width: 15%; vertical-align: top;">${item.setor}</td>
-                            <td style="padding: 12px; color: #0f172a; font-weight: bold; width: 15%; vertical-align: top;">${window.formatarDataBR(item.data_previsao) || '-'}</td>
-                        </tr>
-                    `;
-                });
-                htmlContent += `</tbody></table>`;
-            }
-
-            // Assinaturas e Rodapé
-            htmlContent += `
-                <div style="margin-top: 60px; display: flex; justify-content: space-around; text-align: center;">
-                    <div>
-                        <div style="border-top: 1px solid #000; width: 220px; margin: 0 auto 5px auto;"></div>
-                        <p style="margin: 0; font-size: 12px; color: #0f172a; font-weight: bold;">Diretoria Executiva</p>
-                    </div>
-                    <div>
-                        <div style="border-top: 1px solid #000; width: 220px; margin: 0 auto 5px auto;"></div>
-                        <p style="margin: 0; font-size: 12px; color: #0f172a; font-weight: bold;">Gestão de Operações</p>
-                    </div>
-                </div>
+                // Ordena gica para o relat rio (A cumprir -> Em andamento -> Conclu             
+                const ordenacao = { 'TODO': 1, 'DOING': 2, 'DONE': 3 };                 
+                dadosKanban.sort((a, b) => ordenacao[a.status] - ordenacao[b.status]);                 
                 
-                <div style="margin-top: 50px; display: flex; justify-content: space-between; text-align: center; gap: 20px;">
-                    <div style="flex: 1;">
-                        <div style="border-top: 1px solid #000; width: 180px; margin: 0 auto 5px auto;"></div>
-                        <p style="margin: 0; font-size: 12px; color: #0f172a; font-weight: bold;">Gestão de Manutenção</p>
-                    </div>
-                    <div style="flex: 1;">
-                        <div style="border-top: 1px solid #000; width: 180px; margin: 0 auto 5px auto;"></div>
-                        <p style="margin: 0; font-size: 12px; color: #0f172a; font-weight: bold;">Recursos Humanos (RH)</p>
-                    </div>
-                    <div style="flex: 1;">
-                        <div style="border-top: 1px solid #000; width: 180px; margin: 0 auto 5px auto;"></div>
-                        <p style="margin: 0; font-size: 12px; color: #0f172a; font-weight: bold;">SSMA</p>
-                    </div>
-                </div>
+                dadosKanban.forEach((item, index) => {                     
+                    let statusText = item.status === 'TODO' ? 'A Cumprir' : (item.status === 'DOING' ? 'Em Andamento' : 'Conclu do');                     
+                    let statusColor = item.status === 'TODO' ? '#e11d48' : (item.status === 'DOING' ? '#d97706' : '#059669');                     
+                    let bgColor = index % 2 === 0 ? '#ffffff' : '#f8fafc';                                          
+                    
+                    htmlContent += `                         
+                        <tr style="background-color: ${bgColor}; border-bottom: 1px solid #e2e8f0;">                             
+                            <td style="padding: 12px; font-weight: bold; color: ${statusColor}; width: 15%; vertical-align: top;">${statusText}</td>                             
+                            <td style="padding: 12px; color: #0f172a; width: 40%; vertical-align: top;">                                 
+                                <strong style="display: block; margin-bottom: 4px;">${item.meta}</strong>                                 
+                                ${item.consideracao ? `<span style="color: #64748b; font-size: 11px; line-height: 1.4; display: block;">${item.consideracao}</span>` : ''}                             
+                            </td>                             
+                            <td style="padding: 12px; color: #334155; font-weight: 600; width: 15%; vertical-align: top;">${item.responsavel}</td>                             
+                            <td style="padding: 12px; color: #475569; width: 15%; vertical-align: top;">${item.setor}</td>                             
+                            <td style="padding: 12px; color: #0f172a; font-weight: bold; width: 15%; vertical-align: top;">${window.formatarDataBR(item.data_previsao) || '-'}</td>                         
+                        </tr>                     
+                    `;                 
+                });                 
+                htmlContent += `</tbody></table>`;             
+            }             
+            
+            // Assinaturas e Rodap             
+            htmlContent += `                 
+                <div style="margin-top: 60px; display: flex; justify-content: space-around; text-align: center;">                     
+                    <div>                         
+                        <div style="border-top: 1px solid #000; width: 220px; margin: 0 auto 5px auto;"></div>                         
+                        <p style="margin: 0; font-size: 12px; color: #0f172a; font-weight: bold;">Diretoria Executiva</p>                     
+                    </div>                     
+                    <div>                         
+                        <div style="border-top: 1px solid #000; width: 220px; margin: 0 auto 5px auto;"></div>                         
+                        <p style="margin: 0; font-size: 12px; color: #0f172a; font-weight: bold;">Gest o de Opera es</p>                     
+                    </div>                 
+                </div>                                  
                 
-                <div style="margin-top: 40px; text-align: center; border-top: 1px solid #cbd5e1; padding-top: 10px;">
-                    <p style="margin: 0; font-size: 10px; color: #94a3b8;">Documento gerado automaticamente pelo Sistema de Gestão Serrana Florestal.</p>
-                </div>
-            `;
-
-            reportDiv.innerHTML = htmlContent;
-            document.body.appendChild(reportDiv);
-
-            // Aguarda 500ms para garantir que a imagem do logo carregue totalmente no DOM antes de fotografar
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            // 3. Tira uma "foto" em alta resolução da DIV criada e converte em PDF
-            const canvas = await html2canvas(reportDiv, { 
-                scale: 2, 
-                backgroundColor: '#ffffff',
-                useCORS: true
-            });
-
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
-            const imgProps = pdf.getImageProperties(imgData);
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                <div style="margin-top: 50px; display: flex; justify-content: space-between; text-align: center; gap: 20px;">                     
+                    <div style="flex: 1;">                         
+                        <div style="border-top: 1px solid #000; width: 180px; margin: 0 auto 5px auto;"></div>                         
+                        <p style="margin: 0; font-size: 12px; color: #0f172a; font-weight: bold;">Gest o de Manuten o</p>                     
+                    </div>                     
+                    <div style="flex: 1;">                         
+                        <div style="border-top: 1px solid #000; width: 180px; margin: 0 auto 5px auto;"></div>                         
+                        <p style="margin: 0; font-size: 12px; color: #0f172a; font-weight: bold;">Recursos Humanos (RH)</p>                     
+                    </div>                     
+                    <div style="flex: 1;">                         
+                        <div style="border-top: 1px solid #000; width: 180px; margin: 0 auto 5px auto;"></div>                         
+                        <p style="margin: 0; font-size: 12px; color: #0f172a; font-weight: bold;">SSMA</p>                     
+                    </div>                 
+                </div>                                  
+                
+                <div style="margin-top: 40px; text-align: center; border-top: 1px solid #cbd5e1; padding-top: 10px;">                     
+                    <p style="margin: 0; font-size: 10px; color: #94a3b8;">Documento gerado automaticamente pelo Sistema de Gest o Serrana Florestal.</p>                 
+                </div>             
+            `;             
             
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            reportDiv.innerHTML = htmlContent;             
+            document.body.appendChild(reportDiv);             
             
-            pdf.save(`Relatorio_Reuniao_Serrana_${dataHoje.replace(/\//g, '-')}.pdf`);
+            // Aguarda 500ms para garantir que a imagem do logo carregue totalmente no DOM antes de fotografar             
+            await new Promise(resolve => setTimeout(resolve, 500));             
             
-        } catch (error) {
-            console.error("Erro na geração do PDF: ", error);
-            alert("Houve um erro ao tentar gerar o PDF.");
-        } finally {
-            // Remove o documento temporário da página para evitar lixo de memória
-            if (reportDiv && reportDiv.parentNode) {
-                reportDiv.parentNode.removeChild(reportDiv);
-            }
-            btn.innerHTML = btnOriginalHTML;
-            btn.disabled = false;
-        }
-    };
-
-    // Inicializa
-    setTimeout(window.carregarKanbanDash, 300);
+            // 3. Tira uma "foto" em alta resolu o da DIV criada e converte em PDF             
+            const canvas = await html2canvas(reportDiv, {                  
+                scale: 2,                  
+                backgroundColor: '#ffffff',                 
+                useCORS: true             
+            });             
+            
+            const imgData = canvas.toDataURL('image/png');             
+            const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');             
+            const imgProps = pdf.getImageProperties(imgData);             
+            const pdfWidth = pdf.internal.pageSize.getWidth();             
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;                          
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);                          
+            pdf.save(`Relatorio_Reuniao_Serrana_${dataHoje.replace(/\//g, '-')}.pdf`);                      
+            
+        } catch (error) {             
+            console.error("Erro na gera o do PDF: ", error);             
+            alert("Houve um erro ao tentar gerar o PDF.");         
+        } finally {             
+            // Remove o documento tempor rio da p gina para evitar lixo de mem             
+            if (reportDiv && reportDiv.parentNode) {                 
+                reportDiv.parentNode.removeChild(reportDiv);             
+            }             
+            btn.innerHTML = btnOriginalHTML;             
+            btn.disabled = false;         
+        }     
+    };     
+    
+    // Inicializa     
+    setTimeout(window.carregarKanbanDash, 300); 
 </script>

@@ -106,7 +106,6 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
             document.body.removeChild(newScript);
         });
         
-        // Retiramos 'dash_consideracoes.html' do array de bloqueio, para que o Kanban apareça lá também
         if (!['cons_historico.html', 'conf_sistema.html', 'rh_lancamentos.html'].includes(fileName)) {
             injectKanbanLauncher(subTitle);
         }
@@ -231,58 +230,75 @@ window.salvarKanbanItem = async function() {
     const consideracao = document.getElementById('kb-consideracao').value;
     const msg = document.getElementById('kb-msg');
     
-    if(!meta || !responsavel) { 
-        msg.style.color = 'var(--vermelho)'; 
-        msg.innerText = 'Preencha a Meta e adicione ao menos um Responsável no botão (+) !'; 
-        return; 
+    if(!meta || !responsavel) {
+         msg.style.color = 'var(--vermelho)';
+         msg.innerText = 'Preencha a Meta e adicione ao menos um Responsável no botão (+) !';
+         return;
     }
     
-    // Removendo o ID manual (Date.now()) para que o Supabase gere sozinho e pare de dar erro
+    // CORREÇÃO: Adicionado o "id: Date.now()" para forçar a criação do identificador
     const item = {
+        id: Date.now(), 
         setor: setor, 
         responsavel: responsavel, 
         meta: meta, 
-        consideracao: consideracao, 
         data_previsao: data_previsao,
         status: 'TODO', 
         data_criacao: new Date().toISOString() 
     };
+
+    // Só envia a consideração caso exista texto
+    if (consideracao && consideracao.trim() !== '') {
+        item.consideracao = consideracao;
+    } else {
+        item.consideracao = null;
+    }
     
-    msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando...';
+    msg.style.color = 'var(--text-dim)'; 
+    msg.innerText = 'Salvando no banco de dados...';
     
     try {
-        if (!window.supabaseClientGlobal && typeof supabase !== 'undefined' && SUPABASE_CONFIG) {
+        if (!window.supabaseClientGlobal && typeof supabase !== 'undefined' && typeof SUPABASE_CONFIG !== 'undefined') {
             window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
         }
         
         if (window.supabaseClientGlobal) {
             const _supa = window.supabaseClientGlobal;
             const { error } = await _supa.from('kanban_metas').insert([item]);
-            if (error) throw error;
+            
+            if (error) {
+                console.error("Erro do Supabase:", error);
+                msg.style.color = 'var(--vermelho)';
+                msg.innerText = 'ERRO NO BANCO: ' + error.message;
+                return;
+            }
         } else {
             throw new Error("Supabase não carregado");
         }
     } catch(e) {
-        console.warn("Erro ao salvar no Supabase, salvando local", e);
-        // Fallback local: Apenas aqui usamos o id manual
-        item.id = Date.now();
-        let localKanban = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');
-        localKanban.push(item);
-        localStorage.setItem('kanban_metas_local', JSON.stringify(localKanban));
+        console.error("Erro ao salvar no Supabase:", e);
+        msg.style.color = 'var(--vermelho)';
+        msg.innerText = 'Falha de conexão com o banco de dados!';
+        return;
     }
     
-    msg.style.color = 'var(--verde)'; msg.innerText = 'Enviado para o Quadro de Considerações!';
+    msg.style.color = 'var(--verde)'; 
+    msg.innerText = 'Enviado para o Quadro com Sucesso!';
+    
     document.getElementById('kb-meta').value = '';
     document.getElementById('kb-consideracao').value = '';
     document.getElementById('kb-responsavel-final').value = '';
     renderResponsaveisKb();
     
-    // Atualiza a tela do Kanban na mesma hora, se ela estiver aberta
     if (typeof window.carregarKanbanDash === 'function') {
         window.carregarKanbanDash();
     }
     
-    setTimeout(() => msg.innerText = '', 4000);
+    setTimeout(() => {
+        if (msg.innerText.includes('Sucesso')) {
+            msg.innerText = '';
+        }
+    }, 4000);
 }
 
 async function sincronizarNomesDoBanco() {
