@@ -1,22 +1,141 @@
 <!-- ================= HEADER COM BOTÃO PDF ================= -->
-<div class="action-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(15, 23, 42, 0.8); padding: 15px 20px; border-radius: 12px; border-left: 5px solid #eab308;">
-    <h2 style="color: white; margin: 0; font-size: 1.2rem;"><i class="fas fa-clipboard-list" style="color: #eab308;"></i> Resumo e Considerações do Dia</h2>
-    <button class="btn-salvar" onclick="window.gerarPDFConsideracoes(event)" style="background: #eab308; color: #0f172a; padding: 10px 20px; font-size: 0.9rem; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+<div class="action-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(15, 23, 42, 0.8); padding: 15px 20px; border-radius: 12px; border-left: 5px solid #eab308; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+    <h2 style="color: white; margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-clipboard-list" style="color: #eab308;"></i> Painel Executivo e Considerações do Dia
+    </h2>
+    <button class="btn-salvar" onclick="window.gerarPDFConsideracoes(event)" style="background: #eab308; color: #0f172a; padding: 10px 20px; font-size: 0.9rem; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
         <i class="fas fa-file-pdf"></i> Gerar Relatório PDF
     </button>
 </div>
 
-<!-- ================= RESUMO DO DIA: LANÇAMENTOS DE HOJE ================= -->
-<div class="content-panel" style="margin-top: 15px; border-left: 5px solid #0ea5e9; background: rgba(15, 23, 42, 0.8); border-radius: 12px; overflow: hidden;">
-    <h3 class="nav-label" style="font-size: 1rem; color: white; padding: 15px 20px 0;"><i class="fas fa-calendar-day" style="color: #0ea5e9;"></i> AÇÕES E METAS ADICIONADAS HOJE</h3>
-    <div id="resumo-dia-lista" style="padding: 15px 20px; display: flex; flex-direction: column; gap: 10px;">
-        <p style="color: var(--text-dim); font-size: 0.85rem;">Carregando resumo do dia...</p>
+<!-- ================= RESUMO D-1 (OPERAÇÃO E MANUTENÇÃO) ================= -->
+<div class="content-panel" style="margin-bottom: 25px; border-left: 5px solid #0ea5e9; background: rgba(15, 23, 42, 0.8); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+    <div style="padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="nav-label" style="font-size: 1rem; color: white; margin: 0;">
+            <i class="fas fa-chart-pie" style="color: #0ea5e9;"></i> DESEMPENHO OPERACIONAL E MANUTENÇÃO <span id="label-d1-data" style="color: var(--text-dim); font-size: 0.8rem; margin-left: 10px;">(D-1: Calculando...)</span>
+        </h3>
+        <span id="status-load-d1" style="font-size: 0.8rem; color: var(--amarelo); font-weight: bold;"><i class="fas fa-sync fa-spin"></i> Buscando dados...</span>
+    </div>
+
+    <!-- Grid Operacional D-1 -->
+    <div style="padding: 20px; background: rgba(0,0,0,0.2);">
+        <h4 style="color: #10b981; font-size: 0.85rem; margin-bottom: 15px; text-transform: uppercase; font-weight: 800;"><i class="fas fa-truck"></i> Operacional (D-1)</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px;">
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Viagens</div>
+                <div id="d1-viagens" style="color: white; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Média PBTC</div>
+                <div id="d1-pbtc" style="color: #0ea5e9; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0 t</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Média Vol.</div>
+                <div id="d1-med-vol" style="color: #8b5cf6; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0 m³</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Vol. Total</div>
+                <div id="d1-vol-tot" style="color: #f59e0b; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0 m³</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Dist. Média</div>
+                <div id="d1-dist" style="color: #10b981; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0 km</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">Ciclo Médio</div>
+                <div id="d1-ciclo" style="color: #ef4444; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">T. Campo</div>
+                <div id="d1-campo" style="color: white; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">T. Carga</div>
+                <div id="d1-carga" style="color: white; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                <div style="color: var(--text-dim); font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">T. Fábrica</div>
+                <div id="d1-fabrica" style="color: white; font-size: 1.5rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grid Manutenção D-1 -->
+    <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.05);">
+        <h4 style="color: #f59e0b; font-size: 0.85rem; margin-bottom: 15px; text-transform: uppercase; font-weight: 800;"><i class="fas fa-tools"></i> Manutenção (D-1)</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center; border-bottom: 3px solid #10b981;">
+                <div style="color: var(--text-dim); font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">Média DM Geral</div>
+                <div id="d1-dm" style="color: #10b981; font-size: 2rem; font-weight: 900; margin-top: 5px;">0%</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center; border-bottom: 3px solid #3b82f6;">
+                <div style="color: var(--text-dim); font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">Média Disponíveis</div>
+                <div id="d1-ativos" style="color: white; font-size: 2rem; font-weight: 900; margin-top: 5px;">0</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center; border-bottom: 3px solid #ef4444;">
+                <div style="color: var(--text-dim); font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">Média Manutenção</div>
+                <div id="d1-manut" style="color: #ef4444; font-size: 2rem; font-weight: 900; margin-top: 5px;">0</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center; border-bottom: 3px solid #8b5cf6;">
+                <div style="color: var(--text-dim); font-size: 0.75rem; font-weight: bold; text-transform: uppercase;">Tempo Médio O.S.</div>
+                <div id="d1-tmos" style="color: #8b5cf6; font-size: 2rem; font-weight: 900; margin-top: 5px;">0h 0m</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MURAIS DE COMUNICAÇÃO GLOBAIS ================= -->
+<div class="content-panel" style="margin-bottom: 25px; border-left: 5px solid #8b5cf6; background: rgba(15, 23, 42, 0.8); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+    <div style="padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <h3 class="nav-label" style="font-size: 1rem; color: white; margin: 0;"><i class="fas fa-bullhorn" style="color: #8b5cf6;"></i> MURAIS DE INFORMAÇÕES DOS SETORES</h3>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; padding: 20px;">
+        
+        <!-- SSMA -->
+        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
+            <h4 style="color: #10b981; font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;"><i class="fas fa-shield-alt"></i> Mural SSMA</h4>
+            <div id="mural-global-ssma" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
+                <span style="color: var(--text-dim); font-size: 0.8rem;">Carregando...</span>
+            </div>
+        </div>
+
+        <!-- RH -->
+        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
+            <h4 style="color: #ec4899; font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;"><i class="fas fa-users"></i> Mural RH</h4>
+            <div id="mural-global-rh" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
+                <span style="color: var(--text-dim); font-size: 0.8rem;">Carregando...</span>
+            </div>
+        </div>
+
+        <!-- OPERACIONAL -->
+        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
+            <h4 style="color: #0ea5e9; font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;"><i class="fas fa-truck"></i> Mural Operacional</h4>
+            <div id="mural-global-op" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
+                <span style="color: var(--text-dim); font-size: 0.8rem;">Carregando...</span>
+            </div>
+        </div>
+
+        <!-- MANUTENÇÃO -->
+        <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
+            <h4 style="color: #f59e0b; font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;"><i class="fas fa-tools"></i> Mural Manutenção</h4>
+            <div id="mural-global-man" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
+                <span style="color: var(--text-dim); font-size: 0.8rem;">Carregando...</span>
+            </div>
+        </div>
+
     </div>
 </div>
 
 <!-- ================= QUADRO KANBAN ================= -->
-<div class="content-panel kanban-container" style="margin-top: 30px;">
-    <h3 class="nav-label" style="font-size: 1rem; color: white;"><i class="fas fa-columns" style="color: var(--primary);"></i> QUADRO KANBAN - METAS E AÇÕES</h3>
+<div class="content-panel kanban-container" style="margin-top: 10px; border-top: 5px solid var(--primary); padding-top: 20px;">
+    <h3 class="nav-label" style="font-size: 1rem; color: white;"><i class="fas fa-columns" style="color: var(--primary);"></i> QUADRO KANBAN - METAS E AÇÕES DAS REUNIÕES</h3>
+    
+    <!-- Lançamentos de hoje do Kanban (Resumo Rápido) -->
+    <div id="resumo-dia-lista" style="margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; display: flex; flex-direction: column; gap: 10px;">
+        <p style="color: var(--text-dim); font-size: 0.85rem;">Carregando metas do dia...</p>
+    </div>
+
     <div class="kanban-board">
         <div class="kanban-col" data-status="TODO" ondragover="window.permitirDrop(event)" ondragleave="window.sairDrop(event)" ondrop="window.soltarDrop(event)">
             <div class="kanban-col-header todo">A CUMPRIR</div>
@@ -34,7 +153,238 @@
 </div>
 
 <script>
-    // --- LÓGICA DO DRAG AND DROP ---
+    // --- FUNÇÕES UTILITÁRIAS ---
+    window.formatarDataBR = function(dataIso) {
+        if (!dataIso) return '';
+        const [ano, mes, dia] = dataIso.split('-');
+        return `${dia}/${mes}/${ano}`;
+    };
+
+    window.formatarHorasMinutos = function(horasDecimais) {
+        if (horasDecimais === null || horasDecimais === undefined || isNaN(horasDecimais) || horasDecimais <= 0) return '-';
+        let horas = Math.floor(horasDecimais);
+        let minutos = Math.round((horasDecimais - horas) * 60);
+        if (minutos === 60) { horas += 1; minutos = 0; }
+        if (horas === 0 && minutos === 0) return '0m';
+        if (horas === 0) return `${minutos}m`;
+        if (minutos === 0) return `${horas}h`;
+        return `${horas}h ${minutos.toString().padStart(2, '0')}m`;
+    };
+
+    function formatDataMural(d) {
+        if(!d) return ''; 
+        if(d.includes('/')) return d; 
+        const p = d.split('-'); 
+        if(p.length === 3) return `${p[2]}/${p[1]}`;
+        return d;
+    }
+
+    // --- LÓGICA DE GESTÃO DO D-1 E MURAIS ---
+    window.carregarResumoD1EMurais = async function() {
+        const statEl = document.getElementById('status-load-d1');
+        
+        // Data D-1
+        const hoje = new Date();
+        const ontem = new Date(hoje);
+        ontem.setDate(hoje.getDate() - 1);
+        ontem.setHours(0,0,0,0);
+        
+        const d1Iso = ontem.toISOString().split('T')[0];
+        const d1StrBR = `${String(ontem.getDate()).padStart(2,'0')}/${String(ontem.getMonth()+1).padStart(2,'0')}/${ontem.getFullYear()}`;
+        document.getElementById('label-d1-data').innerText = `(D-1: ${d1StrBR})`;
+
+        // Instâncias Supabase
+        const supaGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+        const supaOp = supabase.createClient('https://qnpwkvazkntbqjbwegcp.supabase.co', 'sb_publishable_bjTFgpk-qAdpVuWzr4hbng_G8O9qlc8');
+        const supaMan = supabase.createClient('https://ihgiyxzxdldqmrkziijl.supabase.co', 'sb_publishable_JpMZhW5ZrFKBr7m9KXBkoQ_cpxy1k3x');
+
+        try {
+            // ================= 1. OPERACIONAL D-1 =================
+            const { data: opData } = await supaOp.from('historico_viagens').select('*');
+            if (opData) {
+                const fOp = opData.filter(d => {
+                    const motorista = String(d.motorista || '').toUpperCase();
+                    if(motorista.includes('JULIO CESAR ALMEIDA NUNES') || motorista === '-') return false;
+                    
+                    let dataExcel = d.dataDaBaseExcel;
+                    if(!dataExcel || dataExcel === 'Desconhecida') return false;
+                    
+                    let pDate = null;
+                    if (dataExcel.includes('/')) {
+                        const parts = dataExcel.split(' ')[0].split('/');
+                        if (parts.length >= 3) {
+                            let y = parseInt(parts[2], 10); if (y < 100) y += 2000;
+                            pDate = new Date(y, parseInt(parts[1], 10) - 1, parseInt(parts[0], 10));
+                        }
+                    } else if (dataExcel.includes('-')) {
+                        pDate = new Date(dataExcel);
+                    }
+                    
+                    if(pDate) {
+                        pDate.setHours(0,0,0,0);
+                        return pDate.getTime() === ontem.getTime();
+                    }
+                    return false;
+                });
+
+                const viagens = fOp.length;
+                const volTot = fOp.reduce((s,d) => s + (parseFloat(String(d.volumeReal).replace(',','.'))||0), 0);
+                const pTotKg = fOp.reduce((s,d) => s + (parseFloat(String(d.pesoLiquido).replace(',','.'))||0), 0);
+                
+                const medPbtc = viagens > 0 ? (pTotKg / 1000) / viagens : 0;
+                const medVol = viagens > 0 ? volTot / viagens : 0;
+                
+                const medAsfalto = viagens > 0 ? fOp.reduce((s, d) => s + (d.distanciaAsfalto || 0), 0) / viagens : 0;
+                const medTerra = viagens > 0 ? fOp.reduce((s, d) => s + (d.distanciaTerra || 0), 0) / viagens : 0;
+                const distMed = medAsfalto + medTerra;
+
+                const calcMed = (arr, field) => {
+                    const v = arr.filter(x => x[field] > 0);
+                    return v.length > 0 ? v.reduce((s,x) => s + x[field], 0) / v.length : 0;
+                };
+
+                document.getElementById('d1-viagens').innerText = viagens;
+                document.getElementById('d1-pbtc').innerText = medPbtc.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' t';
+                document.getElementById('d1-med-vol').innerText = medVol.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
+                document.getElementById('d1-vol-tot').innerText = volTot.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
+                document.getElementById('d1-dist').innerText = distMed.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' km';
+                document.getElementById('d1-ciclo').innerText = window.formatarHorasMinutos(calcMed(fOp, 'cicloHoras'));
+                document.getElementById('d1-campo').innerText = window.formatarHorasMinutos(calcMed(fOp, 'filaCampoHoras'));
+                document.getElementById('d1-carga').innerText = window.formatarHorasMinutos(calcMed(fOp, 'tempoCarregamentoHoras'));
+                document.getElementById('d1-fabrica').innerText = window.formatarHorasMinutos(calcMed(fOp, 'filaFabricaHoras'));
+            }
+
+            // ================= 2. MANUTENÇÃO D-1 =================
+            const { data: osData } = await supaMan.from('ordens_servico').select('*');
+            const { data: frotasData } = await supaMan.from('frotas_manutencao').select('*');
+            
+            if (osData && frotasData) {
+                const fimOntem = new Date(ontem);
+                fimOntem.setHours(23, 59, 59, 999);
+                
+                let msTotalDia = 24 * 60 * 60 * 1000;
+                let totalMsDisponivel = frotasData.length * msTotalDia;
+                let msManutencao = 0;
+                let osTempoMs = 0;
+                let qtdOsTempo = 0;
+
+                frotasData.forEach(frota => {
+                    let manutCavalo = 0;
+                    const osCavalo = osData.filter(o => o.placa === frota.cavalo && o.status !== 'Agendada');
+                    
+                    osCavalo.forEach(os => {
+                        let osInStr = os.data_abertura;
+                        if(osInStr) {
+                            if(!osInStr.includes('T')) osInStr += 'T00:00:00';
+                            const osInicio = new Date(osInStr.replace('Z','').replace('+00:00',''));
+                            let osFim = new Date();
+                            if(os.data_conclusao) {
+                                let osFimStr = os.data_conclusao;
+                                if(!osFimStr.includes('T')) osFimStr += 'T00:00:00';
+                                osFim = new Date(osFimStr.replace('Z','').replace('+00:00',''));
+                            }
+                            
+                            const oIn = osInicio > ontem ? osInicio : ontem;
+                            const oOut = osFim < fimOntem ? osFim : fimOntem;
+                            
+                            if (oIn < oOut) {
+                                manutCavalo += (oOut - oIn);
+                            }
+
+                            // Tempo médio da OS que fechou em D-1
+                            if ((os.status === 'Concluída' || os.status === 'Resolvido') && os.data_conclusao) {
+                                if(osFim >= ontem && osFim <= fimOntem) {
+                                    osTempoMs += (osFim - osInicio);
+                                    qtdOsTempo++;
+                                }
+                            }
+                        }
+                    });
+                    if(manutCavalo > msTotalDia) manutCavalo = msTotalDia;
+                    msManutencao += manutCavalo;
+                });
+
+                let dispMs = totalMsDisponivel - msManutencao;
+                if(dispMs < 0) dispMs = 0;
+                let percDM = totalMsDisponivel > 0 ? (dispMs / totalMsDisponivel) * 100 : 100;
+                let medDisp = msTotalDia > 0 ? Math.round(dispMs / msTotalDia) : 0;
+                let medMan = msTotalDia > 0 ? Math.round(msManutencao / msTotalDia) : 0;
+
+                let tmosStr = '0h 0m';
+                if(qtdOsTempo > 0) {
+                    let mediaMs = osTempoMs / qtdOsTempo;
+                    let hrs = Math.floor(mediaMs / (1000 * 60 * 60));
+                    let mins = Math.floor((mediaMs % (1000 * 60 * 60)) / (1000 * 60));
+                    tmosStr = `${hrs}h ${mins}m`;
+                }
+
+                document.getElementById('d1-dm').innerText = percDM.toFixed(1) + '%';
+                document.getElementById('d1-ativos').innerText = medDisp;
+                document.getElementById('d1-manut').innerText = medMan;
+                document.getElementById('d1-tmos').innerText = tmosStr;
+            }
+
+            // ================= 3. MURAIS GLOBAIS =================
+            const buildHtmlMural = (arr, color) => {
+                if(!arr || arr.length === 0) return `<div style="color: var(--text-dim); font-size: 0.8rem; padding: 5px;">Nenhum registro.</div>`;
+                return arr.map(i => `
+                    <div style="background: rgba(255,255,255,0.03); border-left: 3px solid ${color}; padding: 8px 10px; border-radius: 4px; font-size: 0.85rem;">
+                        <span style="color: var(--text-dim); font-weight: bold; font-size: 0.75rem; margin-right: 5px;">[${formatDataMural(i.data)}]</span> 
+                        <span style="color: #e2e8f0;">${i.texto}</span>
+                    </div>
+                `).join('');
+            };
+
+            const parseArr = (str) => {
+                if(!str) return [];
+                try { return JSON.parse(str); } catch(e) { return []; }
+            };
+
+            // Murais Op e Man
+            const { data: configs } = await supaGlobal.from('configuracoes').select('chave, valor').in('chave', ['mural_operacional', 'mural_manutencao']);
+            if (configs) {
+                configs.forEach(c => {
+                    if(c.chave === 'mural_operacional') document.getElementById('mural-global-op').innerHTML = buildHtmlMural(parseArr(c.valor), '#0ea5e9');
+                    if(c.chave === 'mural_manutencao') document.getElementById('mural-global-man').innerHTML = buildHtmlMural(parseArr(c.valor), '#f59e0b');
+                });
+            }
+
+            // Mural SSMA
+            const { data: ssmaData } = await supaGlobal.from('ssma_indicadores_gerais').select('*').neq('data_registro', '2099-12-31').order('data_registro', {ascending: false}).limit(1);
+            if(ssmaData && ssmaData.length > 0) {
+                const s = ssmaData[0];
+                let allSsma = [
+                    ...parseArr(s.mural_ocorrencias).map(x => ({...x, texto: `[Ocorrência] ${x.texto}`})),
+                    ...parseArr(s.mural_ferramentas).map(x => ({...x, texto: `[Ferramenta] ${x.texto}`})),
+                    ...parseArr(s.mural_acoes).map(x => ({...x, texto: `[Ação] ${x.texto}`})),
+                    ...parseArr(s.mural_avisos).map(x => ({...x, texto: `[Aviso] ${x.texto}`}))
+                ];
+                allSsma.sort((a,b) => new Date(b.data) - new Date(a.data));
+                document.getElementById('mural-global-ssma').innerHTML = buildHtmlMural(allSsma, '#10b981');
+            }
+
+            // Mural RH
+            const { data: rhData } = await supaGlobal.from('rh_indicadores').select('*').order('data_registro', {ascending: false}).limit(1);
+            if(rhData && rhData.length > 0) {
+                const r = rhData[0];
+                let allRh = [
+                    ...parseArr(r.mural_avisos).map(x => ({...x, texto: `[Aviso] ${x.texto}`})),
+                    ...parseArr(r.mural_liberacoes).map(x => ({...x, texto: `[Liberação] ${x.texto}`}))
+                ];
+                allRh.sort((a,b) => new Date(b.data) - new Date(a.data));
+                document.getElementById('mural-global-rh').innerHTML = buildHtmlMural(allRh, '#ec4899');
+            }
+
+            statEl.innerHTML = `<i class="fas fa-check-circle" style="color: var(--verde);"></i> Atualizado`;
+            setTimeout(() => statEl.innerText = '', 3000);
+
+        } catch (e) {
+            console.error("Erro D-1:", e);
+            statEl.innerHTML = `<i class="fas fa-times-circle" style="color: var(--vermelho);"></i> Erro`;
+        }
+    };
+
+    // --- LÓGICA DO DRAG AND DROP DO KANBAN ---
     window.draggedItemId = null;
     window.dragStart = function(event) {
         window.draggedItemId = event.currentTarget.getAttribute('data-id');
@@ -60,12 +410,6 @@
         if (window.draggedItemId && novoStatus) {
             window.moverKanban(window.draggedItemId, novoStatus);
         }
-    };
-
-    window.formatarDataBR = function(dataIso) {
-        if (!dataIso) return '';
-        const [ano, mes, dia] = dataIso.split('-');
-        return `${dia}/${mes}/${ano}`;
     };
 
     window.carregarKanbanDash = async function() {
@@ -157,9 +501,7 @@
             
             const { error } = await _supa.from('kanban_metas').update({ status: novoStatus }).eq('id', id);
             if (error) throw error;
-        } catch(e) {
-            console.error("Falha ao mover kanban.");
-        }
+        } catch(e) { console.error("Falha ao mover kanban."); }
         window.carregarKanbanDash();
     };
 
@@ -176,23 +518,19 @@
             
             const { error } = await _supa.from('kanban_metas').delete().eq('id', id);
             if (error) throw error;
-        } catch(e) {
-            console.error("Falha ao excluir Kanban.");
-        }
+        } catch(e) { console.error("Falha ao excluir Kanban."); }
         window.carregarKanbanDash();
     };
 
-    // --- LÓGICA DE GERAÇÃO DO PDF EXECUTIVO ---
+    // --- LÓGICA DE GERAÇÃO DO PDF EXECUTIVO (Expandido) ---
     window.gerarPDFConsideracoes = async function(event) {
-        if (!window.jspdf || !window.jspdf.jsPDF) {
-            alert("Biblioteca de PDF não carregou corretamente. Recarregue a página.");
-            return;
-        }
+        if (!window.jspdf || !window.jspdf.jsPDF) { alert("Biblioteca de PDF não carregou corretamente. Recarregue a página."); return; }
         
         const btn = event.currentTarget;
         const btnOriginalHTML = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando Relatório...';
         btn.disabled = true;
+        
         let reportDiv = null;
         
         try {
@@ -200,12 +538,9 @@
             try {
                 if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
                 const _supa = window.supabaseClientGlobal;
-                const { data, error } = await _supa.from('kanban_metas').select('*').neq('status', 'ARCHIVED').order('data_criacao', { ascending: false });
-                if (error) throw error;
+                const { data } = await _supa.from('kanban_metas').select('*').neq('status', 'ARCHIVED').order('data_criacao', { ascending: false });
                 dadosKanban = data || [];
-            } catch(e) {
-                console.error("Falha ao buscar dados PDF");
-            }
+            } catch(e) { console.error("Falha ao buscar dados PDF"); }
             
             reportDiv = document.createElement('div');
             reportDiv.id = 'relatorio-pdf-temp';
@@ -222,6 +557,13 @@
             const dataHoje = new Date().toLocaleDateString('pt-BR');
             const horaAtual = new Date().toLocaleTimeString('pt-BR').slice(0, 5);
             
+            // Dados D-1 puxados do DOM pra facilitar e manter fidelidade visual no PDF
+            const opViagens = document.getElementById('d1-viagens').innerText;
+            const opPbtc = document.getElementById('d1-pbtc').innerText;
+            const opVol = document.getElementById('d1-med-vol').innerText;
+            const manDm = document.getElementById('d1-dm').innerText;
+            const manAtivos = document.getElementById('d1-ativos').innerText;
+
             let htmlContent = `
                 <div style="border-bottom: 3px solid #10b981; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
                     <div style="display: flex; align-items: center; gap: 20px;">
@@ -236,23 +578,49 @@
                         <p style="font-size: 12px; margin: 2px 0 0 0; color: #64748b;">Gerado às: ${horaAtual}</p>
                     </div>
                 </div>
+
+                <div style="margin-bottom: 25px;">
+                    <h3 style="color: #0f172a; font-size: 16px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">Destaques D-1</h3>
+                    <div style="display: flex; justify-content: space-between; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase;">Viagens (Op)</div>
+                            <div style="font-size: 18px; font-weight: bold; color: #0f172a; margin-top: 4px;">${opViagens}</div>
+                        </div>
+                        <div style="text-align: center; border-left: 1px solid #cbd5e1; padding-left: 20px;">
+                            <div style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase;">PBTC Médio</div>
+                            <div style="font-size: 18px; font-weight: bold; color: #0ea5e9; margin-top: 4px;">${opPbtc}</div>
+                        </div>
+                        <div style="text-align: center; border-left: 1px solid #cbd5e1; padding-left: 20px;">
+                            <div style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase;">Vol. Médio</div>
+                            <div style="font-size: 18px; font-weight: bold; color: #8b5cf6; margin-top: 4px;">${opVol}</div>
+                        </div>
+                        <div style="text-align: center; border-left: 1px solid #cbd5e1; padding-left: 20px;">
+                            <div style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase;">DM Geral (Man)</div>
+                            <div style="font-size: 18px; font-weight: bold; color: #10b981; margin-top: 4px;">${manDm}</div>
+                        </div>
+                        <div style="text-align: center; border-left: 1px solid #cbd5e1; padding-left: 20px;">
+                            <div style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase;">Ativos Médio</div>
+                            <div style="font-size: 18px; font-weight: bold; color: #0f172a; margin-top: 4px;">${manAtivos}</div>
+                        </div>
+                    </div>
+                </div>
                 
                 <div style="margin-bottom: 20px;">
-                    <h3 style="color: #0f172a; font-size: 18px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">Plano de Ação e Metas</h3>
+                    <h3 style="color: #0f172a; font-size: 16px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">Plano de Ação e Metas</h3>
                 </div>
             `;
             
             if (dadosKanban.length === 0) {
-                htmlContent += `<p style="color: #64748b; font-size: 14px; text-align: center; margin-top: 40px;">Nenhuma meta ou ação registrada para o painel atual.</p>`;
+                htmlContent += `<p style="color: #64748b; font-size: 14px; text-align: center; margin-top: 20px;">Nenhuma meta ou ação registrada.</p>`;
             } else {
                 htmlContent += `<table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
                     <thead>
                         <tr style="background-color: #f8fafc; border-bottom: 2px solid #cbd5e1;">
-                            <th style="padding: 12px; color: #334155;">Status</th>
-                            <th style="padding: 12px; color: #334155;">Ação / Meta</th>
-                            <th style="padding: 12px; color: #334155;">Responsável</th>
-                            <th style="padding: 12px; color: #334155;">Setor</th>
-                            <th style="padding: 12px; color: #334155;">Prazo</th>
+                            <th style="padding: 10px; color: #334155;">Status</th>
+                            <th style="padding: 10px; color: #334155;">Ação / Meta</th>
+                            <th style="padding: 10px; color: #334155;">Responsável</th>
+                            <th style="padding: 10px; color: #334155;">Setor</th>
+                            <th style="padding: 10px; color: #334155;">Prazo</th>
                         </tr>
                     </thead>
                     <tbody>`;
@@ -267,14 +635,14 @@
                     
                     htmlContent += `
                         <tr style="background-color: ${bgColor}; border-bottom: 1px solid #e2e8f0;">
-                            <td style="padding: 12px; font-weight: bold; color: ${statusColor}; width: 15%; vertical-align: top;">${statusText}</td>
-                            <td style="padding: 12px; color: #0f172a; width: 40%; vertical-align: top;">
+                            <td style="padding: 10px; font-weight: bold; color: ${statusColor}; width: 15%; vertical-align: top;">${statusText}</td>
+                            <td style="padding: 10px; color: #0f172a; width: 40%; vertical-align: top;">
                                 <strong style="display: block; margin-bottom: 4px;">${item.meta}</strong>
                                 ${item.consideracao ? `<span style="color: #64748b; font-size: 11px; line-height: 1.4; display: block;">${item.consideracao}</span>` : ''}
                             </td>
-                            <td style="padding: 12px; color: #334155; font-weight: 600; width: 15%; vertical-align: top;">${item.responsavel}</td>
-                            <td style="padding: 12px; color: #475569; width: 15%; vertical-align: top;">${item.setor}</td>
-                            <td style="padding: 12px; color: #0f172a; font-weight: bold; width: 15%; vertical-align: top;">${window.formatarDataBR(item.data_previsao) || '-'}</td>
+                            <td style="padding: 10px; color: #334155; font-weight: 600; width: 15%; vertical-align: top;">${item.responsavel}</td>
+                            <td style="padding: 10px; color: #475569; width: 15%; vertical-align: top;">${item.setor}</td>
+                            <td style="padding: 10px; color: #0f172a; font-weight: bold; width: 15%; vertical-align: top;">${window.formatarDataBR(item.data_previsao) || '-'}</td>
                         </tr>
                     `;
                 });
@@ -318,9 +686,9 @@
             
             await new Promise(resolve => setTimeout(resolve, 500));
             
-            const canvas = await html2canvas(reportDiv, {
-                 scale: 2,
-                 backgroundColor: '#ffffff',
+            const canvas = await html2canvas(reportDiv, { 
+                scale: 2, 
+                backgroundColor: '#ffffff',
                 useCORS: true
             });
             
@@ -346,5 +714,9 @@
         }
     };
 
-    setTimeout(window.carregarKanbanDash, 300);
+    setTimeout(() => {
+        window.carregarResumoD1EMurais();
+        window.carregarKanbanDash();
+    }, 300);
+
 </script>
