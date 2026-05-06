@@ -41,13 +41,11 @@
                         <option value="ALL">TODOS OS MESES</option>
                     </select>
                 </div>
-
                 <!-- DIA -->
                 <div class="flex items-center gap-2 border-r border-slate-700/50 pr-4">
                     <label for="opDatePicker" class="text-xs font-bold text-sky-400 uppercase tracking-widest pl-2"><i class="fas fa-calendar-day mr-1"></i> Dia:</label>
                     <input type="date" id="opDatePicker" class="bg-slate-800 text-white text-sm font-bold rounded-lg border border-slate-600 px-4 py-2 focus:outline-none focus:border-sky-500 cursor-pointer shadow-inner">
                 </div>
-
                 <!-- QUICK FILTERS -->
                 <div class="flex items-center gap-1 bg-slate-800/80 p-1 rounded-lg border border-slate-700/50 shadow-inner" id="quickFiltersGroup">
                     <button data-op-qf="D-1" class="btn-op-qf border border-transparent text-[10px] font-bold text-slate-400 hover:text-sky-300 hover:bg-slate-700/50 px-2 py-1.5 rounded transition-all">D-1</button>
@@ -57,7 +55,6 @@
                     <div class="w-px h-4 bg-slate-700 mx-1"></div>
                     <button data-op-qf="ALL" class="btn-op-qf active bg-sky-900/50 text-sky-400 border border-sky-800/50 text-[10px] font-bold px-2 py-1.5 rounded transition-all shadow-[0_0_10px_rgba(14,165,233,0.2)]"><i class="fas fa-times"></i></button>
                 </div>
-
                 <!-- TRANSPORTADORA -->
                 <div class="flex items-center gap-2 border-l border-slate-700/50 pl-4">
                     <label for="filterTransportadora" class="text-xs font-bold text-sky-400 uppercase tracking-widest pl-2"><i class="fas fa-truck mr-1"></i> Transp:</label>
@@ -66,7 +63,6 @@
                     </select>
                 </div>
             </div>
-
             <div class="flex items-center gap-4">
                 <button onclick="window.exportarTopVolume()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-colors text-sm flex items-center gap-2">
                     <i class="fas fa-file-excel"></i> Exportar
@@ -123,7 +119,7 @@
             </div>
         </div>
 
-        <!-- Painel de Cards 2 (Tempos e Padrões - Estrutura REFEITA para 100% alinhamento e distribuição) -->
+        <!-- Painel de Cards 2 (Tempos e Padrões) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
             <!-- Ciclo Médio -->
             <div class="glass-card rounded-2xl p-5 glow-border-blue card-hover flex flex-col h-full relative">
@@ -201,7 +197,6 @@
                     <i class="fas fa-balance-scale text-sky-400 mr-3 text-lg"></i> Comparativo de Desempenho Operacional por Cenários
                 </h3>
             </div>
-
             <div class="overflow-x-auto">
                 <table class="min-w-full text-left m-0">
                     <thead class="bg-slate-900/95 text-white font-semibold uppercase text-[12px] tracking-wider border-b border-slate-700">
@@ -266,7 +261,7 @@
                                 <th class="px-4 py-3">Transp.</th>
                                 <th class="px-4 py-3 text-center">Viagens</th>
                                 <th class="px-4 py-3 text-right">Vol (m³)</th>
-                                <th class="px-4 py-3 text-center">Meta ≥ 2</th>
+                                <th class="px-4 py-3 text-center">Meta >= 2</th>
                             </tr>
                         </thead>
                         <tbody id="leaderboardBody" class="divide-y divide-slate-800/80 text-slate-300"></tbody>
@@ -299,12 +294,32 @@
                 </div>
             </div>
         </div>
+
+        <!-- MURAL DE AVISOS DO SETOR OPERACIONAL -->
+        <div class="glass-card rounded-xl border border-slate-700/50 shadow-xl overflow-hidden mb-6 bg-slate-900 relative">
+            <div class="bg-slate-800/90 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="font-extrabold text-white tracking-wide uppercase text-[13px] flex items-center m-0">
+                    <i class="fas fa-bullhorn text-sky-400 mr-2 text-lg"></i> Mural de Informações e Avisos (Operacional)
+                </h3>
+                <span id="msg-mural-setor" class="font-bold text-xs"></span>
+            </div>
+            <div class="p-5">
+                <div class="flex flex-wrap gap-3 mb-4 bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
+                    <input type="date" id="data-mural-setor" class="bg-slate-800 text-white text-sm font-bold rounded-lg border border-slate-600 px-3 py-2 focus:outline-none focus:border-sky-500">
+                    <input type="text" id="txt-mural-setor" class="bg-slate-800 text-white text-sm font-bold rounded-lg border border-slate-600 px-3 py-2 focus:outline-none focus:border-sky-500 flex-1" placeholder="Digite a informação, aviso ou lembrete do setor...">
+                    <button type="button" class="bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-colors text-sm" onclick="window.addMuralSetor()">
+                        <i class="fas fa-plus"></i> Adicionar
+                    </button>
+                </div>
+                <div id="lista-mural-setor" class="flex flex-col gap-2 max-h-[250px] overflow-y-auto custom-scrollbar pr-2"></div>
+            </div>
+        </div>
+
     </section>
 </div>
 
 <script>
 (function initNovoDashboardOperacional() {
-    // 1. TRAVA DE SEGURANÇA
     if(typeof Chart === 'undefined') {
         setTimeout(initNovoDashboardOperacional, 50);
         return; 
@@ -343,10 +358,9 @@
     let fullHistoricoDataOp = [];
     let activeQuickFilterOp = 'ALL';
     window.diasConsideradosGlobais = 1;
-
     let chartCarregamento = null;
-    let chartTransporte = null; 
-
+    let chartTransporte = null;
+    
     const serranaLoaders = ['GSR0001', 'GSR0002', 'GSR0003', 'GSR0007', 'GSR0008', 'GRB0015', 'GRB0022'];
     const reflorestarLoaders = ['GRB0017', 'GRB0020', 'GRB0029'];
     const jslLoaders = ['GSL0012', 'GSL0016'];
@@ -470,12 +484,10 @@
                             }
                         }
                     });
-
                     const allMeses = Array.from(mesesSet).sort((a,b) => {
                           const pA = a.split('/'); const pB = b.split('/');
                           return new Date(pA[1], pA[0]-1, 1) - new Date(pB[1], pB[0]-1, 1);
                     });
-
                     const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
                     
                     filterMesOp.innerHTML = '<option value="ALL">Todos os Meses</option>';
@@ -492,7 +504,6 @@
                         filterMesOp.value = mesAtualStr;
                     }
                 }
-
                 if(filterTransp) {
                     const transps = [...new Set(fullHistoricoDataOp.map(d => d.transportadora))].filter(Boolean).sort();
                     filterTransp.innerHTML = '<option value="ALL">TODAS AS TRANSPORTADORAS</option>';
@@ -501,7 +512,6 @@
 
                 atualizarPainelOperacional();
             }
-
         } catch(e) { console.error("Erro operacionais:", e); }
     }
 
@@ -541,7 +551,6 @@
         return `${horas}h ${minutos.toString().padStart(2, '0')}m`;
     }
 
-    // NOVA FUNÇÃO DO CARD DE TEMPO COM DESIGN DISTRIBUÍDO E ALINHADO
     function atualizarElementoTempo(idElemento, mediaReal, metaData) {
         const el = document.getElementById(idElemento);
         if (!el) return;
@@ -630,9 +639,7 @@
                     dr.setHours(0,0,0,0);
                     return parsed.getTime() === dr.getTime() && mTransp;
                 }
-
                 const diff = Math.round((hj - parsed)/86400000);
-
                 if (activeQuickFilterOp === 'D-1') return diff === 1 && mTransp;
                 if (activeQuickFilterOp === 'D-2') return diff === 2 && mTransp;
                 if (activeQuickFilterOp === 'D-7') return diff >= 0 && diff <= 7 && mTransp;
@@ -643,12 +650,13 @@
                     return (parsed >= inicioSemana && parsed <= hj) && mTransp;
                 }
             }
+
             return mesRef !== 'ALL' && mTransp;
         });
 
         let cardsData = filteredGlobal;
-
         const opStatusFetch = document.getElementById('opStatusFetch');
+
         if (activeT === 'ALL') {
             cardsData = filteredGlobal.filter(d => checkLoader(d, serranaLoaders) && isSerranaTransp(d));
             if (opStatusFetch) {
@@ -660,7 +668,6 @@
             }
         }
 
-        // --- Atualização de Cards (Principais) ---
         const totalViagens = cardsData.length;
         document.getElementById('totalViagens').innerText = totalViagens;
 
@@ -669,6 +676,7 @@
         
         let pbtcCor = "text-white";
         let pbtcIcone = "";
+
         if (mediaPbtc > 0) {
             if (mediaPbtc < 74) {
                 pbtcCor = "text-yellow-400";
@@ -697,7 +705,6 @@
         document.getElementById('mediaAsfalto').innerText = mediaAsfalto.toLocaleString('pt-PT', {maximumFractionDigits:2});
         document.getElementById('mediaTerra').innerText = mediaTerra.toLocaleString('pt-PT', {maximumFractionDigits:2});
 
-        // --- Atualização de Cards (Tempos - Distribuídos) ---
         const validCycles = cardsData.filter(d => d.cicloHoras > 0);
         const mediaCiclo = validCycles.length > 0 ? validCycles.reduce((s, d) => s + d.cicloHoras, 0) / validCycles.length : 0;
 
@@ -715,8 +722,6 @@
         atualizarElementoTempo('tempoCarregamento', mediaTempoCarregamento, 0.5); 
         atualizarElementoTempo('filaFabrica', mediaFilaFabrica, 0.5); 
 
-
-        // --- Atualização do Comparativo (Fontes Ampliadas) ---
         const tbodyComp = document.getElementById('comparativoBody');
         if (tbodyComp) {
             const dataC1 = filteredGlobal.filter(d => checkLoader(d, serranaLoaders) && isSerranaTransp(d));
@@ -797,7 +802,6 @@
             `;
         }
 
-        // Gráficos (Baseados na visualização filtrada)
         const baseEvolucao = filteredGlobal.length > 0 ? filteredGlobal : fullHistoricoDataOp;
         renderCarregamentoChart(baseEvolucao);
         
@@ -806,13 +810,21 @@
             return transp.includes('SERRANALOG') && !transp.includes('ASN');
         });
         renderTransporteChart(baseTransporte);
+
+        // Leaderboards para Serrana (mantendo padrão já existente)
+        const filteredSerrana = cardsData;
+        let diasConsiderados = 1;
+        if(activeQuickFilterOp === 'D-7') diasConsiderados = 7;
+        if(activeQuickFilterOp === 'D-30') diasConsiderados = 30;
+        if(activeQuickFilterOp === 'ALL') diasConsiderados = 30;
+        
         renderLeaderboards(filteredSerrana, diasConsiderados);
     }
 
     function renderCarregamentoChart(data) {
         const ctxCarreg = document.getElementById('evolucaoCarregamentoChart');
         if(!ctxCarreg) return;
-
+        
         const dailyMap = new Map();
         data.forEach(d => {
             const dt = d.dataDaBaseExcel;
@@ -826,7 +838,6 @@
             const pA = a.split('/'); const pB = b.split('/');
             return new Date(pA[2], pA[1]-1, pA[0]) - new Date(pB[2], pB[1]-1, pB[0]);
         });
-
         const displayDates = sortedDates.slice(-30);
         const displayVols = displayDates.map(dt => dailyMap.get(dt));
 
@@ -866,7 +877,7 @@
     function renderTransporteChart(data) {
         const ctxTransp = document.getElementById('evolucaoTransporteChart');
         if(!ctxTransp) return;
-
+        
         const dailyMap = new Map();
         data.forEach(d => {
             const dt = d.dataDaBaseExcel;
@@ -880,7 +891,6 @@
             const pA = a.split('/'); const pB = b.split('/');
             return new Date(pA[2], pA[1]-1, pA[0]) - new Date(pB[2], pB[1]-1, pB[0]);
         });
-
         const displayDates = sortedDates.slice(-30);
         const displayVols = displayDates.map(dt => dailyMap.get(dt));
 
@@ -923,6 +933,7 @@
             const pl = d.placa || 'N/A';
             const volNum = parseFloat(String(d.volumeReal).replace(',', '.')) || 0;
             if(!pMap.has(pl)) pMap.set(pl, {p: pl, t: d.transportadora||'-', vol: 0, v: 0, ciclos: 0, cCount: 0});
+            
             const o = pMap.get(pl);
             o.vol += volNum; o.v++;
             if(d.cicloHoras > 0) { o.ciclos += d.cicloHoras; o.cCount++; }
@@ -981,18 +992,20 @@
         }
     }
 
-    // Funcionalidades de Exportação CSV Nativa
+    // Exportação
     window.exportarTopVolume = function() {
         if (!window.globalTopVol || window.globalTopVol.length === 0) {
             alert("Não há dados de Volume para exportar no período selecionado."); return;
         }
         let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
         csvContent += "Posicao;Placa;Transportadora;Total Viagens;Volume Total;Media Viagens/Dia;Cumpriu Meta\n";
+
         window.globalTopVol.forEach((x, i) => {
             const viagensPorDia = window.diasConsideradosGlobais > 0 ? (x.v / window.diasConsideradosGlobais) : x.v;
             const cumpriuMeta = viagensPorDia >= 2 ? 'SIM' : 'NAO';
             csvContent += `${i + 1};${x.p};${x.t};${x.v};${x.vol.toString().replace('.', ',')};${viagensPorDia.toFixed(2).replace('.', ',')};${cumpriuMeta}\n`;
         });
+
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
@@ -1008,9 +1021,11 @@
         }
         let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
         csvContent += "Posicao;Placa;Transportadora;Viagens Realizadas;Ciclo Medio (Decimais)\n";
+
         window.globalTopCiclo.forEach((x, i) => {
             csvContent += `${i + 1};${x.p};${x.t};${x.v};${x.cMedio.toFixed(2).replace('.', ',')}\n`;
         });
+
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
@@ -1020,7 +1035,102 @@
         document.body.removeChild(link);
     };
 
+    // --- NOVA LÓGICA: MURAL DE INFORMAÇÕES DO SETOR OPERACIONAL ---
+    window.muralSetorKey = 'mural_operacional';
+    window.muralSetorData = [];
+
+    window.formatarDataMural = function(dataIso) {
+        if(!dataIso) return ''; const [ano, mes, dia] = dataIso.split('-'); return `${dia}/${mes}/${ano}`;
+    }
+
+    window.carregarMuralSetor = async function() {
+        try {
+            if (!window.supabaseClientGlobal && typeof supabase !== 'undefined' && typeof SUPABASE_CONFIG !== 'undefined') {
+                window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            }
+            const _supa = window.supabaseClientGlobal;
+            if(!_supa) return;
+            
+            const { data } = await _supa.from('configuracoes').select('valor').eq('chave', window.muralSetorKey).limit(1);
+            if (data && data.length > 0 && data[0].valor) {
+                window.muralSetorData = JSON.parse(data[0].valor);
+            } else {
+                window.muralSetorData = [];
+            }
+            window.renderizarMuralSetor();
+        } catch(e) { console.error("Erro ao carregar mural do setor:", e); }
+    };
+
+    window.renderizarMuralSetor = function() {
+        const container = document.getElementById('lista-mural-setor');
+        if(!container) return;
+        if(window.muralSetorData.length === 0) {
+            container.innerHTML = '<div class="text-slate-400 text-center py-3 text-sm">Nenhuma informação ou aviso no momento.</div>';
+            return;
+        }
+        
+        container.innerHTML = window.muralSetorData.map(item => `
+            <div class="flex items-center justify-between bg-slate-900/40 p-3 rounded-lg border-l-4 border-sky-400 border-t border-r border-b border-slate-700/50">
+                <div class="flex-1">
+                    <span class="text-slate-400 text-xs font-bold mr-2"><i class="fas fa-calendar-day"></i> ${window.formatarDataMural(item.data)}</span>
+                    <span class="text-white text-sm font-medium">${item.texto}</span>
+                </div>
+                <button class="bg-emerald-600/80 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-xs font-bold shadow-md transition-colors ml-3" onclick="window.concluirMuralSetor(${item.id})" title="Concluir / Retirar">
+                    <i class="fas fa-check"></i>
+                </button>
+            </div>
+        `).join('');
+    };
+
+    window.addMuralSetor = async function() {
+        const dt = document.getElementById('data-mural-setor').value;
+        const txt = document.getElementById('txt-mural-setor').value.trim();
+        if(!dt || !txt) { alert("Preencha a data e o texto para adicionar ao mural!"); return; }
+        
+        window.muralSetorData.push({ id: Date.now(), data: dt, texto: txt });
+        document.getElementById('txt-mural-setor').value = '';
+        window.renderizarMuralSetor();
+        await window.salvarMuralSetor();
+    };
+
+    window.concluirMuralSetor = async function(id) {
+        if(!confirm("Concluir e retirar este aviso do mural?")) return;
+        window.muralSetorData = window.muralSetorData.filter(i => i.id !== id);
+        window.renderizarMuralSetor();
+        await window.salvarMuralSetor();
+    };
+
+    window.salvarMuralSetor = async function() {
+        const msg = document.getElementById('msg-mural-setor');
+        if(msg) { msg.className = 'text-xs font-bold text-slate-400'; msg.innerText = 'Salvando...'; }
+        
+        try {
+            if (!window.supabaseClientGlobal && typeof supabase !== 'undefined' && typeof SUPABASE_CONFIG !== 'undefined') {
+                window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            }
+            const _supa = window.supabaseClientGlobal;
+            
+            await _supa.from('configuracoes').upsert([{ chave: window.muralSetorKey, valor: JSON.stringify(window.muralSetorData) }], { onConflict: 'chave' });
+            
+            if(msg) { 
+                msg.className = 'text-xs font-bold text-emerald-400'; 
+                msg.innerText = 'Salvo com sucesso!';
+                setTimeout(() => msg.innerText='', 3000);
+            }
+        } catch(e) {
+            if(msg) { msg.className = 'text-xs font-bold text-rose-500'; msg.innerText = 'Erro ao salvar!'; }
+        }
+    };
+
+    // Inicialização
     setupOperacionalFilters();
     loadOperacionalData();
+    
+    // Inicia o Mural Operacional
+    if(document.getElementById('data-mural-setor')) {
+        document.getElementById('data-mural-setor').value = new Date().toISOString().split('T')[0];
+    }
+    window.carregarMuralSetor();
+
 })();
 </script>
