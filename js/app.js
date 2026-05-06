@@ -1,22 +1,24 @@
+// js/app.js
+
 const menuData = [
-    { id: 'ssma', title: 'SSMA', icon: 'fa-shield-alt', mainFile: 'dash_ssma.html', key: 'resp_ssma', def: 'Segurança do Trabalho', 
-        submenus: [{ id: 'ssma_ocorrencias', title: 'Lançar Ocorrências', file: 'ssma_ocorrencias.html', key: 'resp_ssma', def: 'Segurança do Trabalho' }] },
-    { id: 'rh', title: 'RH', icon: 'fa-users', mainFile: 'dash_rh.html', key: 'resp_rh', def: 'Responsável RH', 
-        submenus: [
+    { id: 'ssma', title: 'SSMA', icon: 'fa-shield-alt', mainFile: 'dash_ssma.html', key: 'resp_ssma', def: 'Segurança do Trabalho',
+         submenus: [{ id: 'ssma_ocorrencias', title: 'Lançar Ocorrências', file: 'ssma_ocorrencias.html', key: 'resp_ssma', def: 'Segurança do Trabalho' }] },
+    { id: 'rh', title: 'RH', icon: 'fa-users', mainFile: 'dash_rh.html', key: 'resp_rh', def: 'Responsável RH',
+         submenus: [
             { id: 'rh_lancamentos', title: 'Lançar Indicadores', file: 'rh_lancamentos.html', key: 'resp_rh', def: 'Responsável RH' }
         ] },
-    { id: 'operacional', title: 'OPERACIONAL', icon: 'fa-truck', mainFile: 'dash_operacional.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos', 
-        submenus: [
+    { id: 'operacional', title: 'OPERACIONAL', icon: 'fa-truck', mainFile: 'dash_operacional.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos',
+         submenus: [
             { id: 'op_frentes', title: 'Lançar Frentes', file: 'op_frentes.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos' },
             { id: 'op_pbtc', title: 'Indicadores PBTC', file: 'op_pbtc.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos' }
         ] },
-    { id: 'manutencao', title: 'MANUTENÇÃO', icon: 'fa-tools', mainFile: 'dash_manutencao.html', key: 'resp_manutencao', def: 'Gestão de Frota', 
-        submenus: [
+    { id: 'manutencao', title: 'MANUTENÇÃO', icon: 'fa-tools', mainFile: 'dash_manutencao.html', key: 'resp_manutencao', def: 'Gestão de Frota',
+         submenus: [
             { id: 'man_dm', title: 'Apontamentos DM', file: 'man_dm.html', key: 'resp_manutencao', def: 'Gestão de Frota' },
             { id: 'man_sinistros', title: 'Registrar Sinistros', file: 'man_sinistros.html', key: 'resp_manutencao', def: 'Gestão de Frota' }
         ] },
-    { id: 'consideracoes', title: 'CONSIDERAÇÕES', icon: 'fa-clipboard-list', mainFile: 'dash_consideracoes.html', key: 'resp_geral', def: 'Diretoria', 
-        submenus: [
+    { id: 'consideracoes', title: 'CONSIDERAÇÕES', icon: 'fa-clipboard-list', mainFile: 'dash_consideracoes.html', key: 'resp_geral', def: 'Diretoria',
+         submenus: [
             { id: 'cons_resumo', title: 'Resumo da Reunião', file: 'cons_resumo.html', key: 'resp_geral', def: 'Diretoria' },
             { id: 'cons_historico', title: 'Histórico de Metas', file: 'cons_historico.html', key: 'resp_geral', def: 'Diretoria' }
         ] }
@@ -42,7 +44,7 @@ function renderMenuElements(dataArray, containerId) {
             </a>
             <ul class="submenu-list">
                 ${menu.submenus.map(sub => `
-                    <li><a href="#" class="submenu-link" onclick="loadModule(event, '${sub.title}', '${sub.file}', '${sub.key}', '${sub.def}')">
+                    <li><a href="#" class="submenu-link" onclick="loadModule(event, '${menu.title} - ${sub.title}', '${sub.file}', '${sub.key}', '${sub.def}')">
                         <i class="fas fa-angle-right"></i><span>${sub.title}</span>
                     </a></li>
                 `).join('')}
@@ -220,14 +222,14 @@ window.adicionarResponsavelKb = function() {
         finalInput.value = lista.join(' | ');
         renderResponsaveisKb();
     }
-};
+}
 
 window.removerResponsavelKb = function(nome) {
     let finalInput = document.getElementById('kb-responsavel-final');
     let lista = finalInput.value.split(' | ').filter(n => n !== nome);
     finalInput.value = lista.join(' | ');
     renderResponsaveisKb();
-};
+}
 
 window.renderResponsaveisKb = function() {
     const container = document.getElementById('kb-responsaveis-list');
@@ -241,7 +243,7 @@ window.renderResponsaveisKb = function() {
             <i class="fas fa-times" style="cursor:pointer; color: #f43f5e;" onclick="removerResponsavelKb('${nome}')" title="Remover"></i>
         </span>`
     ).join('');
-};
+}
 
 window.salvarKanbanItem = async function() {
     const setor = document.getElementById('kb-setor').value;
@@ -254,7 +256,7 @@ window.salvarKanbanItem = async function() {
     if(!meta || !responsavel) { 
         msg.style.color = 'var(--vermelho)'; 
         msg.innerText = 'Preencha a Meta e adicione ao menos um Responsável no botão (+) !'; 
-        return;
+        return; 
     }
     
     const item = {
@@ -293,6 +295,7 @@ window.salvarKanbanItem = async function() {
         } else {
             throw new Error("Supabase não carregado");
         }
+
     } catch(e) {
         console.error("Erro ao salvar no Supabase:", e);
         msg.style.color = 'var(--vermelho)';
@@ -317,7 +320,7 @@ window.salvarKanbanItem = async function() {
             msg.innerText = '';
         }
     }, 4000);
-};
+}
 
 function updateClock() {
     document.getElementById('clock').innerText = new Date().toLocaleTimeString('pt-BR');
