@@ -1,21 +1,21 @@
 const menuData = [
-    { id: 'ssma', title: 'SSMA', icon: 'fa-shield-alt', mainFile: 'dash_ssma.html', key: 'resp_ssma', def: 'Segurança do Trabalho',
+    { id: 'ssma', title: 'SSMA', icon: 'fa-shield-alt', mainFile: 'dash_ssma.html', key: 'resp_ssma', def: 'Segurança do Trabalho', 
         submenus: [{ id: 'ssma_ocorrencias', title: 'Lançar Ocorrências', file: 'ssma_ocorrencias.html', key: 'resp_ssma', def: 'Segurança do Trabalho' }] },
-    { id: 'rh', title: 'RH', icon: 'fa-users', mainFile: 'dash_rh.html', key: 'resp_rh', def: 'Responsável RH',
+    { id: 'rh', title: 'RH', icon: 'fa-users', mainFile: 'dash_rh.html', key: 'resp_rh', def: 'Responsável RH', 
         submenus: [
             { id: 'rh_lancamentos', title: 'Lançar Indicadores', file: 'rh_lancamentos.html', key: 'resp_rh', def: 'Responsável RH' }
         ] },
-    { id: 'operacional', title: 'OPERACIONAL', icon: 'fa-truck', mainFile: 'dash_operacional.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos',
+    { id: 'operacional', title: 'OPERACIONAL', icon: 'fa-truck', mainFile: 'dash_operacional.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos', 
         submenus: [
             { id: 'op_frentes', title: 'Lançar Frentes', file: 'op_frentes.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos' },
             { id: 'op_pbtc', title: 'Indicadores PBTC', file: 'op_pbtc.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos' }
         ] },
-    { id: 'manutencao', title: 'MANUTENÇÃO', icon: 'fa-tools', mainFile: 'dash_manutencao.html', key: 'resp_manutencao', def: 'Gestão de Frota',
+    { id: 'manutencao', title: 'MANUTENÇÃO', icon: 'fa-tools', mainFile: 'dash_manutencao.html', key: 'resp_manutencao', def: 'Gestão de Frota', 
         submenus: [
             { id: 'man_dm', title: 'Apontamentos DM', file: 'man_dm.html', key: 'resp_manutencao', def: 'Gestão de Frota' },
             { id: 'man_sinistros', title: 'Registrar Sinistros', file: 'man_sinistros.html', key: 'resp_manutencao', def: 'Gestão de Frota' }
         ] },
-    { id: 'consideracoes', title: 'CONSIDERAÇÕES', icon: 'fa-clipboard-list', mainFile: 'dash_consideracoes.html', key: 'resp_geral', def: 'Diretoria',
+    { id: 'consideracoes', title: 'CONSIDERAÇÕES', icon: 'fa-clipboard-list', mainFile: 'dash_consideracoes.html', key: 'resp_geral', def: 'Diretoria', 
         submenus: [
             { id: 'cons_resumo', title: 'Resumo da Reunião', file: 'cons_resumo.html', key: 'resp_geral', def: 'Diretoria' },
             { id: 'cons_historico', title: 'Histórico de Metas', file: 'cons_historico.html', key: 'resp_geral', def: 'Diretoria' }
@@ -82,7 +82,18 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
     
     document.getElementById('current-sector-title').innerText = subTitle;
     
-    let nomeResponsavel = (respKey !== 'none') ? (localStorage.getItem(respKey) || defName) : defName;
+    let nomeResponsavel = defName;
+    if (respKey !== 'none') {
+        try {
+            if (!window.supabaseClientGlobal && typeof supabase !== 'undefined' && typeof SUPABASE_CONFIG !== 'undefined') {
+                window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            }
+            const { data } = await window.supabaseClientGlobal.from('configuracoes').select('valor').eq('chave', respKey).limit(1);
+            if (data && data.length > 0) {
+                nomeResponsavel = data[0].valor;
+            }
+        } catch(e) {}
+    }
     document.getElementById('presenter-name').innerText = nomeResponsavel;
     
     if(event && event.currentTarget) {
@@ -168,11 +179,21 @@ function injectKanbanLauncher(setorTitle) {
     carregarDropdownResponsaveis();
 }
 
-function carregarDropdownResponsaveis() {
+async function carregarDropdownResponsaveis() {
     const select = document.getElementById('kb-responsavel');
     if(!select) return;
     
-    const membrosSalvos = JSON.parse(localStorage.getItem('membros_kanban') || '[]');
+    let membrosSalvos = [];
+    try {
+        if (!window.supabaseClientGlobal && typeof supabase !== 'undefined' && typeof SUPABASE_CONFIG !== 'undefined') {
+            window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+        }
+        const { data } = await window.supabaseClientGlobal.from('configuracoes').select('valor').eq('chave', 'membros_kanban').limit(1);
+        if (data && data.length > 0) {
+            membrosSalvos = JSON.parse(data[0].valor);
+        }
+    } catch(e) {}
+    
     let options = '<option value="">Selecione para adicionar...</option>';
     
     membrosSalvos.forEach(m => {
@@ -199,14 +220,14 @@ window.adicionarResponsavelKb = function() {
         finalInput.value = lista.join(' | ');
         renderResponsaveisKb();
     }
-}
+};
 
 window.removerResponsavelKb = function(nome) {
     let finalInput = document.getElementById('kb-responsavel-final');
     let lista = finalInput.value.split(' | ').filter(n => n !== nome);
     finalInput.value = lista.join(' | ');
     renderResponsaveisKb();
-}
+};
 
 window.renderResponsaveisKb = function() {
     const container = document.getElementById('kb-responsaveis-list');
@@ -220,7 +241,7 @@ window.renderResponsaveisKb = function() {
             <i class="fas fa-times" style="cursor:pointer; color: #f43f5e;" onclick="removerResponsavelKb('${nome}')" title="Remover"></i>
         </span>`
     ).join('');
-}
+};
 
 window.salvarKanbanItem = async function() {
     const setor = document.getElementById('kb-setor').value;
@@ -230,15 +251,13 @@ window.salvarKanbanItem = async function() {
     const consideracao = document.getElementById('kb-consideracao').value;
     const msg = document.getElementById('kb-msg');
     
-    if(!meta || !responsavel) {
-         msg.style.color = 'var(--vermelho)';
-         msg.innerText = 'Preencha a Meta e adicione ao menos um Responsável no botão (+) !';
-         return;
+    if(!meta || !responsavel) { 
+        msg.style.color = 'var(--vermelho)'; 
+        msg.innerText = 'Preencha a Meta e adicione ao menos um Responsável no botão (+) !'; 
+        return;
     }
     
-    // CORREÇÃO: Adicionado o "id: Date.now()" para forçar a criação do identificador
     const item = {
-        id: Date.now(), 
         setor: setor, 
         responsavel: responsavel, 
         meta: meta, 
@@ -247,7 +266,6 @@ window.salvarKanbanItem = async function() {
         data_criacao: new Date().toISOString() 
     };
 
-    // Só envia a consideração caso exista texto
     if (consideracao && consideracao.trim() !== '') {
         item.consideracao = consideracao;
     } else {
@@ -299,18 +317,7 @@ window.salvarKanbanItem = async function() {
             msg.innerText = '';
         }
     }, 4000);
-}
-
-async function sincronizarNomesDoBanco() {
-    try {
-        const { createClient } = supabase;
-        const _supa = createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-        const { data } = await _supa.from('configuracoes').select('chave, valor');
-        if (data) {
-            data.forEach(item => localStorage.setItem(item.chave, item.valor));
-        }
-    } catch (e) {}
-}
+};
 
 function updateClock() {
     document.getElementById('clock').innerText = new Date().toLocaleTimeString('pt-BR');
@@ -332,7 +339,6 @@ function iniciarReuniao() {
 
 document.addEventListener('DOMContentLoaded', () => {
     initMenu();
-    sincronizarNomesDoBanco();
     setInterval(updateClock, 1000);
     updateClock();
     

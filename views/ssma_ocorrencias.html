@@ -1,12 +1,8 @@
 <div class="dashboard-grid">
-    <!-- LANÇAMENTO DIÁRIO DE INDICADORES -->
+    <!-- LANÇAMENTO DIÁRIO DE INDICADORES (AGORA FIXO) -->
     <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid var(--verde);">
-        <h3 class="nav-label" style="margin-bottom: 20px; color: var(--verde);"><i class="fas fa-clipboard-check"></i> LANÇAMENTO DIÁRIO E METAS GERAIS</h3>
+        <h3 class="nav-label" style="margin-bottom: 20px; color: var(--verde);"><i class="fas fa-clipboard-check"></i> INDICADORES GERAIS E METAS (ESTADO FIXO)</h3>
         <div class="form-grid">
-            <div class="input-group">
-                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Data do Registro</label>
-                <input type="date" id="ssma-data-geral" class="config-input">
-            </div>
             <div class="input-group">
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Meta Diária (Abertura de DNAs)</label>
                 <input type="number" id="ssma-meta-dna" class="config-input" placeholder="Ex: 2" style="border-color: #0ea5e9;">
@@ -53,18 +49,22 @@
             <div class="input-group">
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Apresentação de Ocorrências</label>
                 <textarea id="ssma-txt-ocorrencias" class="config-input" rows="4" placeholder="Ex: Tombamento do conjunto XYZ na pista principal..."></textarea>
+                <button class="btn-kanban" style="background: var(--verde); margin-top: 8px; width: 100%;" onclick="limparMuralSSMA('ssma-txt-ocorrencias')"><i class="fas fa-check"></i> Concluir / Retirar</button>
             </div>
             <div class="input-group">
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Status das Ferramentas de Segurança</label>
                 <textarea id="ssma-txt-ferramentas" class="config-input" rows="4" placeholder="Ex: Checklists 100% preenchidos no período da manhã..."></textarea>
+                <button class="btn-kanban" style="background: var(--verde); margin-top: 8px; width: 100%;" onclick="limparMuralSSMA('ssma-txt-ferramentas')"><i class="fas fa-check"></i> Concluir / Retirar</button>
             </div>
             <div class="input-group">
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Ações de Segurança</label>
                 <textarea id="ssma-txt-acoes" class="config-input" rows="4" placeholder="Ex: Sinalização do pátio em andamento pela equipe local..."></textarea>
+                <button class="btn-kanban" style="background: var(--verde); margin-top: 8px; width: 100%;" onclick="limparMuralSSMA('ssma-txt-acoes')"><i class="fas fa-check"></i> Concluir / Retirar</button>
             </div>
             <div class="input-group">
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Demais Avisos</label>
                 <textarea id="ssma-txt-avisos" class="config-input" rows="4" placeholder="Ex: Cuidado com chuva na serra a partir das 15h..."></textarea>
+                <button class="btn-kanban" style="background: var(--verde); margin-top: 8px; width: 100%;" onclick="limparMuralSSMA('ssma-txt-avisos')"><i class="fas fa-check"></i> Concluir / Retirar</button>
             </div>
         </div>
         <button class="btn-salvar" style="background: #8b5cf6; width: 100%; margin-top: 15px;" onclick="salvarMuraisSSMA()">
@@ -75,7 +75,7 @@
 
     <!-- LANÇAR DNAS EM LOTE -->
     <div class="kpi-card" style="border-left: 5px solid #0ea5e9;">
-        <h3 class="nav-label" style="margin-bottom: 20px; color: #0ea5e9;"><i class="fas fa-exclamation-circle"></i> LANÇAMENTO DE DNAS ABERTOS</h3>
+        <h3 class="nav-label" style="margin-bottom: 20px; color: #0ea5e9;"><i class="fas fa-exclamation-circle"></i> LANÇAMENTO DIÁRIO DE DNAS ABERTOS</h3>
         <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
             <div class="input-group">
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Data de Referência (Retroativa ou Atual)</label>
@@ -126,13 +126,12 @@
         <span id="msg-trei" style="display: block; margin-top: 10px; font-weight: bold;"></span>
     </div>
 
-    <!-- MATRIZ DE SEGURANÇA (EMPILHADA - 1 EMBAIXO DO OUTRO) -->
+    <!-- MATRIZ DE SEGURANÇA -->
     <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid #10b981; margin-top: 10px;">
         <h3 class="nav-label" style="margin-bottom: 20px; color: #10b981;">
             <i class="fas fa-users-cog"></i> CADASTRAR E LANÇAR: MATRIZ DE SEGURANÇA
         </h3>
         
-        <!-- Form para adicionar novo colaborador -->
         <div class="form-grid" style="grid-template-columns: 2fr 2fr auto; margin-bottom: 25px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">
             <div class="input-group">
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Nome do Colaborador</label>
@@ -149,10 +148,8 @@
             </div>
         </div>
 
-        <!-- 3 TABELAS EMPILHADAS (FLEX COLUMN) -->
         <div style="display: flex; flex-direction: column; gap: 30px; width: 100%;">
             
-            <!-- Tabela SEGURANÇA NA ÁREA -->
             <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
                 <h4 style="color: #10b981; margin-bottom: 15px; font-size: 1rem; text-align: left; border-bottom: 1px solid var(--border); padding-bottom: 10px;"><i class="fas fa-shield-alt"></i> 1. SEGURANÇA NA ÁREA</h4>
                 <div class="table-box" style="overflow-x: auto;">
@@ -175,7 +172,6 @@
                 </div>
             </div>
 
-            <!-- Tabela OPA -->
             <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
                 <h4 style="color: #3b82f6; margin-bottom: 15px; font-size: 1rem; text-align: left; border-bottom: 1px solid var(--border); padding-bottom: 10px;"><i class="fas fa-eye"></i> 2. OPA</h4>
                 <div class="table-box" style="overflow-x: auto;">
@@ -198,7 +194,6 @@
                 </div>
             </div>
 
-            <!-- Tabela ABORDAGEM -->
             <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
                 <h4 style="color: #f59e0b; margin-bottom: 15px; font-size: 1rem; text-align: left; border-bottom: 1px solid var(--border); padding-bottom: 10px;"><i class="fas fa-comments"></i> 3. ABORDAGEM COMP.</h4>
                 <div class="table-box" style="overflow-x: auto;">
@@ -238,15 +233,15 @@
             window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
         }
         const _supa = window.supabaseClientGlobal;
-        const elDataGeral = document.getElementById('ssma-data-geral');
+        
         const elDnaData = document.getElementById('dna-data');
         const elTreiData = document.getElementById('trei-data');
-        
-        if (!elDataGeral || !elDnaData || !elTreiData) return;
         const hojeIso = new Date().toISOString().split('T')[0];
-        elDataGeral.value = hojeIso;
-        elDnaData.value = hojeIso;
-        elTreiData.value = hojeIso;
+        
+        if (elDnaData) elDnaData.value = hojeIso;
+        if (elTreiData) elTreiData.value = hojeIso;
+
+        const dataSelecionadaFixa = '2099-12-31'; // Data que serve como estado persistente
 
         // ---------- LÓGICA DE INDICADORES GERAIS, MURAIS E DNAS ----------
         async function carregarIndicadoresDeHoje() {
@@ -256,9 +251,16 @@
                     document.getElementById('ssma-meta-dna').value = configData[0].valor;
                 }
                 
-                const dataSelecionada = elDataGeral.value;
-                const { data } = await _supa.from('ssma_indicadores_gerais').select('*').eq('data_registro', dataSelecionada).limit(1);
+                // Tenta puxar o registro fixo primeiro
+                let { data } = await _supa.from('ssma_indicadores_gerais').select('*').eq('data_registro', dataSelecionadaFixa).limit(1);
                 
+                // CORREÇÃO: Se não achar o fixo, puxa o mais recente que o usuário já tinha lançado hoje ou ontem
+                if (!data || data.length === 0) {
+                    const { data: dataAntiga } = await _supa.from('ssma_indicadores_gerais').select('*').order('data_registro', { ascending: false }).limit(1);
+                    data = dataAntiga;
+                }
+                
+                // AQUI POPULA OS MURAIS NA TELA DE LANÇAMENTO E PREENCHE OS VALORES ATUAIS
                 if (data && data.length > 0) {
                     const ind = data[0];
                     document.getElementById('ssma-dias-acidente').value = ind.dias_sem_acidentes !== null ? ind.dias_sem_acidentes : '';
@@ -273,37 +275,20 @@
                     document.getElementById('ssma-txt-ferramentas').value = ind.mural_ferramentas || '';
                     document.getElementById('ssma-txt-acoes').value = ind.mural_acoes || '';
                     document.getElementById('ssma-txt-avisos').value = ind.mural_avisos || '';
-                } else {
-                    document.getElementById('ssma-dias-acidente').value = '';
-                    document.getElementById('ssma-incidentes').value = '';
-                    document.getElementById('ssma-visitas').value = '';
-                    document.getElementById('ssma-campanha-mes').value = '';
-                    document.getElementById('ssma-campanha-tema').value = '';
-                    document.getElementById('ssma-campanha-cor').value = '#f59e0b';
-                    document.getElementById('ssma-dnas-concluidos').value = '';
-                    
-                    document.getElementById('ssma-txt-ocorrencias').value = '';
-                    document.getElementById('ssma-txt-ferramentas').value = '';
-                    document.getElementById('ssma-txt-acoes').value = '';
-                    document.getElementById('ssma-txt-avisos').value = '';
                 }
             } catch (err) {
-                console.error("Erro ao carregar indicadores:", err);
+                console.error("Erro ao carregar indicadores fixos:", err);
             }
         }
         
         carregarIndicadoresDeHoje();
-        elDataGeral.addEventListener('change', carregarIndicadoresDeHoje);
         
         window.salvarIndicadoresGerais = async function() {
             const msg = document.getElementById('msg-ssma-geral');
-            const dataSelecionada = document.getElementById('ssma-data-geral').value;
             const metaDna = document.getElementById('ssma-meta-dna').value;
             
-            if(!dataSelecionada) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Selecione uma data!'; return; }
-            
             const dados = {
-                data_registro: dataSelecionada,
+                data_registro: dataSelecionadaFixa,
                 dias_sem_acidentes: parseInt(document.getElementById('ssma-dias-acidente').value, 10) || 0,
                 incidentes_sem_afastamento: parseInt(document.getElementById('ssma-incidentes').value, 10) || 0,
                 visitas_campo: parseInt(document.getElementById('ssma-visitas').value, 10) || 0,
@@ -312,14 +297,18 @@
                 campanha_cor: document.getElementById('ssma-campanha-cor').value || '#f59e0b',
                 dnas_concluidos: parseInt(document.getElementById('ssma-dnas-concluidos').value, 10) || 0
             };
+
             msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando no banco...';
+
             try {
                 if (metaDna) {
                     await _supa.from('configuracoes').upsert([{ chave: 'meta_diaria_dna', valor: metaDna }], { onConflict: 'chave' });
                 }
-                const { data: existe } = await _supa.from('ssma_indicadores_gerais').select('id').eq('data_registro', dataSelecionada).limit(1);
+
+                // CORREÇÃO: Usando update ou insert ao invés de onConflict para não ter erro no banco
+                const { data: existe } = await _supa.from('ssma_indicadores_gerais').select('id').eq('data_registro', dataSelecionadaFixa).limit(1);
                 let res;
-                if (existe && existe.length > 0) { res = await _supa.from('ssma_indicadores_gerais').update(dados).eq('data_registro', dataSelecionada); } 
+                if (existe && existe.length > 0) { res = await _supa.from('ssma_indicadores_gerais').update(dados).eq('data_registro', dataSelecionadaFixa); } 
                 else { res = await _supa.from('ssma_indicadores_gerais').insert([dados]); }
                 
                 if (res.error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!'; } 
@@ -327,38 +316,53 @@
             } catch (err) { console.error("Erro Crítico:", err); }
         };
 
-        window.salvarMuraisSSMA = async function() {
+        window.salvarMuraisSSMA = async function(isSilent = false) {
             const msg = document.getElementById('msg-murais');
-            const dataSelecionada = document.getElementById('ssma-data-geral').value;
-            if(!dataSelecionada) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Selecione a Data!'; return; }
             
             const dados = {
-                data_registro: dataSelecionada,
+                data_registro: dataSelecionadaFixa,
                 mural_ocorrencias: document.getElementById('ssma-txt-ocorrencias').value || null,
                 mural_ferramentas: document.getElementById('ssma-txt-ferramentas').value || null,
                 mural_acoes: document.getElementById('ssma-txt-acoes').value || null,
                 mural_avisos: document.getElementById('ssma-txt-avisos').value || null
             };
-            msg.style.color = 'var(--text-dim)'; msg.innerText = 'Atualizando o banco de dados...';
+
+            if(!isSilent) { msg.style.color = 'var(--text-dim)'; msg.innerText = 'Atualizando o banco de dados...'; }
+
             try {
-                const { data: existe } = await _supa.from('ssma_indicadores_gerais').select('id').eq('data_registro', dataSelecionada).limit(1);
+                const { data: existe } = await _supa.from('ssma_indicadores_gerais').select('id').eq('data_registro', dataSelecionadaFixa).limit(1);
                 let res;
-                if (existe && existe.length > 0) { res = await _supa.from('ssma_indicadores_gerais').update(dados).eq('data_registro', dataSelecionada); } 
+                if (existe && existe.length > 0) { res = await _supa.from('ssma_indicadores_gerais').update(dados).eq('data_registro', dataSelecionadaFixa); } 
                 else { res = await _supa.from('ssma_indicadores_gerais').insert([dados]); }
                 
-                if (res.error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao atualizar!'; } 
-                else { msg.style.color = 'var(--verde)'; msg.innerText = 'Murais salvos no banco com sucesso!'; setTimeout(() => msg.innerText='', 3000); }
-            } catch (err) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Falha de Conexão!'; }
+                if (!isSilent) {
+                    if (res.error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao atualizar!'; } 
+                    else { msg.style.color = 'var(--verde)'; msg.innerText = 'Murais salvos no banco com sucesso!'; setTimeout(() => msg.innerText='', 3000); }
+                }
+            } catch (err) { if(!isSilent) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Falha de Conexão!'; } }
+        };
+
+        // Função para apagar/concluir o mural e salvar
+        window.limparMuralSSMA = async function(idMural) {
+            document.getElementById(idMural).value = '';
+            await window.salvarMuraisSSMA(true);
+            const msg = document.getElementById('msg-murais');
+            msg.style.color = 'var(--verde)'; 
+            msg.innerText = 'Mural concluído e retirado!'; 
+            setTimeout(() => msg.innerText='', 3000);
         };
 
         window.salvarDNA = async function() {
             const msg = document.getElementById('msg-dna');
             const dataDNA = document.getElementById('dna-data').value;
             const qtdDNA = parseInt(document.getElementById('dna-qtd').value, 10);
+
             if(!dataDNA || !qtdDNA || qtdDNA <= 0) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Dados inválidos!'; return; }
             
             msg.style.color = 'var(--text-dim)'; msg.innerText = 'Registrando...';
+
             const registros = Array.from({length: qtdDNA}, () => ({ data_abertura: dataDNA, setor: 'Lançamento em Lote', descricao: 'DNA via painel executivo', status: 'Aberto' }));
+
             const { error } = await _supa.from('ssma_dnas').insert(registros);
             
             if (error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!'; } 
@@ -374,9 +378,13 @@
                 quantidade_colaboradores: parseInt(document.getElementById('trei-qtd').value, 10) || 0,
                 localizacao: document.getElementById('trei-local').value || null
             };
+
             if(!dados.nome_treinamento) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Preencha o Nome!'; return; }
+
             msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando...';
+
             const { error } = await _supa.from('ssma_treinamentos').insert([dados]);
+
             if (error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!'; } 
             else { msg.style.color = 'var(--verde)'; msg.innerText = 'Salvo!'; document.getElementById('trei-nome').value = ''; setTimeout(() => msg.innerText='', 3000); }
         }
@@ -388,7 +396,6 @@
             const tbSeg = document.getElementById('tb-edit-seg');
             const tbOpa = document.getElementById('tb-edit-opa');
             const tbAbo = document.getElementById('tb-edit-abo');
-
             tbSeg.innerHTML = ''; tbOpa.innerHTML = ''; tbAbo.innerHTML = '';
 
             if (window.matrizSSMAData.length === 0) {
@@ -449,7 +456,6 @@
                 tPOpa += m.pOpa; tROpa += m.rOpa;
                 tPAbo += m.pAbo; tRAbo += m.rAbo;
             });
-
             document.getElementById('edit-tot-p-seg').innerText = tPSeg;
             document.getElementById('edit-tot-r-seg').innerText = tRSeg;
             document.getElementById('edit-tot-p-opa').innerText = tPOpa;
@@ -530,7 +536,6 @@
                     nome: m.nome, funcao: m.funcao,
                     p_seg: m.pSeg, r_seg: m.rSeg, p_opa: m.pOpa, r_opa: m.rOpa, p_abo: m.pAbo, r_abo: m.rAbo
                 }));
-
                 const toUpdate = window.matrizSSMAData.filter(m => m.id).map(m => ({
                     id: m.id, nome: m.nome, funcao: m.funcao,
                     p_seg: m.pSeg, r_seg: m.rSeg, p_opa: m.pOpa, r_opa: m.rOpa, p_abo: m.pAbo, r_abo: m.rAbo
@@ -558,6 +563,5 @@
 
         // Dispara o carregamento inicial
         window.carregarMatrizDoBanco();
-
     }, 50);
 </script>

@@ -31,7 +31,7 @@
         <span id="msg-status" style="margin-left: 15px; font-weight: bold;"></span>
     </div>
 
-    <!-- NOVA ABA: CADASTRAR MEMBROS KANBAN -->
+    <!-- CADASTRAR MEMBROS KANBAN -->
     <div class="kpi-card" style="grid-column: 1 / -1; margin-top: 10px; border-left: 5px solid var(--amarelo);">
         <h3 class="nav-label" style="margin-bottom: 25px; font-size: 1rem; color: var(--amarelo);"><i class="fas fa-id-badge"></i> CADASTRAR MEMBROS E SETORES (PARA O KANBAN)</h3>
         
@@ -66,7 +66,6 @@
 </div>
 
 <script>
-    // Variáveis globais
     const chavesGlobais = ['resp_geral', 'resp_rh', 'resp_operacional', 'resp_manutencao', 'resp_ssma'];
     let _supabase;
     
@@ -74,20 +73,9 @@
         _supabase = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
     }
 
-    // ======== LÓGICA DE APRESENTAÇÃO (Responsáveis e Kanban) ========
-    async function buscarConfiguracoesDoBanco() {
-        const status = document.getElementById('msg-status');
-        
-        // 1. CARREGAMENTO LOCAL (Garante interface rápida)
-        chavesGlobais.forEach(chave => {
-            const input = document.getElementById(chave);
-            const valorLocal = localStorage.getItem(chave);
-            if (input && valorLocal) {
-                input.value = valorLocal;
-            }
-        });
+    window.membrosKanbanList = [];
 
-        // 2. BUSCA NO BANCO PARA ATUALIZAR RESPONSÁVEIS E MEMBROS KANBAN
+    async function buscarConfiguracoesDoBanco() {
         if (_supabase) {
             try {
                 const { data, error } = await _supabase.from('configuracoes').select('chave, valor');
@@ -95,22 +83,19 @@
                 
                 if (data && data.length > 0) {
                     data.forEach(item => {
-                        // Se a chave for os membros do Kanban, atualiza a lista
                         if (item.chave === 'membros_kanban') {
-                            localStorage.setItem('membros_kanban', item.valor);
+                            window.membrosKanbanList = JSON.parse(item.valor);
                             carregarTabelaMembros();
                         } else {
-                            // Se for os responsáveis normais
                             const input = document.getElementById(item.chave);
                             if (input) {
                                 input.value = item.valor;
-                                localStorage.setItem(item.chave, item.valor);
                             }
                         }
                     });
                 }
             } catch (err) {
-                console.warn('Configurações: Banco vazio ou inacessível. Usando dados locais.', err);
+                console.warn('Erro ao buscar configurações no banco:', err);
             }
         }
     }
@@ -131,22 +116,20 @@
             };
         });
 
-        dadosParaSalvar.forEach(item => localStorage.setItem(item.chave, item.valor));
-
         try {
             if (_supabase) {
                 const { error } = await _supabase.from('configuracoes').upsert(dadosParaSalvar, { onConflict: 'chave' });
                 if (error) throw error;
                 
                 status.style.color = 'var(--verde)';
-                status.innerText = 'Salvo e sincronizado!';
+                status.innerText = 'Salvo no banco de dados!';
             } else {
                 throw new Error("Supabase não carregado.");
             }
         } catch (err) {
             console.error('Erro no Supabase:', err);
-            status.style.color = 'var(--amarelo)';
-            status.innerText = 'Salvo localmente!'; 
+            status.style.color = 'var(--vermelho)';
+            status.innerText = 'Erro ao salvar!';
         } finally {
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-save"></i> Salvar Alterações';
@@ -159,13 +142,11 @@
         }
     }
 
-    // ======== LÓGICA DE SINCRONIZAÇÃO KANBAN (NOVO) ========
-    async function sincronizarMembrosNoBanco(membrosArray) {
+    async function sincronizarMembrosNoBanco() {
         if (!_supabase) return;
         try {
-            // Salva o array transformado em texto no banco de dados
             const { error } = await _supabase.from('configuracoes').upsert([
-                { chave: 'membros_kanban', valor: JSON.stringify(membrosArray) }
+                { chave: 'membros_kanban', valor: JSON.stringify(window.membrosKanbanList) }
             ], { onConflict: 'chave' });
             
             if (error) throw error;
@@ -176,14 +157,13 @@
 
     function carregarTabelaMembros() {
         const tbody = document.getElementById('tabela-membros-kb');
-        const membros = JSON.parse(localStorage.getItem('membros_kanban') || '[]');
         
-        if (membros.length === 0) {
+        if (window.membrosKanbanList.length === 0) {
             tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:var(--text-dim);">Nenhum membro cadastrado.</td></tr>';
             return;
         }
         
-        tbody.innerHTML = membros.map((m, index) => `
+        tbody.innerHTML = window.membrosKanbanList.map((m, index) => `
             <tr>
                 <td style="color: white; font-weight: bold;">${m.nome}</td>
                 <td style="color: var(--primary);">${m.setor}</td>
@@ -196,7 +176,7 @@
         `).join('');
     }
 
-    window.adicionarMembroKanban = function() {
+    window.adicionarMembroKanban = async function() {
         const nome = document.getElementById('novo_nome_kb').value.trim();
         const setor = document.getElementById('novo_setor_kb').value.trim();
         const msg = document.getElementById('msg-kb-status');
@@ -207,12 +187,8 @@
             return;
         }
         
-        let membros = JSON.parse(localStorage.getItem('membros_kanban') || '[]');
-        membros.push({ nome, setor });
-        
-        // Salva local e dispara para o Supabase
-        localStorage.setItem('membros_kanban', JSON.stringify(membros));
-        sincronizarMembrosNoBanco(membros);
+        window.membrosKanbanList.push({ nome, setor });
+        await sincronizarMembrosNoBanco();
         
         document.getElementById('novo_nome_kb').value = '';
         document.getElementById('novo_setor_kb').value = '';
@@ -224,19 +200,12 @@
         carregarTabelaMembros();
     };
 
-    window.removerMembroKanban = function(index) {
+    window.removerMembroKanban = async function(index) {
         if (!confirm("Remover este membro?")) return;
-        let membros = JSON.parse(localStorage.getItem('membros_kanban') || '[]');
-        membros.splice(index, 1);
-        
-        // Atualiza local e dispara a exclusão para o Supabase
-        localStorage.setItem('membros_kanban', JSON.stringify(membros));
-        sincronizarMembrosNoBanco(membros);
-        
+        window.membrosKanbanList.splice(index, 1);
+        await sincronizarMembrosNoBanco();
         carregarTabelaMembros();
     };
 
-    // Inicializa a tela carregando os dados
     buscarConfiguracoesDoBanco();
-    carregarTabelaMembros();
 </script>

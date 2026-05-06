@@ -1,7 +1,7 @@
 <div class="dashboard-grid">
     <!-- Bloco 1: Indicadores Gerais -->
     <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid var(--primary);">
-        <h3 class="nav-label" style="margin-bottom: 20px; color: var(--primary);"><i class="fas fa-edit"></i> LANÇAMENTO DIÁRIO DE INDICADORES - RH</h3>
+        <h3 class="nav-label" style="margin-bottom: 20px; color: var(--primary);"><i class="fas fa-edit"></i> INDICADORES FIXOS GERAIS - RH</h3>
         
         <div class="form-grid">
             <div class="input-group">
@@ -25,7 +25,6 @@
                 <input type="number" id="input-integracoes" class="config-input" placeholder="Ex: 4">
             </div>
         </div>
-
         <div style="margin-top: 20px; display: flex; align-items: center;">
             <button class="btn-salvar" onclick="salvarDadosRH('msg-rh-1')" style="background: var(--primary);">
                 <i class="fas fa-save"></i> Salvar Indicadores Básicos
@@ -37,16 +36,17 @@
     <!-- Bloco 1.5: Murais de Comunicação RH e Calendário -->
     <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid #8b5cf6; margin-top: 10px;">
         <h3 class="nav-label" style="margin-bottom: 20px; color: #8b5cf6;"><i class="fas fa-chalkboard"></i> MURAIS DE COMUNICAÇÃO E EVENTOS</h3>
-
         <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
             <!-- Caixas de Texto (Avisos, Liberações) -->
             <div class="input-group">
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Avisos</label>
                 <textarea id="input-avisos-rh" class="config-input" rows="3" placeholder="Avisos gerais do RH..."></textarea>
+                <button type="button" class="btn-kanban" style="background: var(--verde); margin-top: 8px; width: 100%;" onclick="limparMuralRH('input-avisos-rh')"><i class="fas fa-check"></i> Concluir / Retirar</button>
             </div>
             <div class="input-group">
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Liberações Destra x Prazos</label>
                 <textarea id="input-liberacoes-rh" class="config-input" rows="3" placeholder="Status das liberações e prazos do RH..."></textarea>
+                <button type="button" class="btn-kanban" style="background: var(--verde); margin-top: 8px; width: 100%;" onclick="limparMuralRH('input-liberacoes-rh')"><i class="fas fa-check"></i> Concluir / Retirar</button>
             </div>
 
             <!-- GERADOR DE ANIVERSARIANTES -->
@@ -73,6 +73,7 @@
                 
                 <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Lista Final de Aniversariantes (Pode ser editada manualmente)</label>
                 <textarea id="input-aniversariantes-rh" class="config-input" rows="3" placeholder="Os aniversariantes aparecerão aqui..."></textarea>
+                <button type="button" class="btn-kanban" style="background: var(--verde); margin-top: 8px; width: 100%;" onclick="limparMuralRH('input-aniversariantes-rh')"><i class="fas fa-check"></i> Concluir / Limpar Todos</button>
             </div>
 
             <!-- GERADOR DE EVENTOS DO CALENDÁRIO -->
@@ -101,9 +102,9 @@
                 
                 <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Lista Final de Eventos (Pode ser editada manualmente)</label>
                 <textarea id="input-calendario-rh" class="config-input" rows="3" placeholder="Os eventos adicionados aparecerão aqui..."></textarea>
+                <button type="button" class="btn-kanban" style="background: var(--verde); margin-top: 8px; width: 100%;" onclick="limparMuralRH('input-calendario-rh')"><i class="fas fa-check"></i> Concluir / Limpar Todos</button>
             </div>
         </div>
-
         <div style="margin-top: 20px; display: flex; align-items: center;">
             <button class="btn-salvar" onclick="salvarDadosRH('msg-rh-2')" style="background: #8b5cf6;">
                 <i class="fas fa-save"></i> Salvar Murais e Calendário
@@ -131,7 +132,6 @@
             </div>
         </div>
         
-        <!-- Botão das vagas é independente, ele salva direto no banco a vaga clicada -->
         <button class="btn-salvar" style="background: var(--amarelo); color: var(--bg-dark); margin-top: 15px;" onclick="adicionarVaga()">
             <i class="fas fa-plus"></i> Adicionar Vaga no Banco
         </button>

@@ -39,16 +39,14 @@
             if (error) throw error;
             dadosArquivados = data || [];
         } catch(e) {
-            let local = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');
-            dadosArquivados = local.filter(i => i.status === 'ARCHIVED');
-            dadosArquivados.sort((a,b) => new Date(b.data_criacao) - new Date(a.data_criacao));
+            console.error("Falha ao puxar histórico do Kanban");
         }
-
+        
         if (dadosArquivados.length === 0) {
             tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-dim);">Nenhum card arquivado no momento.</td></tr>';
             return;
         }
-
+        
         tbody.innerHTML = dadosArquivados.map(item => `
             <tr style="background: rgba(255,255,255,0.02);">
                 <td style="color: var(--text-dim); padding: 12px; border-bottom: 1px solid var(--border);"><i class="fas fa-building"></i> ${item.setor}</td>
@@ -75,9 +73,7 @@
             
             await _supa.from('kanban_metas').update({ status: 'DONE' }).eq('id', id);
         } catch(e) {
-            let local = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');
-            const index = local.findIndex(i => String(i.id) === String(id));
-            if (index > -1) { local[index].status = 'DONE'; localStorage.setItem('kanban_metas_local', JSON.stringify(local)); }
+            console.error("Falha ao desarquivar.");
         }
         carregarHistorico();
     }
@@ -90,9 +86,7 @@
             
             await _supa.from('kanban_metas').delete().eq('id', id);
         } catch(e) {
-            let local = JSON.parse(localStorage.getItem('kanban_metas_local') || '[]');
-            local = local.filter(i => String(i.id) !== String(id));
-            localStorage.setItem('kanban_metas_local', JSON.stringify(local));
+            console.error("Falha ao excluir histórico.");
         }
         carregarHistorico();
     }

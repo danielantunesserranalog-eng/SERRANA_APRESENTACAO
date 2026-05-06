@@ -1,22 +1,19 @@
 // ARQUIVO: js/rh.js
-
 // Inicializa a conexão com o Supabase usando a configuração global do sistema
 if (!window.supabaseClientGlobal && typeof supabase !== 'undefined' && typeof SUPABASE_CONFIG !== 'undefined') {
     window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
 }
 const _supa = window.supabaseClientGlobal;
 
-// Pega a data de hoje garantindo o fuso horário do Brasil (evita virar o dia antecipadamente)
+// O RH E SSMA AGORA USAM UM ESTADO FIXO EM VEZ DE DATA DIÁRIA PARA NÃO ACUMULAR HISTÓRICO
 function obterDataHoje() {
-    const tzOffset = (new Date()).getTimezoneOffset() * 60000;
-    const localISOTime = (new Date(Date.now() - tzOffset)).toISOString().slice(0, -1);
-    return localISOTime.split('T')[0];
+    return '2099-12-31'; // Data fixa para garantir que é sempre o estado mais recente/único
 }
 
 // Passamos o ID da mensagem para saber qual botão disparou o salvamento
-window.salvarDadosRH = async function(msgId = 'msg-rh-1') {
+window.salvarDadosRH = async function(msgId = 'msg-rh-1', isSilent = false) {
     const msg = document.getElementById(msgId);
-    if (msg) {
+    if (msg && !isSilent) {
         msg.style.color = 'var(--text-dim)';
         msg.innerText = "Salvando no banco de dados...";
     }
@@ -37,19 +34,29 @@ window.salvarDadosRH = async function(msgId = 'msg-rh-1') {
     
     try {
         if (!_supa) throw new Error("Conexão com Supabase não estabelecida.");
-
-        const { error } = await _supa.from('rh_indicadores').upsert([dados], { onConflict: 'data_registro' });
         
-        if (error) {
-            console.error("Erro detalhado do Supabase:", error);
-            if (msg) {
+        // CORREÇÃO: Substituição do upsert por select + update/insert para evitar erro do banco
+        const { data: existe } = await _supa.from('rh_indicadores').select('id').eq('data_registro', obterDataHoje()).limit(1);
+        let erroBanco = null;
+        
+        if (existe && existe.length > 0) {
+            const { error } = await _supa.from('rh_indicadores').update(dados).eq('data_registro', obterDataHoje());
+            erroBanco = error;
+        } else {
+            const { error } = await _supa.from('rh_indicadores').insert([dados]);
+            erroBanco = error;
+        }
+        
+        if (erroBanco) {
+            console.error("Erro detalhado do Supabase:", erroBanco);
+            if (msg && !isSilent) {
                 msg.style.color = 'var(--vermelho)';
-                msg.innerText = "ERRO NO BANCO: " + error.message;
+                msg.innerText = "ERRO NO BANCO: " + erroBanco.message;
             }
             return;
         }
         
-        if (msg) {
+        if (msg && !isSilent) {
             msg.style.color = 'var(--verde)';
             msg.innerText = "Salvo no banco com sucesso!";
             setTimeout(() => msg.innerText = "", 4000);
@@ -58,10 +65,21 @@ window.salvarDadosRH = async function(msgId = 'msg-rh-1') {
         window.carregarDadosRH();
     } catch (err) {
         console.error("Erro de execução no salvamento de RH:", err);
-        if (msg) {
+        if (msg && !isSilent) {
             msg.style.color = 'var(--vermelho)';
             msg.innerText = "Falha de conexão ao tentar salvar!";
         }
+    }
+};
+
+window.limparMuralRH = async function(idMural) {
+    document.getElementById(idMural).value = '';
+    await window.salvarDadosRH('msg-rh-2', true);
+    const msg = document.getElementById('msg-rh-2');
+    if(msg) {
+        msg.style.color = 'var(--verde)';
+        msg.innerText = "Concluído e retirado!";
+        setTimeout(() => msg.innerText = "", 3000);
     }
 };
 
@@ -69,12 +87,12 @@ window.adicionarVaga = async function() {
     const cargo = document.getElementById('vaga-cargo').value;
     const setor = document.getElementById('vaga-setor').value;
     const qtd = document.getElementById('vaga-qtd').value;
-    
+
     if(!cargo || !setor || !qtd) {
         alert("Preencha o Cargo, Setor e a Quantidade para adicionar a vaga!");
         return;
     }
-    
+
     try {
         const { error } = await _supa.from('rh_vagas').insert([{ 
             cargo: cargo, 
@@ -135,6 +153,7 @@ window.carregarDadosRH = async function() {
             if(document.getElementById('input-admissoes')) document.getElementById('input-admissoes').value = dados.admissoes || '';
             if(document.getElementById('input-integracoes')) document.getElementById('input-integracoes').value = dados.integracoes || '';
             
+            // AQUI POPULA OS MURAIS NA TELA DE LANÇAMENTOS
             if(document.getElementById('input-avisos-rh')) document.getElementById('input-avisos-rh').value = dados.mural_avisos || '';
             if(document.getElementById('input-liberacoes-rh')) document.getElementById('input-liberacoes-rh').value = dados.mural_liberacoes || '';
             if(document.getElementById('input-aniversariantes-rh')) document.getElementById('input-aniversariantes-rh').value = dados.mural_aniversariantes || '';
@@ -146,7 +165,6 @@ window.carregarDadosRH = async function() {
             if(document.getElementById('val-afastamentos')) document.getElementById('val-afastamentos').innerText = dados.afastamentos || 0;
             if(document.getElementById('val-admissoes')) document.getElementById('val-admissoes').innerText = dados.admissoes || 0;
             if(document.getElementById('val-integracoes')) document.getElementById('val-integracoes').innerText = dados.integracoes || 0;
-
             if(document.getElementById('mural-avisos-rh')) document.getElementById('mural-avisos-rh').innerText = dados.mural_avisos || 'Sem avisos no momento.';
             if(document.getElementById('mural-liberacoes-rh')) document.getElementById('mural-liberacoes-rh').innerText = dados.mural_liberacoes || 'Sem atualizações.';
             
@@ -161,7 +179,6 @@ window.carregarDadosRH = async function() {
             } else if (document.getElementById('mural-calendario-rh')) {
                 document.getElementById('mural-calendario-rh').innerText = dados.mural_calendario || 'Sem eventos programados.';
             }
-
         } else {
             if (typeof window.gerarCalendarioVisual === 'function') window.gerarCalendarioVisual('');
             if (typeof window.gerarAniversariantesVisual === 'function') window.gerarAniversariantesVisual('');
@@ -218,6 +235,7 @@ window.carregarDadosRH = async function() {
                 `).join('');
             }
         }
+        
     } catch (err) {
         console.error("Erro geral ao puxar dados do banco:", err);
     }
