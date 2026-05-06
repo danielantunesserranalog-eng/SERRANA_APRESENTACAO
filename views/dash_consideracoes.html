@@ -251,7 +251,6 @@
                     if(pDate) {
                         pDate.setHours(0,0,0,0);
                         if(pDate.getTime() === ontem.getTime()) {
-                            // Só conta se for Serrana 100% (Grua e Transp)
                             return checkLoader(d, serranaLoaders) && isSerranaTransp(d);
                         }
                     }
@@ -322,7 +321,6 @@
                                 manutCavalo += (oOut - oIn);
                             }
 
-                            // Tempo médio da OS que fechou em D-1
                             if ((os.status === 'Concluída' || os.status === 'Resolvido') && os.data_conclusao) {
                                 if(osFim >= ontem && osFim <= fimOntem) {
                                     osTempoMs += (osFim - osInicio);
@@ -371,7 +369,6 @@
                 try { return JSON.parse(str); } catch(e) { return []; }
             };
 
-            // Murais Op e Man
             const { data: configs } = await supaGlobal.from('configuracoes').select('chave, valor').in('chave', ['mural_operacional', 'mural_manutencao']);
             if (configs) {
                 configs.forEach(c => {
@@ -380,7 +377,6 @@
                 });
             }
 
-            // Mural SSMA
             const { data: ssmaData } = await supaGlobal.from('ssma_indicadores_gerais').select('*').neq('data_registro', '2099-12-31').order('data_registro', {ascending: false}).limit(1);
             if(ssmaData && ssmaData.length > 0) {
                 const s = ssmaData[0];
@@ -394,7 +390,6 @@
                 document.getElementById('mural-global-ssma').innerHTML = buildHtmlMural(allSsma, '#10b981');
             }
 
-            // Mural RH
             const { data: rhData } = await supaGlobal.from('rh_indicadores').select('*').order('data_registro', {ascending: false}).limit(1);
             if(rhData && rhData.length > 0) {
                 const r = rhData[0];
@@ -553,7 +548,7 @@
         window.carregarKanbanDash();
     };
 
-    // --- LÓGICA DE GERAÇÃO DO PDF EXECUTIVO (Expandido) ---
+    // --- LÓGICA DE GERAÇÃO DO PDF EXECUTIVO COMPLETÃO ---
     window.gerarPDFConsideracoes = async function(event) {
         if (!window.jspdf || !window.jspdf.jsPDF) { alert("Biblioteca de PDF não carregou corretamente. Recarregue a página."); return; }
         
@@ -565,14 +560,46 @@
         let reportDiv = null;
         
         try {
-            let dadosKanban = [];
-            try {
-                if (!window.supabaseClientGlobal) window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-                const _supa = window.supabaseClientGlobal;
-                const { data } = await _supa.from('kanban_metas').select('*').neq('status', 'ARCHIVED').order('data_criacao', { ascending: false });
-                dadosKanban = data || [];
-            } catch(e) { console.error("Falha ao buscar dados PDF"); }
+            // Buscas em Background para preencher o PDF de forma correta e nativa
+            const supaGlobal = window.supabaseClientGlobal || supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
             
+            // Kanban
+            const { data: dataK } = await supaGlobal.from('kanban_metas').select('*').neq('status', 'ARCHIVED').order('data_criacao', { ascending: false });
+            const dadosKanban = dataK || [];
+
+            // Fetch Murais para PDF
+            const parseArrPdf = (str) => { if(!str) return []; try { return JSON.parse(str); } catch(e) { return []; } };
+            let arrOp = [], arrMan = [], arrSsma = [], arrRh = [];
+
+            const { data: configs } = await supaGlobal.from('configuracoes').select('chave, valor').in('chave', ['mural_operacional', 'mural_manutencao']);
+            if (configs) {
+                configs.forEach(c => {
+                    if(c.chave === 'mural_operacional') arrOp = parseArrPdf(c.valor);
+                    if(c.chave === 'mural_manutencao') arrMan = parseArrPdf(c.valor);
+                });
+            }
+
+            const { data: ssmaData } = await supaGlobal.from('ssma_indicadores_gerais').select('*').neq('data_registro', '2099-12-31').order('data_registro', {ascending: false}).limit(1);
+            if(ssmaData && ssmaData.length > 0) {
+                const s = ssmaData[0];
+                arrSsma = [
+                    ...parseArrPdf(s.mural_ocorrencias).map(x => ({...x, texto: `[Ocorrência] ${x.texto}`})),
+                    ...parseArrPdf(s.mural_ferramentas).map(x => ({...x, texto: `[Ferramenta] ${x.texto}`})),
+                    ...parseArrPdf(s.mural_acoes).map(x => ({...x, texto: `[Ação] ${x.texto}`})),
+                    ...parseArrPdf(s.mural_avisos).map(x => ({...x, texto: `[Aviso] ${x.texto}`}))
+                ].sort((a,b) => new Date(b.data) - new Date(a.data));
+            }
+
+            const { data: rhData } = await supaGlobal.from('rh_indicadores').select('*').order('data_registro', {ascending: false}).limit(1);
+            if(rhData && rhData.length > 0) {
+                const r = rhData[0];
+                arrRh = [
+                    ...parseArrPdf(r.mural_avisos).map(x => ({...x, texto: `[Aviso] ${x.texto}`})),
+                    ...parseArrPdf(r.mural_liberacoes).map(x => ({...x, texto: `[Liberação] ${x.texto}`}))
+                ].sort((a,b) => new Date(b.data) - new Date(a.data));
+            }
+            
+            // Build elements
             reportDiv = document.createElement('div');
             reportDiv.id = 'relatorio-pdf-temp';
             reportDiv.style.width = '800px';
@@ -588,12 +615,28 @@
             const dataHoje = new Date().toLocaleDateString('pt-BR');
             const horaAtual = new Date().toLocaleTimeString('pt-BR').slice(0, 5);
             
-            // Dados D-1 puxados do DOM pra facilitar e manter fidelidade visual no PDF
+            // D-1 via DOM
             const opViagens = document.getElementById('d1-viagens').innerText;
             const opPbtc = document.getElementById('d1-pbtc').innerText;
             const opVol = document.getElementById('d1-med-vol').innerText;
             const manDm = document.getElementById('d1-dm').innerText;
             const manAtivos = document.getElementById('d1-ativos').innerText;
+
+            const buildPdfMural = (title, arr, color) => {
+                let html = `<div style="margin-bottom: 15px; background: #f8fafc; padding: 10px; border-radius: 6px; border-left: 3px solid ${color};">
+                    <h4 style="color: ${color}; font-size: 13px; margin: 0 0 8px 0; text-transform: uppercase;">${title}</h4>`;
+                if(!arr || arr.length === 0) {
+                    html += `<p style="margin: 0; font-size: 11px; color: #94a3b8;">Nenhum registro.</p>`;
+                } else {
+                    html += `<ul style="list-style: none; padding: 0; margin: 0; font-size: 11px; color: #334155;">`;
+                    arr.forEach(i => {
+                        html += `<li style="margin-bottom: 4px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px;"><strong>[${formatDataMural(i.data)}]</strong> ${i.texto}</li>`;
+                    });
+                    html += `</ul>`;
+                }
+                html += `</div>`;
+                return html;
+            };
 
             let htmlContent = `
                 <div style="border-bottom: 3px solid #10b981; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
@@ -601,7 +644,7 @@
                         <img src="./assets/logoverde.png" alt="Logo Serrana" style="height: 55px; object-fit: contain;">
                         <div>
                             <h1 style="color: #0f172a; font-size: 24px; font-weight: bold; margin: 0; text-transform: uppercase;">Serrana Florestal</h1>
-                            <h2 style="color: #475569; font-size: 15px; margin: 5px 0 0 0;">Relatório Executivo de Reunião Diária</h2>
+                            <h2 style="color: #475569; font-size: 15px; margin: 5px 0 0 0;">Ata Executiva de Reunião Diária</h2>
                         </div>
                     </div>
                     <div style="text-align: right;">
@@ -611,7 +654,7 @@
                 </div>
 
                 <div style="margin-bottom: 25px;">
-                    <h3 style="color: #0f172a; font-size: 16px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">Destaques D-1</h3>
+                    <h3 style="color: #0f172a; font-size: 16px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">1. Destaques D-1</h3>
                     <div style="display: flex; justify-content: space-between; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
                         <div style="text-align: center;">
                             <div style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase;">Viagens (Op)</div>
@@ -635,9 +678,23 @@
                         </div>
                     </div>
                 </div>
+
+                <div style="margin-bottom: 25px;">
+                    <h3 style="color: #0f172a; font-size: 16px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">2. Comunicações e Avisos Setoriais</h3>
+                    <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+                        <div style="flex: 1; min-width: 300px;">
+                            ${buildPdfMural('Mural SSMA', arrSsma, '#10b981')}
+                            ${buildPdfMural('Mural Operacional', arrOp, '#0ea5e9')}
+                        </div>
+                        <div style="flex: 1; min-width: 300px;">
+                            ${buildPdfMural('Mural RH', arrRh, '#ec4899')}
+                            ${buildPdfMural('Mural Manutenção', arrMan, '#d97706')}
+                        </div>
+                    </div>
+                </div>
                 
                 <div style="margin-bottom: 20px;">
-                    <h3 style="color: #0f172a; font-size: 16px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">Plano de Ação e Metas</h3>
+                    <h3 style="color: #0f172a; font-size: 16px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">3. Plano de Ação e Metas (Kanban)</h3>
                 </div>
             `;
             
@@ -731,7 +788,7 @@
             
             pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
             
-            pdf.save(`Relatorio_Reuniao_Serrana_${dataHoje.replace(/\//g, '-')}.pdf`);
+            pdf.save(`Ata_Reuniao_Serrana_${dataHoje.replace(/\//g, '-')}.pdf`);
             
         } catch (error) {
             console.error("Erro na geração do PDF: ", error);
