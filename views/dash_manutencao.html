@@ -290,15 +290,19 @@
         }).join('') + `</div>`;
     };
 
-    const animacaoCss = document.createElement('style');
-    animacaoCss.innerHTML = `
-        @keyframes piscar {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; color: #fca5a5; }
-            100% { opacity: 1; }
-        }
-    `;
-    document.head.appendChild(animacaoCss);
+    // Previne erro de redeclaração ao mudar de menu
+    if (!document.getElementById('css-animacao-piscar')) {
+        var animacaoCss = document.createElement('style');
+        animacaoCss.id = 'css-animacao-piscar';
+        animacaoCss.innerHTML = `
+            @keyframes piscar {
+                0% { opacity: 1; }
+                50% { opacity: 0.4; color: #fca5a5; }
+                100% { opacity: 1; }
+            }
+        `;
+        document.head.appendChild(animacaoCss);
+    }
 
     // --- NOVA LÓGICA: MURAL DE INFORMAÇÕES DO SETOR MANUTENÇÃO ---
     window.muralSetorKey = 'mural_manutencao';
@@ -415,7 +419,9 @@
     }
 
     // Intervalo para atualizar os cronômetros do Pátio (Tempo no Pátio) automaticamente a cada 60 segundos
-    setInterval(() => {
+    // Limpamos o intervalo antigo caso a pessoa tenha saído e voltado para a página
+    if (window.intervaloCronometroPatio) clearInterval(window.intervaloCronometroPatio);
+    window.intervaloCronometroPatio = setInterval(() => {
         if (typeof window.renderizarPatioManutencaoDash === 'function') {
             window.renderizarPatioManutencaoDash();
         }
