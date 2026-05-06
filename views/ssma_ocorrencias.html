@@ -191,11 +191,7 @@
             <i class="fas fa-toolbox"></i> 2. QUADRO DE LANÇAMENTO (FERRAMENTAS SUZANO)
         </h3>
         
-        <div class="form-grid" style="grid-template-columns: 1.5fr 2fr 1.5fr auto; margin-bottom: 25px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; align-items: flex-end;">
-            <div class="input-group">
-                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Área</label>
-                <input type="text" id="fs-colab-area" class="config-input" placeholder="Ex: Colheita">
-            </div>
+        <div class="form-grid" style="grid-template-columns: 2fr 2fr auto; margin-bottom: 25px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; align-items: flex-end;">
             <div class="input-group">
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Colaborador</label>
                 <input type="text" id="fs-colab-nome" class="config-input" placeholder="Ex: João Silva">
@@ -224,9 +220,8 @@
                 <table class="exec-table" style="width: 100%; text-align: left; margin-top: 0;">
                     <thead>
                         <tr style="background: rgba(255,255,255,0.05);">
-                            <th style="padding: 12px; width: 15%; border-right: 1px solid var(--border);">ÁREA</th>
                             <th style="padding: 12px; width: 25%; border-right: 1px solid var(--border);">COLABORADOR / FUNÇÃO</th>
-                            <th style="padding: 12px; width: 50%; color: #10b981; border-right: 1px solid var(--border);">LANÇAMENTO DE FERRAMENTAS (Meta / Realizado)</th>
+                            <th style="padding: 12px; width: 65%; color: #10b981; border-right: 1px solid var(--border);">LANÇAMENTO DE FERRAMENTAS (Meta / Realizado)</th>
                             <th style="padding: 12px; width: 10%; text-align: center;"><i class="fas fa-cogs"></i> AÇÕES</th>
                         </tr>
                     </thead>
@@ -277,14 +272,9 @@
 
         window.idRegistroSSMA = null;
         window.listasSSMA = { ocorrencias: [], ferramentas: [], acoes: [], avisos: [] };
-        
-        // Arrays para a nova lógica de ferramentas dinâmicas
         window.dbFerramentasCadastradas = []; 
         window.dbFsColaboradores = [];
 
-        // ==========================================
-        // FUNÇÕES PADRÕES DO TOPO (MURAIS E DNAs)
-        // ==========================================
         function safeParseMural(str) {
             if (!str || str.trim() === '') return [];
             try { let parsed = JSON.parse(str); return Array.isArray(parsed) ? parsed : []; } catch(e) { return [{ id: Date.now(), data: hojeIso, texto: str }]; }
@@ -391,10 +381,6 @@
             if (error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!'; } else { msg.style.color = 'var(--verde)'; msg.innerText = 'Salvo!'; document.getElementById('trei-nome').value = ''; setTimeout(() => msg.innerText='', 3000); }
         }
 
-        // =========================================================
-        // LÓGICA DINÂMICA: FERRAMENTAS SUZANO (CONFIG E LANÇAMENTO)
-        // =========================================================
-
         window.carregarConfigFerramentas = async function() {
             try {
                 const { data } = await _supa.from('ssma_cad_ferramentas').select('*').order('funcao', { ascending: true }).order('nome', { ascending: true });
@@ -423,59 +409,44 @@
             window.renderizarQuadroColaboradores();
         }
 
-        // NOVA FUNÇÃO DE SALVAR COM SUPORTE A MÚLTIPLAS FUNÇÕES
         window.salvarConfigFerramenta = async function() {
             const nome = document.getElementById('cad-ferr-nome').value.trim();
             const checkboxesSelecionados = document.querySelectorAll('#cad-ferr-funcoes input[type="checkbox"]:checked');
             const funcoes = Array.from(checkboxesSelecionados).map(cb => cb.value);
             const meta = parseInt(document.getElementById('cad-ferr-meta').value) || 0;
 
-            if(!nome || funcoes.length === 0) { 
-                alert("Preencha o Nome e marque ao menos uma Função para a Ferramenta."); 
-                return; 
-            }
+            if(!nome || funcoes.length === 0) { alert("Preencha o Nome e marque ao menos uma Função."); return; }
 
-            // Cria uma lista de registros para salvar no banco (um para cada função marcada)
             const payload = funcoes.map(f => ({ nome: nome, funcao: f, meta: meta }));
 
             try {
-                // O Supabase permite inserir um array de objetos de uma só vez
                 await _supa.from('ssma_cad_ferramentas').insert(payload);
-                
-                // Limpar campos
                 document.getElementById('cad-ferr-nome').value = '';
                 document.getElementById('cad-ferr-meta').value = '1';
-                checkboxesSelecionados.forEach(cb => cb.checked = false); // Desmarca tudo
-                
+                checkboxesSelecionados.forEach(cb => cb.checked = false); 
                 await window.carregarConfigFerramentas();
-            } catch(e) { 
-                alert("Erro ao salvar configuração!"); 
-            }
+            } catch(e) { alert("Erro ao salvar configuração!"); }
         }
 
         window.deletarConfigFerramenta = async function(id) {
             if(!confirm("Deseja apagar esta ferramenta da configuração?")) return;
-            try {
-                await _supa.from('ssma_cad_ferramentas').delete().eq('id', id);
-                await window.carregarConfigFerramentas();
-            } catch(e) { alert("Erro ao excluir!"); }
+            try { await _supa.from('ssma_cad_ferramentas').delete().eq('id', id); await window.carregarConfigFerramentas(); } catch(e) { alert("Erro ao excluir!"); }
         }
 
-        // 2. Carregar e Gerenciar Colaboradores (Quadro de Lançamento)
         window.carregarQuadroColaboradores = async function() {
             try {
-                const { data } = await _supa.from('ssma_fs_colab').select('*').order('area', { ascending: true }).order('nome', { ascending: true });
+                const { data } = await _supa.from('ssma_fs_colab').select('*').order('nome', { ascending: true });
                 window.dbFsColaboradores = data || [];
                 window.renderizarQuadroColaboradores();
             } catch(e) { console.error("Erro Quadro Colab:", e); }
         }
 
         window.adicionarFsColaborador = async function() {
-            const area = document.getElementById('fs-colab-area').value.trim().toUpperCase();
+            const area = 'N/A'; // O banco de dados recebe N/A para não dar erro
             const nome = document.getElementById('fs-colab-nome').value.trim().toUpperCase();
             const funcao = document.getElementById('fs-colab-funcao').value;
 
-            if(!area || !nome || !funcao) { alert("Preencha Área, Nome e Função do colaborador."); return; }
+            if(!nome || !funcao) { alert("Preencha Nome e Função do colaborador."); return; }
 
             try {
                 await _supa.from('ssma_fs_colab').insert([{ area, nome, funcao, realizado: {} }]);
@@ -489,7 +460,7 @@
             tb.innerHTML = '';
 
             if (window.dbFsColaboradores.length === 0) {
-                tb.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--text-dim); padding: 15px;">Sem colaboradores cadastrados.</td></tr>';
+                tb.innerHTML = '<tr><td colspan="3" style="text-align:center; color: var(--text-dim); padding: 15px;">Sem colaboradores cadastrados.</td></tr>';
                 return;
             }
 
@@ -500,7 +471,7 @@
                 let painelFerramentasHTML = '';
                 
                 if (ferramentasDaFuncao.length === 0) {
-                    painelFerramentasHTML = `<span style="color: var(--vermelho); font-size: 0.8rem;"><i class="fas fa-exclamation-triangle"></i> Nenhuma ferramenta cadastrada para o cargo de ${colab.funcao} no bloco acima.</span>`;
+                    painelFerramentasHTML = `<span style="color: var(--vermelho); font-size: 0.8rem;"><i class="fas fa-exclamation-triangle"></i> Nenhuma ferramenta cadastrada para o cargo de ${colab.funcao}.</span>`;
                 } else {
                     painelFerramentasHTML = `<div style="display: flex; flex-wrap: wrap;">`;
                     ferramentasDaFuncao.forEach(ferr => {
@@ -520,7 +491,6 @@
 
                 tb.insertAdjacentHTML('beforeend', `
                     <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);">
-                        <td style="padding: 12px; font-weight: bold; color: var(--text-dim); border-right: 1px solid var(--border);">${colab.area}</td>
                         <td style="padding: 12px; border-right: 1px solid var(--border);">
                             <div style="font-weight: bold; color: white;">${colab.nome}</div>
                             <div style="color: var(--text-dim); font-size: 0.8rem;">${colab.funcao}</div>
@@ -556,12 +526,10 @@
             try {
                 const { error } = await _supa.from('ssma_fs_colab').update({ realizado: colab.realizado }).eq('id', colab.id);
                 if(error) throw error;
-                
                 btnElement.innerHTML = '<i class="fas fa-check-double"></i>';
                 btnElement.style.background = '#059669'; 
                 setTimeout(() => { btnElement.innerHTML = originalHTML; btnElement.style.background = 'var(--verde)'; }, 2000);
             } catch(e) {
-                console.error(e);
                 btnElement.innerHTML = '<i class="fas fa-times"></i>';
                 btnElement.style.background = 'var(--vermelho)';
                 setTimeout(() => { btnElement.innerHTML = originalHTML; btnElement.style.background = 'var(--verde)'; }, 2000);
@@ -570,16 +538,11 @@
 
         window.removerColaborador = async function(id) {
             if(!confirm('Deseja realmente remover este colaborador do quadro de ferramentas?')) return;
-            try {
-                await _supa.from('ssma_fs_colab').delete().eq('id', id);
-                await window.carregarQuadroColaboradores();
-            } catch(e) { alert("Erro ao excluir!"); }
+            try { await _supa.from('ssma_fs_colab').delete().eq('id', id); await window.carregarQuadroColaboradores(); } catch(e) { alert("Erro ao excluir!"); }
         }
 
-        // INIT: Iniciar o carregamento das tabelas novas
-        window.carregarConfigFerramentas().then(() => {
-            window.carregarQuadroColaboradores();
-        });
+        // INIT
+        window.carregarConfigFerramentas().then(() => { window.carregarQuadroColaboradores(); });
 
     }, 50);
 </script>
