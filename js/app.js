@@ -119,7 +119,8 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
             document.body.removeChild(newScript);
         });
         
-        if (!['cons_historico.html', 'conf_sistema.html', 'rh_lancamentos.html'].includes(fileName)) {
+        // AQUI ESTAVA O BLOQUEIO: REMOVIDO 'rh_lancamentos.html' DA LISTA DE EXCLUSÃO
+        if (!['cons_historico.html', 'conf_sistema.html'].includes(fileName)) {
             injectKanbanLauncher(subTitle);
         }
     } catch (e) {
