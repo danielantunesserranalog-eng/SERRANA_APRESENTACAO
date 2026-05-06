@@ -31,7 +31,6 @@
     </div>
 </div>
 
-<!-- ================= CALENDÁRIO VISUAL INTERATIVO ================= -->
 <div class="content-panel kpi-card" style="margin-top: 25px; border-left: 5px solid var(--primary); padding: 25px;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;">
         <h3 class="nav-label" style="color: var(--primary); margin: 0; font-size: 1rem;"><i class="fas fa-calendar-alt"></i> CALENDÁRIO DE EVENTOS E FERIADOS - <span id="mes-ano-calendario" style="color: white;"></span></h3>
@@ -50,24 +49,23 @@
     </div>
 </div>
 
-<!-- ================= MURAIS DE COMUNICAÇÃO RH ================= -->
 <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; margin-top: 25px;">
     <div class="content-panel kpi-card" style="border-left: 4px solid var(--amarelo); padding: 20px;">
         <h3 class="nav-label" style="color: var(--amarelo); margin-bottom: 15px;"><i class="fas fa-bullhorn"></i> AVISOS GERAIS</h3>
-        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; min-height: 120px;">
-            <p id="mural-avisos-rh" style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap;">Carregando...</p>
+        <div id="mural-avisos-rh" style="min-height: 120px;">
+            <p style="color: #cbd5e1; font-size: 0.9rem;">Carregando...</p>
         </div>
     </div>
+
     <div class="content-panel kpi-card" style="border-left: 4px solid #0ea5e9; padding: 20px;">
         <h3 class="nav-label" style="color: #0ea5e9; margin-bottom: 15px;"><i class="fas fa-id-card"></i> LIBERAÇÕES DESTRA X PRAZOS</h3>
-        <div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; min-height: 120px;">
-            <p id="mural-liberacoes-rh" style="color: #cbd5e1; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap;">Carregando...</p>
+        <div id="mural-liberacoes-rh" style="min-height: 120px;">
+            <p style="color: #cbd5e1; font-size: 0.9rem;">Carregando...</p>
         </div>
     </div>
 </div>
 
 <div class="dashboard-grid" style="grid-template-columns: 1fr; margin-top: 25px;">
-    <!-- ANIVERSARIANTES: AGORA TRANSFOMADO EM LISTA DE CARDS -->
     <div class="content-panel kpi-card" style="border-left: 4px solid #ec4899; padding: 20px;">
         <h3 class="nav-label" style="color: #ec4899; margin-bottom: 15px;"><i class="fas fa-birthday-cake"></i> ANIVERSARIANTES DO MÊS</h3>
         <div id="mural-aniversariantes-rh" style="min-height: 100px;">
@@ -76,7 +74,6 @@
     </div>
 </div>
 
-<!-- ================= TABELA DE VAGAS EM ABERTO ================= -->
 <div class="content-panel" style="margin-top: 30px; border-left: 5px solid var(--amarelo); background: rgba(15, 23, 42, 0.8); border-radius: 16px;">
     <div style="padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05);">
         <h3 class="nav-label" style="margin: 0; color: var(--amarelo); font-size: 1rem;"><i class="fas fa-search"></i> VAGAS EM ABERTO DETALHADAS</h3>
@@ -96,11 +93,40 @@
 </div>
 
 <script>
-    // INTELIGÊNCIA DOS ANIVERSARIANTES (Cria os cartões)
+    window.renderizarListaApresentacaoRH = function(elId, strData, corPadrao) {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        if (!strData || strData.trim() === '') { 
+            el.innerHTML = '<div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; color: var(--text-dim); font-size: 0.9rem;">Sem registros pendentes.</div>'; 
+            return; 
+        }
+        
+        function formataDataPTBR(d) {
+            if(!d) return ''; const [ano, mes, dia] = d.split('-'); return `${dia}/${mes}`;
+        }
+
+        try {
+            const arr = JSON.parse(strData);
+            if (Array.isArray(arr) && arr.length > 0) {
+                el.innerHTML = '<ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:10px;">' +
+                    arr.map(i => `
+                    <li style="background: rgba(0,0,0,0.25); padding: 12px 15px; border-radius: 8px; border-left: 3px solid ${corPadrao}; font-size: 0.95rem; color: #cbd5e1; display: flex; flex-direction: column; gap: 4px;">
+                        <strong style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;"><i class="fas fa-calendar-day"></i> Registrado em: ${formataDataPTBR(i.data)}</strong>
+                        <span style="color: white;">${i.texto}</span>
+                    </li>`).join('') +
+                '</ul>';
+            } else {
+                el.innerHTML = '<div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; color: var(--text-dim); font-size: 0.9rem;">Sem registros pendentes.</div>';
+            }
+        } catch(e) {
+            el.innerHTML = `<div style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; color: #cbd5e1; font-size: 0.9rem; white-space: pre-wrap;">${strData}</div>`;
+        }
+    };
+
     window.gerarAniversariantesVisual = function(texto) {
         const container = document.getElementById('mural-aniversariantes-rh');
         if (!container) return;
-
+        
         if (!texto || texto.trim() === '') {
             container.innerHTML = `<div style="text-align: center; color: var(--text-dim); padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;"><i class="fas fa-info-circle"></i> Nenhum aniversariante registrado neste mês.</div>`;
             return;
@@ -141,11 +167,9 @@
         });
         
         html += '</div>';
-        
         container.innerHTML = temValido ? html : `<div style="text-align: center; color: var(--text-dim); padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px;"><i class="fas fa-info-circle"></i> Nenhum aniversariante registrado.</div>`;
     };
 
-    // INTELIGÊNCIA DO CALENDÁRIO
     window.gerarCalendarioVisual = function(textoEventos) {
         const grid = document.getElementById('calendario-grid');
         const titulo = document.getElementById('mes-ano-calendario');
@@ -177,6 +201,7 @@
         const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
         
         let html = '';
+
         diasSemana.forEach(d => {
             html += `<div style="font-weight: 800; color: var(--text-dim); padding: 5px 0; font-size: 0.75rem; text-transform: uppercase;">${d}</div>`;
         });
@@ -205,13 +230,9 @@
                 const temFeriado = eventosDoDia.some(ev => ev.toUpperCase().includes('FERIADO'));
                 
                 if (temFeriado) {
-                    bg = 'rgba(245, 158, 11, 0.15)'; 
-                    color = 'var(--amarelo)';
-                    border = '1px solid var(--amarelo)';
+                    bg = 'rgba(245, 158, 11, 0.15)'; color = 'var(--amarelo)'; border = '1px solid var(--amarelo)';
                 } else {
-                    bg = 'rgba(16, 185, 129, 0.15)'; 
-                    color = 'var(--verde)';
-                    border = '1px solid var(--verde)';
+                    bg = 'rgba(16, 185, 129, 0.15)'; color = 'var(--verde)'; border = '1px solid var(--verde)';
                 }
                 temAlgumEvento = true;
                 
@@ -228,19 +249,14 @@
                     `;
                 });
             }
+
             html += `<div style="padding: 8px 0; background: ${bg}; color: ${color}; border: ${border}; border-radius: 6px; font-weight: bold; font-size: 0.9rem; transition: 0.2s; ${eventosDoDia ? 'transform: scale(1.05); box-shadow: 0 0 10px rgba(16,185,129,0.1);' : ''}">${dia}</div>`;
         }
 
         grid.innerHTML = html;
         
-        if (temAlgumEvento) {
-            legenda.innerHTML = legendaHtml;
-        } else {
-            legenda.innerHTML = `<div style="padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px dashed var(--border); color: var(--text-dim); text-align: center;">
-                <i class="fas fa-info-circle" style="margin-bottom: 10px; font-size: 1.5rem; display: block; opacity: 0.5;"></i>
-                Nenhum evento ou feriado registrado.
-            </div>`;
-        }
+        if (temAlgumEvento) { legenda.innerHTML = legendaHtml; } 
+        else { legenda.innerHTML = `<div style="padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px dashed var(--border); color: var(--text-dim); text-align: center;"><i class="fas fa-info-circle" style="margin-bottom: 10px; font-size: 1.5rem; display: block; opacity: 0.5;"></i>Nenhum evento ou feriado registrado.</div>`; }
     };
 
     setTimeout(function() {

@@ -42,35 +42,60 @@
         <span id="msg-ssma-geral" style="margin-left: 15px; font-weight: bold;"></span>
     </div>
 
-    <!-- MURAIS DE COMUNICAÇÃO -->
+    <!-- MURAIS DE COMUNICAÇÃO COMO LISTA INDIVIDUAL (AUTO SAVE) -->
     <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid #8b5cf6;">
-        <h3 class="nav-label" style="margin-bottom: 20px; color: #8b5cf6;"><i class="fas fa-chalkboard"></i> MURAIS DE COMUNICAÇÃO (TEXTO LIVRE)</h3>
-        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
-            <div class="input-group">
-                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Apresentação de Ocorrências</label>
-                <textarea id="ssma-txt-ocorrencias" class="config-input" rows="4" placeholder="Ex: Tombamento do conjunto XYZ na pista principal..."></textarea>
-                <button class="btn-kanban" style="background: var(--verde); margin-top: 8px; width: 100%;" onclick="limparMuralSSMA('ssma-txt-ocorrencias')"><i class="fas fa-check"></i> Concluir / Retirar</button>
-            </div>
-            <div class="input-group">
-                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Status das Ferramentas de Segurança</label>
-                <textarea id="ssma-txt-ferramentas" class="config-input" rows="4" placeholder="Ex: Checklists 100% preenchidos no período da manhã..."></textarea>
-                <button class="btn-kanban" style="background: var(--verde); margin-top: 8px; width: 100%;" onclick="limparMuralSSMA('ssma-txt-ferramentas')"><i class="fas fa-check"></i> Concluir / Retirar</button>
-            </div>
-            <div class="input-group">
-                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Ações de Segurança</label>
-                <textarea id="ssma-txt-acoes" class="config-input" rows="4" placeholder="Ex: Sinalização do pátio em andamento pela equipe local..."></textarea>
-                <button class="btn-kanban" style="background: var(--verde); margin-top: 8px; width: 100%;" onclick="limparMuralSSMA('ssma-txt-acoes')"><i class="fas fa-check"></i> Concluir / Retirar</button>
-            </div>
-            <div class="input-group">
-                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Demais Avisos</label>
-                <textarea id="ssma-txt-avisos" class="config-input" rows="4" placeholder="Ex: Cuidado com chuva na serra a partir das 15h..."></textarea>
-                <button class="btn-kanban" style="background: var(--verde); margin-top: 8px; width: 100%;" onclick="limparMuralSSMA('ssma-txt-avisos')"><i class="fas fa-check"></i> Concluir / Retirar</button>
-            </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 class="nav-label" style="color: #8b5cf6; margin: 0;"><i class="fas fa-chalkboard"></i> MURAIS DE COMUNICAÇÃO (SALVAMENTO AUTOMÁTICO)</h3>
+            <span id="msg-murais" style="font-weight: bold; font-size: 0.9rem;"></span>
         </div>
-        <button class="btn-salvar" style="background: #8b5cf6; width: 100%; margin-top: 15px;" onclick="salvarMuraisSSMA()">
-            <i class="fas fa-save"></i> Atualizar Murais no Banco
-        </button>
-        <span id="msg-murais" style="display: block; margin-top: 10px; font-weight: bold;"></span>
+        
+        <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
+            
+            <!-- 1. OCORRÊNCIAS -->
+            <div class="input-group" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                <label style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 10px; display: block; font-weight: bold;"><i class="fas fa-car-crash" style="color: var(--vermelho);"></i> Apresentação de Ocorrências</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="date" id="data-ocorrencias" class="config-input" style="width: 130px; padding: 10px;">
+                    <input type="text" id="txt-ocorrencias" class="config-input" placeholder="Digite a ocorrência..." style="flex: 1; padding: 10px;">
+                    <button type="button" class="btn-salvar" style="background: #8b5cf6; padding: 10px 15px;" onclick="addMuralSSMA('ocorrencias')"><i class="fas fa-plus"></i></button>
+                </div>
+                <div id="lista-ocorrencias" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+
+            <!-- 2. FERRAMENTAS -->
+            <div class="input-group" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                <label style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 10px; display: block; font-weight: bold;"><i class="fas fa-toolbox" style="color: #3b82f6;"></i> Status das Ferramentas de Seg.</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="date" id="data-ferramentas" class="config-input" style="width: 130px; padding: 10px;">
+                    <input type="text" id="txt-ferramentas" class="config-input" placeholder="Status das ferramentas..." style="flex: 1; padding: 10px;">
+                    <button type="button" class="btn-salvar" style="background: #8b5cf6; padding: 10px 15px;" onclick="addMuralSSMA('ferramentas')"><i class="fas fa-plus"></i></button>
+                </div>
+                <div id="lista-ferramentas" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+
+            <!-- 3. AÇÕES -->
+            <div class="input-group" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                <label style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 10px; display: block; font-weight: bold;"><i class="fas fa-tasks" style="color: var(--primary);"></i> Ações de Segurança</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="date" id="data-acoes" class="config-input" style="width: 130px; padding: 10px;">
+                    <input type="text" id="txt-acoes" class="config-input" placeholder="Ação em andamento..." style="flex: 1; padding: 10px;">
+                    <button type="button" class="btn-salvar" style="background: #8b5cf6; padding: 10px 15px;" onclick="addMuralSSMA('acoes')"><i class="fas fa-plus"></i></button>
+                </div>
+                <div id="lista-acoes" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+
+            <!-- 4. AVISOS -->
+            <div class="input-group" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                <label style="color: #cbd5e1; font-size: 0.9rem; margin-bottom: 10px; display: block; font-weight: bold;"><i class="fas fa-bullhorn" style="color: var(--amarelo);"></i> Demais Avisos</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="date" id="data-avisos" class="config-input" style="width: 130px; padding: 10px;">
+                    <input type="text" id="txt-avisos" class="config-input" placeholder="Avisos gerais..." style="flex: 1; padding: 10px;">
+                    <button type="button" class="btn-salvar" style="background: #8b5cf6; padding: 10px 15px;" onclick="addMuralSSMA('avisos')"><i class="fas fa-plus"></i></button>
+                </div>
+                <div id="lista-avisos" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+
+        </div>
     </div>
 
     <!-- LANÇAR DNAS EM LOTE -->
@@ -117,7 +142,7 @@
             </div>
             <div class="input-group">
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Local</label>
-                <input type="text" id="trei-local" class="config-input" placeholder="Ex: Sede Itabatã">
+                <input type="text" id="trei-local" class="config-input" placeholder="Ex: Sede Itabela">
             </div>
         </div>
         <button class="btn-salvar" style="background: var(--amarelo); color: var(--bg-dark); width: 100%; margin-top: 15px;" onclick="salvarTreinamento()">
@@ -224,6 +249,7 @@
             </button>
             <span id="msg-matriz" style="margin-left: 20px; font-weight: bold; font-size: 1.1rem;"></span>
         </div>
+
     </div>
 </div>
 
@@ -240,10 +266,97 @@
         
         if (elDnaData) elDnaData.value = hojeIso;
         if (elTreiData) elTreiData.value = hojeIso;
+        
+        ['ocorrencias', 'ferramentas', 'acoes', 'avisos'].forEach(id => {
+            if(document.getElementById(`data-${id}`)) document.getElementById(`data-${id}`).value = hojeIso;
+        });
 
-        const dataSelecionadaFixa = '2099-12-31'; // Data que serve como estado persistente
+        // VARIÁVEL DE ESTADO FIXO PARA O ID (Não recria linha todo dia)
+        window.idRegistroSSMA = null;
 
-        // ---------- LÓGICA DE INDICADORES GERAIS, MURAIS E DNAS ----------
+        // LÓGICA DE LISTAS PARA OS MURAIS DO SSMA
+        window.listasSSMA = { ocorrencias: [], ferramentas: [], acoes: [], avisos: [] };
+
+        function safeParseMural(str) {
+            if (!str || str.trim() === '') return [];
+            try {
+                let parsed = JSON.parse(str);
+                if (Array.isArray(parsed)) return parsed;
+                return [];
+            } catch(e) {
+                return [{ id: Date.now(), data: hojeIso, texto: str }];
+            }
+        }
+
+        window.formatarDataLista = function(dataIso) {
+            if(!dataIso) return '';
+            const [ano, mes, dia] = dataIso.split('-');
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        window.renderizarListaMuralSSMA = function(tipo) {
+            const container = document.getElementById(`lista-${tipo}`);
+            if(!container) return;
+            const itens = window.listasSSMA[tipo];
+            
+            if(itens.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-dim); padding: 10px; text-align: center; font-size: 0.9rem;">Nenhuma ação/aviso pendente.</div>';
+                return;
+            }
+
+            container.innerHTML = itens.map(item => `
+                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 10px 12px; border-radius: 6px; border-left: 3px solid var(--primary);">
+                    <div style="flex: 1;">
+                        <span style="color: var(--text-dim); font-size: 0.8rem; font-weight: bold; margin-right: 8px;"><i class="fas fa-calendar-day"></i> ${window.formatarDataLista(item.data)}</span>
+                        <span style="color: white; font-size: 0.9rem;">${item.texto}</span>
+                    </div>
+                    <button class="btn-kanban" style="background: var(--verde); padding: 6px 12px;" onclick="concluirMuralSSMA('${tipo}', ${item.id})" title="Concluir / Retirar">
+                        <i class="fas fa-check"></i>
+                    </button>
+                </div>
+            `).join('');
+        };
+
+        window.addMuralSSMA = async function(tipo) {
+            const dataInput = document.getElementById(`data-${tipo}`);
+            const textInput = document.getElementById(`txt-${tipo}`);
+            
+            if(!textInput.value.trim() || !dataInput.value) {
+                alert("Preencha a data e o texto para adicionar."); return;
+            }
+            
+            window.listasSSMA[tipo].push({
+                id: Date.now(),
+                data: dataInput.value,
+                texto: textInput.value.trim()
+            });
+            
+            textInput.value = '';
+            window.renderizarListaMuralSSMA(tipo);
+            await window.salvarMuraisSSMA(); 
+            
+            const msg = document.getElementById('msg-murais');
+            if (msg) {
+                msg.style.color = 'var(--verde)';
+                msg.innerText = 'Item salvo automaticamente!';
+                setTimeout(() => msg.innerText='', 3000);
+            }
+        };
+
+        window.concluirMuralSSMA = async function(tipo, id) {
+            if(!confirm("Concluir e retirar este item do mural?")) return;
+            window.listasSSMA[tipo] = window.listasSSMA[tipo].filter(i => i.id !== id);
+            window.renderizarListaMuralSSMA(tipo);
+            await window.salvarMuraisSSMA();
+            
+            const msg = document.getElementById('msg-murais');
+            if (msg) {
+                msg.style.color = 'var(--verde)';
+                msg.innerText = 'Item concluído e retirado!';
+                setTimeout(() => msg.innerText='', 3000);
+            }
+        };
+
         async function carregarIndicadoresDeHoje() {
             try {
                 const { data: configData } = await _supa.from('configuracoes').select('valor').eq('chave', 'meta_diaria_dna').limit(1);
@@ -251,18 +364,17 @@
                     document.getElementById('ssma-meta-dna').value = configData[0].valor;
                 }
                 
-                // Tenta puxar o registro fixo primeiro
-                let { data } = await _supa.from('ssma_indicadores_gerais').select('*').eq('data_registro', dataSelecionadaFixa).limit(1);
+                // BUSCA SEMPRE O ÚLTIMO REGISTRO VÁLIDO REAL (Ignora o lixo do 2099 se ainda existir no seu banco)
+                const { data } = await _supa.from('ssma_indicadores_gerais')
+                    .select('*')
+                    .neq('data_registro', '2099-12-31')
+                    .order('data_registro', { ascending: false })
+                    .limit(1);
                 
-                // CORREÇÃO: Se não achar o fixo, puxa o mais recente que o usuário já tinha lançado hoje ou ontem
-                if (!data || data.length === 0) {
-                    const { data: dataAntiga } = await _supa.from('ssma_indicadores_gerais').select('*').order('data_registro', { ascending: false }).limit(1);
-                    data = dataAntiga;
-                }
-                
-                // AQUI POPULA OS MURAIS NA TELA DE LANÇAMENTO E PREENCHE OS VALORES ATUAIS
                 if (data && data.length > 0) {
                     const ind = data[0];
+                    window.idRegistroSSMA = ind.id; // IMPORTANTE: Guarda o ID para sempre dar UPDATE nesta mesma linha!
+
                     document.getElementById('ssma-dias-acidente').value = ind.dias_sem_acidentes !== null ? ind.dias_sem_acidentes : '';
                     document.getElementById('ssma-incidentes').value = ind.incidentes_sem_afastamento !== null ? ind.incidentes_sem_afastamento : '';
                     document.getElementById('ssma-visitas').value = ind.visitas_campo !== null ? ind.visitas_campo : '';
@@ -271,10 +383,15 @@
                     document.getElementById('ssma-campanha-cor').value = ind.campanha_cor || '#f59e0b';
                     document.getElementById('ssma-dnas-concluidos').value = ind.dnas_concluidos !== null ? ind.dnas_concluidos : '';
                     
-                    document.getElementById('ssma-txt-ocorrencias').value = ind.mural_ocorrencias || '';
-                    document.getElementById('ssma-txt-ferramentas').value = ind.mural_ferramentas || '';
-                    document.getElementById('ssma-txt-acoes').value = ind.mural_acoes || '';
-                    document.getElementById('ssma-txt-avisos').value = ind.mural_avisos || '';
+                    window.listasSSMA.ocorrencias = safeParseMural(ind.mural_ocorrencias);
+                    window.listasSSMA.ferramentas = safeParseMural(ind.mural_ferramentas);
+                    window.listasSSMA.acoes = safeParseMural(ind.mural_acoes);
+                    window.listasSSMA.avisos = safeParseMural(ind.mural_avisos);
+                    
+                    window.renderizarListaMuralSSMA('ocorrencias');
+                    window.renderizarListaMuralSSMA('ferramentas');
+                    window.renderizarListaMuralSSMA('acoes');
+                    window.renderizarListaMuralSSMA('avisos');
                 }
             } catch (err) {
                 console.error("Erro ao carregar indicadores fixos:", err);
@@ -288,7 +405,6 @@
             const metaDna = document.getElementById('ssma-meta-dna').value;
             
             const dados = {
-                data_registro: dataSelecionadaFixa,
                 dias_sem_acidentes: parseInt(document.getElementById('ssma-dias-acidente').value, 10) || 0,
                 incidentes_sem_afastamento: parseInt(document.getElementById('ssma-incidentes').value, 10) || 0,
                 visitas_campo: parseInt(document.getElementById('ssma-visitas').value, 10) || 0,
@@ -305,51 +421,38 @@
                     await _supa.from('configuracoes').upsert([{ chave: 'meta_diaria_dna', valor: metaDna }], { onConflict: 'chave' });
                 }
 
-                // CORREÇÃO: Usando update ou insert ao invés de onConflict para não ter erro no banco
-                const { data: existe } = await _supa.from('ssma_indicadores_gerais').select('id').eq('data_registro', dataSelecionadaFixa).limit(1);
                 let res;
-                if (existe && existe.length > 0) { res = await _supa.from('ssma_indicadores_gerais').update(dados).eq('data_registro', dataSelecionadaFixa); } 
-                else { res = await _supa.from('ssma_indicadores_gerais').insert([dados]); }
+                if (window.idRegistroSSMA) {
+                    // ATUALIZA A MESMA LINHA SEMPRE
+                    res = await _supa.from('ssma_indicadores_gerais').update(dados).eq('id', window.idRegistroSSMA);
+                } else {
+                    // SE POR ACASO A TABELA ESTIVER VAZIA, CRIA A PRIMEIRA E GUARDA O ID
+                    dados.data_registro = hojeIso;
+                    res = await _supa.from('ssma_indicadores_gerais').insert([dados]).select();
+                    if(res.data && res.data.length > 0) window.idRegistroSSMA = res.data[0].id;
+                }
                 
                 if (res.error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!'; } 
                 else { msg.style.color = 'var(--verde)'; msg.innerText = 'Salvo no banco com sucesso!'; setTimeout(() => msg.innerText='', 3000); }
             } catch (err) { console.error("Erro Crítico:", err); }
         };
 
-        window.salvarMuraisSSMA = async function(isSilent = false) {
-            const msg = document.getElementById('msg-murais');
-            
+        window.salvarMuraisSSMA = async function() {
             const dados = {
-                data_registro: dataSelecionadaFixa,
-                mural_ocorrencias: document.getElementById('ssma-txt-ocorrencias').value || null,
-                mural_ferramentas: document.getElementById('ssma-txt-ferramentas').value || null,
-                mural_acoes: document.getElementById('ssma-txt-acoes').value || null,
-                mural_avisos: document.getElementById('ssma-txt-avisos').value || null
+                mural_ocorrencias: JSON.stringify(window.listasSSMA.ocorrencias),
+                mural_ferramentas: JSON.stringify(window.listasSSMA.ferramentas),
+                mural_acoes: JSON.stringify(window.listasSSMA.acoes),
+                mural_avisos: JSON.stringify(window.listasSSMA.avisos)
             };
-
-            if(!isSilent) { msg.style.color = 'var(--text-dim)'; msg.innerText = 'Atualizando o banco de dados...'; }
-
             try {
-                const { data: existe } = await _supa.from('ssma_indicadores_gerais').select('id').eq('data_registro', dataSelecionadaFixa).limit(1);
-                let res;
-                if (existe && existe.length > 0) { res = await _supa.from('ssma_indicadores_gerais').update(dados).eq('data_registro', dataSelecionadaFixa); } 
-                else { res = await _supa.from('ssma_indicadores_gerais').insert([dados]); }
-                
-                if (!isSilent) {
-                    if (res.error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao atualizar!'; } 
-                    else { msg.style.color = 'var(--verde)'; msg.innerText = 'Murais salvos no banco com sucesso!'; setTimeout(() => msg.innerText='', 3000); }
+                if (window.idRegistroSSMA) {
+                    await _supa.from('ssma_indicadores_gerais').update(dados).eq('id', window.idRegistroSSMA);
+                } else {
+                    dados.data_registro = hojeIso;
+                    const res = await _supa.from('ssma_indicadores_gerais').insert([dados]).select();
+                    if(res.data && res.data.length > 0) window.idRegistroSSMA = res.data[0].id;
                 }
-            } catch (err) { if(!isSilent) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Falha de Conexão!'; } }
-        };
-
-        // Função para apagar/concluir o mural e salvar
-        window.limparMuralSSMA = async function(idMural) {
-            document.getElementById(idMural).value = '';
-            await window.salvarMuraisSSMA(true);
-            const msg = document.getElementById('msg-murais');
-            msg.style.color = 'var(--verde)'; 
-            msg.innerText = 'Mural concluído e retirado!'; 
-            setTimeout(() => msg.innerText='', 3000);
+            } catch (err) { console.error(err); }
         };
 
         window.salvarDNA = async function() {
@@ -358,13 +461,11 @@
             const qtdDNA = parseInt(document.getElementById('dna-qtd').value, 10);
 
             if(!dataDNA || !qtdDNA || qtdDNA <= 0) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Dados inválidos!'; return; }
-            
             msg.style.color = 'var(--text-dim)'; msg.innerText = 'Registrando...';
 
             const registros = Array.from({length: qtdDNA}, () => ({ data_abertura: dataDNA, setor: 'Lançamento em Lote', descricao: 'DNA via painel executivo', status: 'Aberto' }));
 
             const { error } = await _supa.from('ssma_dnas').insert(registros);
-            
             if (error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!'; } 
             else { msg.style.color = 'var(--verde)'; msg.innerText = `${qtdDNA} DNA(s) Registrado(s)!`; document.getElementById('dna-qtd').value = ''; setTimeout(() => msg.innerText='', 3000); }
         }
@@ -380,22 +481,20 @@
             };
 
             if(!dados.nome_treinamento) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Preencha o Nome!'; return; }
-
             msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando...';
 
             const { error } = await _supa.from('ssma_treinamentos').insert([dados]);
-
             if (error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!'; } 
             else { msg.style.color = 'var(--verde)'; msg.innerText = 'Salvo!'; document.getElementById('trei-nome').value = ''; setTimeout(() => msg.innerText='', 3000); }
         }
 
-        // ================= LÓGICA DA NOVA TABELA DEDICADA ssma_matriz =================
         window.matrizSSMAData = [];
 
         window.renderizarMatrizInput = function() {
             const tbSeg = document.getElementById('tb-edit-seg');
             const tbOpa = document.getElementById('tb-edit-opa');
             const tbAbo = document.getElementById('tb-edit-abo');
+
             tbSeg.innerHTML = ''; tbOpa.innerHTML = ''; tbAbo.innerHTML = '';
 
             if (window.matrizSSMAData.length === 0) {
@@ -406,86 +505,37 @@
             }
 
             window.matrizSSMAData.forEach((m, idx) => {
-                const colabHTML = `
-                    <td style="text-align: left; padding: 12px; border-right: 1px solid var(--border);">
-                        <div style="font-weight: bold; color: white; font-size: 0.95rem;">${m.nome}</div>
-                        <div style="color: var(--text-dim); font-size: 0.8rem; margin-top: 3px;">${m.funcao}</div>
-                    </td>
-                `;
-
-                tbSeg.insertAdjacentHTML('beforeend', `
-                    <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);">
-                        ${colabHTML}
-                        <td style="text-align: center; padding: 10px;"><input type="number" class="config-input" value="${m.pSeg}" oninput="window.updateMatrizData(${idx}, 'pSeg', this.value)" style="width: 70px; padding: 8px; text-align: center; border-color: #10b981;"></td>
-                        <td style="text-align: center; padding: 10px;"><input type="number" class="config-input" value="${m.rSeg}" oninput="window.updateMatrizData(${idx}, 'rSeg', this.value)" style="width: 70px; padding: 8px; text-align: center;"></td>
-                        <td style="text-align: center; padding: 10px;"><button class="btn-kanban" style="background: var(--vermelho); padding: 8px 12px;" onclick="window.removerMembroMatriz(${idx})"><i class="fas fa-trash"></i></button></td>
-                    </tr>
-                `);
-
-                tbOpa.insertAdjacentHTML('beforeend', `
-                    <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);">
-                        ${colabHTML}
-                        <td style="text-align: center; padding: 10px;"><input type="number" class="config-input" value="${m.pOpa}" oninput="window.updateMatrizData(${idx}, 'pOpa', this.value)" style="width: 70px; padding: 8px; text-align: center; border-color: #3b82f6;"></td>
-                        <td style="text-align: center; padding: 10px;"><input type="number" class="config-input" value="${m.rOpa}" oninput="window.updateMatrizData(${idx}, 'rOpa', this.value)" style="width: 70px; padding: 8px; text-align: center;"></td>
-                        <td style="text-align: center; padding: 10px;"><button class="btn-kanban" style="background: var(--vermelho); padding: 8px 12px;" onclick="window.removerMembroMatriz(${idx})"><i class="fas fa-trash"></i></button></td>
-                    </tr>
-                `);
-
-                tbAbo.insertAdjacentHTML('beforeend', `
-                    <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);">
-                        ${colabHTML}
-                        <td style="text-align: center; padding: 10px;"><input type="number" class="config-input" value="${m.pAbo}" oninput="window.updateMatrizData(${idx}, 'pAbo', this.value)" style="width: 70px; padding: 8px; text-align: center; border-color: #f59e0b;"></td>
-                        <td style="text-align: center; padding: 10px;"><input type="number" class="config-input" value="${m.rAbo}" oninput="window.updateMatrizData(${idx}, 'rAbo', this.value)" style="width: 70px; padding: 8px; text-align: center;"></td>
-                        <td style="text-align: center; padding: 10px;"><button class="btn-kanban" style="background: var(--vermelho); padding: 8px 12px;" onclick="window.removerMembroMatriz(${idx})"><i class="fas fa-trash"></i></button></td>
-                    </tr>
-                `);
+                const colabHTML = `<td style="text-align: left; padding: 12px; border-right: 1px solid var(--border);"><div style="font-weight: bold; color: white; font-size: 0.95rem;">${m.nome}</div><div style="color: var(--text-dim); font-size: 0.8rem; margin-top: 3px;">${m.funcao}</div></td>`;
+                
+                tbSeg.insertAdjacentHTML('beforeend', `<tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);">${colabHTML}<td style="text-align: center; padding: 10px;"><input type="number" class="config-input" value="${m.pSeg}" oninput="window.updateMatrizData(${idx}, 'pSeg', this.value)" style="width: 70px; padding: 8px; text-align: center; border-color: #10b981;"></td><td style="text-align: center; padding: 10px;"><input type="number" class="config-input" value="${m.rSeg}" oninput="window.updateMatrizData(${idx}, 'rSeg', this.value)" style="width: 70px; padding: 8px; text-align: center;"></td><td style="text-align: center; padding: 10px;"><button class="btn-kanban" style="background: var(--vermelho); padding: 8px 12px;" onclick="window.removerMembroMatriz(${idx})"><i class="fas fa-trash"></i></button></td></tr>`);
+                tbOpa.insertAdjacentHTML('beforeend', `<tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);">${colabHTML}<td style="text-align: center; padding: 10px;"><input type="number" class="config-input" value="${m.pOpa}" oninput="window.updateMatrizData(${idx}, 'pOpa', this.value)" style="width: 70px; padding: 8px; text-align: center; border-color: #3b82f6;"></td><td style="text-align: center; padding: 10px;"><input type="number" class="config-input" value="${m.rOpa}" oninput="window.updateMatrizData(${idx}, 'rOpa', this.value)" style="width: 70px; padding: 8px; text-align: center;"></td><td style="text-align: center; padding: 10px;"><button class="btn-kanban" style="background: var(--vermelho); padding: 8px 12px;" onclick="window.removerMembroMatriz(${idx})"><i class="fas fa-trash"></i></button></td></tr>`);
+                tbAbo.insertAdjacentHTML('beforeend', `<tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);">${colabHTML}<td style="text-align: center; padding: 10px;"><input type="number" class="config-input" value="${m.pAbo}" oninput="window.updateMatrizData(${idx}, 'pAbo', this.value)" style="width: 70px; padding: 8px; text-align: center; border-color: #f59e0b;"></td><td style="text-align: center; padding: 10px;"><input type="number" class="config-input" value="${m.rAbo}" oninput="window.updateMatrizData(${idx}, 'rAbo', this.value)" style="width: 70px; padding: 8px; text-align: center;"></td><td style="text-align: center; padding: 10px;"><button class="btn-kanban" style="background: var(--vermelho); padding: 8px 12px;" onclick="window.removerMembroMatriz(${idx})"><i class="fas fa-trash"></i></button></td></tr>`);
             });
 
             window.calcularTotaisInput();
         };
 
-        window.updateMatrizData = function(index, field, value) {
-            window.matrizSSMAData[index][field] = Number(value) || 0;
-            window.calcularTotaisInput();
-        };
+        window.updateMatrizData = function(index, field, value) { window.matrizSSMAData[index][field] = Number(value) || 0; window.calcularTotaisInput(); };
 
         window.calcularTotaisInput = function() {
             let tPSeg=0, tRSeg=0, tPOpa=0, tROpa=0, tPAbo=0, tRAbo=0;
-            window.matrizSSMAData.forEach(m => {
-                tPSeg += m.pSeg; tRSeg += m.rSeg;
-                tPOpa += m.pOpa; tROpa += m.rOpa;
-                tPAbo += m.pAbo; tRAbo += m.rAbo;
-            });
-            document.getElementById('edit-tot-p-seg').innerText = tPSeg;
-            document.getElementById('edit-tot-r-seg').innerText = tRSeg;
-            document.getElementById('edit-tot-p-opa').innerText = tPOpa;
-            document.getElementById('edit-tot-r-opa').innerText = tROpa;
-            document.getElementById('edit-tot-p-abo').innerText = tPAbo;
-            document.getElementById('edit-tot-r-abo').innerText = tRAbo;
+            window.matrizSSMAData.forEach(m => { tPSeg += m.pSeg; tRSeg += m.rSeg; tPOpa += m.pOpa; tROpa += m.rOpa; tPAbo += m.pAbo; tRAbo += m.rAbo; });
+
+            document.getElementById('edit-tot-p-seg').innerText = tPSeg; document.getElementById('edit-tot-r-seg').innerText = tRSeg;
+            document.getElementById('edit-tot-p-opa').innerText = tPOpa; document.getElementById('edit-tot-r-opa').innerText = tROpa;
+            document.getElementById('edit-tot-p-abo').innerText = tPAbo; document.getElementById('edit-tot-r-abo').innerText = tRAbo;
 
             const calcPerc = (real, prog) => prog > 0 ? Math.round((real / prog) * 100) : 0;
-            const applyColor = (id, val) => {
-                const el = document.getElementById(id);
-                el.innerText = `${val}%`;
-                el.style.color = val >= 100 ? 'var(--verde)' : 'var(--vermelho)';
-            };
+            const applyColor = (id, val) => { const el = document.getElementById(id); el.innerText = `${val}%`; el.style.color = val >= 100 ? 'var(--verde)' : 'var(--vermelho)'; };
 
-            applyColor('edit-perc-seg', calcPerc(tRSeg, tPSeg));
-            applyColor('edit-perc-opa', calcPerc(tROpa, tPOpa));
-            applyColor('edit-perc-abo', calcPerc(tRAbo, tPAbo));
+            applyColor('edit-perc-seg', calcPerc(tRSeg, tPSeg)); applyColor('edit-perc-opa', calcPerc(tROpa, tPOpa)); applyColor('edit-perc-abo', calcPerc(tRAbo, tPAbo));
         };
 
         window.removerMembroMatriz = async function(index) {
             if(!confirm('Remover colaborador da Matriz?')) return;
             const membro = window.matrizSSMAData[index];
-            
-            // Se já tem ID, apaga do banco imediatamente
-            if (membro.id) {
-                await _supa.from('ssma_matriz').delete().eq('id', membro.id);
-            }
-            
-            window.matrizSSMAData.splice(index, 1);
-            window.renderizarMatrizInput();
+            if (membro.id) { await _supa.from('ssma_matriz').delete().eq('id', membro.id); }
+            window.matrizSSMAData.splice(index, 1); window.renderizarMatrizInput();
         };
 
         window.adicionarMembroMatriz = function() {
@@ -493,75 +543,35 @@
             const funcao = document.getElementById('nova-matriz-funcao').value.trim();
             if(!nome || !funcao) { alert("Preencha o Nome e a Função!"); return; }
             
-            window.matrizSSMAData.push({
-                id: null, // Será gerado ao salvar no banco
-                nome: nome.toUpperCase(), funcao: funcao.toUpperCase(),
-                pSeg: 0, rSeg: 0, pOpa: 0, rOpa: 0, pAbo: 0, rAbo: 0
-            });
-            
-            document.getElementById('nova-matriz-nome').value = '';
-            document.getElementById('nova-matriz-funcao').value = '';
-            window.renderizarMatrizInput();
+            window.matrizSSMAData.push({ id: null, nome: nome.toUpperCase(), funcao: funcao.toUpperCase(), pSeg: 0, rSeg: 0, pOpa: 0, rOpa: 0, pAbo: 0, rAbo: 0 });
+            document.getElementById('nova-matriz-nome').value = ''; document.getElementById('nova-matriz-funcao').value = ''; window.renderizarMatrizInput();
         };
 
         window.carregarMatrizDoBanco = async function() {
             try {
-                // Traz os dados da NOVA TABELA
                 const { data, error } = await _supa.from('ssma_matriz').select('*').order('created_at', { ascending: true });
-                
-                if (data && data.length > 0) {
-                    window.matrizSSMAData = data.map(d => ({
-                        id: d.id, nome: d.nome, funcao: d.funcao,
-                        pSeg: d.p_seg, rSeg: d.r_seg,
-                        pOpa: d.p_opa, rOpa: d.r_opa,
-                        pAbo: d.p_abo, rAbo: d.r_abo
-                    }));
-                } else {
-                    window.matrizSSMAData = [];
-                }
+                if (data && data.length > 0) { window.matrizSSMAData = data.map(d => ({ id: d.id, nome: d.nome, funcao: d.funcao, pSeg: d.p_seg, rSeg: d.r_seg, pOpa: d.p_opa, rOpa: d.r_opa, pAbo: d.p_abo, rAbo: d.r_abo })); } 
+                else { window.matrizSSMAData = []; }
                 window.renderizarMatrizInput();
-            } catch (e) {
-                console.error("Erro ao carregar Matriz:", e);
-            }
+            } catch (e) { console.error("Erro ao carregar Matriz:", e); }
         };
 
         window.salvarMatrizSSMA = async function() {
             const msg = document.getElementById('msg-matriz');
-            msg.style.color = 'var(--text-dim)';
-            msg.innerText = 'Salvando no banco de dados...';
-            
+            msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando no banco de dados...';
             try {
-                // Separar quem é novo (Insert) de quem já existe (Update)
-                const toInsert = window.matrizSSMAData.filter(m => !m.id).map(m => ({
-                    nome: m.nome, funcao: m.funcao,
-                    p_seg: m.pSeg, r_seg: m.rSeg, p_opa: m.pOpa, r_opa: m.rOpa, p_abo: m.pAbo, r_abo: m.rAbo
-                }));
-                const toUpdate = window.matrizSSMAData.filter(m => m.id).map(m => ({
-                    id: m.id, nome: m.nome, funcao: m.funcao,
-                    p_seg: m.pSeg, r_seg: m.rSeg, p_opa: m.pOpa, r_opa: m.rOpa, p_abo: m.pAbo, r_abo: m.rAbo
-                }));
-
-                if (toInsert.length > 0) {
-                    await _supa.from('ssma_matriz').insert(toInsert);
-                }
+                const toInsert = window.matrizSSMAData.filter(m => !m.id).map(m => ({ nome: m.nome, funcao: m.funcao, p_seg: m.pSeg, r_seg: m.rSeg, p_opa: m.pOpa, r_opa: m.rOpa, p_abo: m.pAbo, r_abo: m.rAbo }));
+                const toUpdate = window.matrizSSMAData.filter(m => m.id).map(m => ({ id: m.id, nome: m.nome, funcao: m.funcao, p_seg: m.pSeg, r_seg: m.rSeg, p_opa: m.pOpa, r_opa: m.rOpa, p_abo: m.pAbo, r_abo: m.rAbo }));
                 
-                if (toUpdate.length > 0) {
-                    await _supa.from('ssma_matriz').upsert(toUpdate);
-                }
-
-                // Recarrega para puxar os novos IDs gerados pelo banco
+                if (toInsert.length > 0) { await _supa.from('ssma_matriz').insert(toInsert); }
+                if (toUpdate.length > 0) { await _supa.from('ssma_matriz').upsert(toUpdate); }
+                
                 await window.carregarMatrizDoBanco();
-                
-                msg.style.color = 'var(--verde)';
-                msg.innerText = 'Matriz salva na Tabela SSMA_MATRIZ com sucesso!';
-                setTimeout(() => msg.innerText='', 4000);
-            } catch(e) {
-                msg.style.color = 'var(--vermelho)';
-                msg.innerText = 'Erro de conexão ao salvar!';
-            }
+                msg.style.color = 'var(--verde)'; msg.innerText = 'Matriz salva na Tabela SSMA_MATRIZ com sucesso!'; setTimeout(() => msg.innerText='', 4000);
+            } catch(e) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro de conexão ao salvar!'; }
         };
 
-        // Dispara o carregamento inicial
         window.carregarMatrizDoBanco();
+
     }, 50);
 </script>
