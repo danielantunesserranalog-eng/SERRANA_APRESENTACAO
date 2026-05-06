@@ -36,8 +36,30 @@
                 <input type="color" id="ssma-campanha-cor" class="config-input" value="#f59e0b" style="padding: 5px; height: 50px; cursor: pointer;">
             </div>
         </div>
+
+        <!-- NOVO BLOCO: METAS GLOBAIS DA MATRIZ -->
+        <div style="margin-top: 15px; margin-bottom: 25px; display: flex; gap: 15px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border-left: 3px solid var(--verde); align-items: flex-end; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 150px;">
+                <label style="color: #10b981; font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; display: block;">Meta Prog.: Seg. na Área</label>
+                <input type="number" id="meta-seg" class="config-input" style="border-color: #10b981;" placeholder="Ex: 4">
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="color: #3b82f6; font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; display: block;">Meta Prog.: OPA</label>
+                <input type="number" id="meta-opa" class="config-input" style="border-color: #3b82f6;" placeholder="Ex: 2">
+            </div>
+            <div style="flex: 1; min-width: 150px;">
+                <label style="color: #f59e0b; font-size: 0.8rem; font-weight: bold; margin-bottom: 5px; display: block;">Meta Prog.: Abordagem</label>
+                <input type="number" id="meta-abo" class="config-input" style="border-color: #f59e0b;" placeholder="Ex: 2">
+            </div>
+            <div>
+                <button type="button" class="btn-salvar" style="background: var(--verde); padding: 14px 20px;" onclick="aplicarMetasNaMatriz()">
+                    <i class="fas fa-magic"></i> Preencher p/ Todos
+                </button>
+            </div>
+        </div>
+
         <button class="btn-salvar" style="background: var(--verde);" onclick="salvarIndicadoresGerais()">
-            <i class="fas fa-save"></i> Salvar Indicadores e Meta
+            <i class="fas fa-save"></i> Salvar Indicadores Manuais
         </button>
         <span id="msg-ssma-geral" style="margin-left: 15px; font-weight: bold;"></span>
     </div>
@@ -271,11 +293,9 @@
             if(document.getElementById(`data-${id}`)) document.getElementById(`data-${id}`).value = hojeIso;
         });
 
-        // VARIÁVEL DE ESTADO FIXO PARA O ID (Não recria linha todo dia)
         window.idRegistroSSMA = null;
-
-        // LÓGICA DE LISTAS PARA OS MURAIS DO SSMA
         window.listasSSMA = { ocorrencias: [], ferramentas: [], acoes: [], avisos: [] };
+        window.matrizSSMAData = [];
 
         function safeParseMural(str) {
             if (!str || str.trim() === '') return [];
@@ -325,11 +345,7 @@
                 alert("Preencha a data e o texto para adicionar."); return;
             }
             
-            window.listasSSMA[tipo].push({
-                id: Date.now(),
-                data: dataInput.value,
-                texto: textInput.value.trim()
-            });
+            window.listasSSMA[tipo].push({ id: Date.now(), data: dataInput.value, texto: textInput.value.trim() });
             
             textInput.value = '';
             window.renderizarListaMuralSSMA(tipo);
@@ -359,21 +375,23 @@
 
         async function carregarIndicadoresDeHoje() {
             try {
-                const { data: configData } = await _supa.from('configuracoes').select('valor').eq('chave', 'meta_diaria_dna').limit(1);
+                // BUSCANDO MULTIPLAS CONFIGURAÇÕES (INCLUINDO AS METAS NOVAS GLOBAIS DA MATRIZ)
+                const { data: configData } = await _supa.from('configuracoes').select('chave, valor').in('chave', ['meta_diaria_dna', 'meta_matriz_seg', 'meta_matriz_opa', 'meta_matriz_abo']);
+                
                 if (configData && configData.length > 0) {
-                    document.getElementById('ssma-meta-dna').value = configData[0].valor;
+                    configData.forEach(c => {
+                        if (c.chave === 'meta_diaria_dna') document.getElementById('ssma-meta-dna').value = c.valor;
+                        if (c.chave === 'meta_matriz_seg') document.getElementById('meta-seg').value = c.valor;
+                        if (c.chave === 'meta_matriz_opa') document.getElementById('meta-opa').value = c.valor;
+                        if (c.chave === 'meta_matriz_abo') document.getElementById('meta-abo').value = c.valor;
+                    });
                 }
                 
-                // BUSCA SEMPRE O ÚLTIMO REGISTRO VÁLIDO REAL (Ignora o lixo do 2099 se ainda existir no seu banco)
-                const { data } = await _supa.from('ssma_indicadores_gerais')
-                    .select('*')
-                    .neq('data_registro', '2099-12-31')
-                    .order('data_registro', { ascending: false })
-                    .limit(1);
+                const { data } = await _supa.from('ssma_indicadores_gerais').select('*').neq('data_registro', '2099-12-31').order('data_registro', { ascending: false }).limit(1);
                 
                 if (data && data.length > 0) {
                     const ind = data[0];
-                    window.idRegistroSSMA = ind.id; // IMPORTANTE: Guarda o ID para sempre dar UPDATE nesta mesma linha!
+                    window.idRegistroSSMA = ind.id; 
 
                     document.getElementById('ssma-dias-acidente').value = ind.dias_sem_acidentes !== null ? ind.dias_sem_acidentes : '';
                     document.getElementById('ssma-incidentes').value = ind.incidentes_sem_afastamento !== null ? ind.incidentes_sem_afastamento : '';
@@ -400,9 +418,13 @@
         
         carregarIndicadoresDeHoje();
         
-        window.salvarIndicadoresGerais = async function() {
+        window.salvarIndicadoresGerais = async function(exibirMensagem = true) {
             const msg = document.getElementById('msg-ssma-geral');
+            
             const metaDna = document.getElementById('ssma-meta-dna').value;
+            const metaSeg = document.getElementById('meta-seg').value;
+            const metaOpa = document.getElementById('meta-opa').value;
+            const metaAbo = document.getElementById('meta-abo').value;
             
             const dados = {
                 dias_sem_acidentes: parseInt(document.getElementById('ssma-dias-acidente').value, 10) || 0,
@@ -414,27 +436,62 @@
                 dnas_concluidos: parseInt(document.getElementById('ssma-dnas-concluidos').value, 10) || 0
             };
 
-            msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando no banco...';
+            if(exibirMensagem) { msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando no banco...'; }
 
             try {
-                if (metaDna) {
-                    await _supa.from('configuracoes').upsert([{ chave: 'meta_diaria_dna', valor: metaDna }], { onConflict: 'chave' });
+                // SALVAR AS METAS EM LOTE NA TABELA DE CONFIGURAÇÕES
+                const configsToSave = [];
+                if (metaDna) configsToSave.push({ chave: 'meta_diaria_dna', valor: metaDna });
+                if (metaSeg) configsToSave.push({ chave: 'meta_matriz_seg', valor: metaSeg });
+                if (metaOpa) configsToSave.push({ chave: 'meta_matriz_opa', valor: metaOpa });
+                if (metaAbo) configsToSave.push({ chave: 'meta_matriz_abo', valor: metaAbo });
+
+                if (configsToSave.length > 0) {
+                    await _supa.from('configuracoes').upsert(configsToSave, { onConflict: 'chave' });
                 }
 
                 let res;
                 if (window.idRegistroSSMA) {
-                    // ATUALIZA A MESMA LINHA SEMPRE
                     res = await _supa.from('ssma_indicadores_gerais').update(dados).eq('id', window.idRegistroSSMA);
                 } else {
-                    // SE POR ACASO A TABELA ESTIVER VAZIA, CRIA A PRIMEIRA E GUARDA O ID
                     dados.data_registro = hojeIso;
                     res = await _supa.from('ssma_indicadores_gerais').insert([dados]).select();
                     if(res.data && res.data.length > 0) window.idRegistroSSMA = res.data[0].id;
                 }
                 
-                if (res.error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!'; } 
-                else { msg.style.color = 'var(--verde)'; msg.innerText = 'Salvo no banco com sucesso!'; setTimeout(() => msg.innerText='', 3000); }
+                if(exibirMensagem) {
+                    if (res.error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!'; } 
+                    else { msg.style.color = 'var(--verde)'; msg.innerText = 'Salvo no banco com sucesso!'; setTimeout(() => msg.innerText='', 3000); }
+                }
             } catch (err) { console.error("Erro Crítico:", err); }
+        };
+
+        // NOVA FUNÇÃO: PREENCHER TODOS OS COLABORADORES
+        window.aplicarMetasNaMatriz = async function() {
+            const mSeg = parseInt(document.getElementById('meta-seg').value) || 0;
+            const mOpa = parseInt(document.getElementById('meta-opa').value) || 0;
+            const mAbo = parseInt(document.getElementById('meta-abo').value) || 0;
+
+            if (window.matrizSSMAData.length === 0) {
+                alert("Nenhum colaborador na matriz para aplicar as metas.");
+                return;
+            }
+
+            // Aplica os valores para todos em memória
+            window.matrizSSMAData.forEach(m => {
+                m.pSeg = mSeg;
+                m.pOpa = mOpa;
+                m.pAbo = mAbo;
+            });
+
+            // Recarrega as tabelas visuais
+            window.renderizarMatrizInput();
+            
+            // Salva as configurações de metas e já dispara o save da Matriz no banco
+            await window.salvarIndicadoresGerais(false);
+            await window.salvarMatrizSSMA();
+            
+            alert("Metas aplicadas a todos os colaboradores e salvas com sucesso!");
         };
 
         window.salvarMuraisSSMA = async function() {
@@ -487,8 +544,6 @@
             if (error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!'; } 
             else { msg.style.color = 'var(--verde)'; msg.innerText = 'Salvo!'; document.getElementById('trei-nome').value = ''; setTimeout(() => msg.innerText='', 3000); }
         }
-
-        window.matrizSSMAData = [];
 
         window.renderizarMatrizInput = function() {
             const tbSeg = document.getElementById('tb-edit-seg');
