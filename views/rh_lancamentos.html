@@ -39,6 +39,7 @@
             <h3 class="nav-label" style="color: #8b5cf6; margin: 0;"><i class="fas fa-chalkboard"></i> MURAIS DE COMUNICAÇÃO E EVENTOS (SALVAMENTO AUTOMÁTICO)</h3>
             <span id="msg-murais-rh" style="font-weight: bold; font-size: 0.9rem;"></span>
         </div>
+
         <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
             
             <!-- CAIXAS DE LISTAS AVISOS/LIBERAÇÕES -->
@@ -84,7 +85,7 @@
                 </div>
                 <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Lista Final de Aniversariantes</label>
                 <textarea id="input-aniversariantes-rh" class="config-input" rows="3" placeholder="Os aniversariantes aparecerão aqui..."></textarea>
-                <button type="button" class="btn-kanban" style="background: var(--verde); margin-top: 8px; width: 100%;" onclick="window.limparMuralRH('input-aniversariantes-rh')"><i class="fas fa-check"></i> Concluir / Limpar Todos</button>
+                <button type="button" class="btn-kanban" style="background: var(--vermelho); margin-top: 8px; width: 100%;" onclick="window.limparMuralRH('input-aniversariantes-rh')"><i class="fas fa-trash"></i> Limpar Lista de Aniversariantes</button>
             </div>
 
             <!-- GERADOR DE EVENTOS -->
@@ -111,7 +112,7 @@
                 </div>
                 <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Lista Final de Eventos</label>
                 <textarea id="input-calendario-rh" class="config-input" rows="3" placeholder="Os eventos adicionados aparecerão aqui..."></textarea>
-                <button type="button" class="btn-kanban" style="background: var(--verde); margin-top: 8px; width: 100%;" onclick="window.limparMuralRH('input-calendario-rh')"><i class="fas fa-check"></i> Concluir / Limpar Todos</button>
+                <button type="button" class="btn-kanban" style="background: var(--vermelho); margin-top: 8px; width: 100%;" onclick="window.limparMuralRH('input-calendario-rh')"><i class="fas fa-trash"></i> Limpar Lista de Eventos</button>
             </div>
         </div>
     </div>
@@ -119,6 +120,7 @@
     <!-- Bloco 2: Gestão de Vagas -->
     <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid var(--amarelo); margin-top: 10px;">
         <h3 class="nav-label" style="margin-bottom: 20px; color: var(--amarelo);"><i class="fas fa-briefcase"></i> GESTÃO DE VAGAS (RECRUTAMENTO E SELEÇÃO)</h3>
+        
         <div class="form-grid" style="grid-template-columns: 2fr 2fr 1fr;">
             <div class="input-group">
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Cargo / Função</label>
@@ -167,6 +169,7 @@
     window.renderizarListaMuralRH = function(tipo) {
         const container = document.getElementById(`lista-${tipo}`);
         if(!container) return;
+        
         const itens = window.listasRH[tipo];
         
         if(itens.length === 0) {
@@ -190,6 +193,7 @@
     window.addMuralRH = async function(tipo) {
         const dataInput = document.getElementById(`data-${tipo}`);
         const textInput = document.getElementById(`txt-${tipo}`);
+
         if(!textInput || !dataInput || !textInput.value.trim() || !dataInput.value) {
             alert("Preencha a data e o texto para adicionar."); return;
         }
@@ -214,6 +218,7 @@
 
     window.concluirMuralRH = async function(tipo, id) {
         if(!confirm("Concluir e retirar este item do mural?")) return;
+        
         window.listasRH[tipo] = window.listasRH[tipo].filter(i => i.id !== id);
         window.renderizarListaMuralRH(tipo);
         await window.salvarDadosRH('msg-murais-rh', true);
@@ -271,6 +276,7 @@
 
         const partes = dataStr.split('-');
         const dia = partes[2]; 
+
         const novoTexto = `Dia ${dia} - ${tipo}`;
 
         if (textarea.value.trim() === '') textarea.value = novoTexto;

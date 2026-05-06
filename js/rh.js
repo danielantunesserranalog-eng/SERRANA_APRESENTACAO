@@ -1,5 +1,6 @@
 // ARQUIVO: js/rh.js
 // Inicializa a conexão com o Supabase usando a configuração global do sistema
+
 if (!window.supabaseClientGlobal && typeof supabase !== 'undefined' && typeof SUPABASE_CONFIG !== 'undefined') {
     window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
 }
@@ -23,8 +24,10 @@ window.salvarDadosRH = async function(msgId = 'msg-rh-1', isSilent = false) {
         afastamentos: parseInt(document.getElementById('input-afastamentos')?.value || 0),
         admissoes: parseInt(document.getElementById('input-admissoes')?.value || 0),
         integracoes: parseInt(document.getElementById('input-integracoes')?.value || 0),
+        
         mural_avisos: JSON.stringify(window.listasRH.avisos_rh || []),
         mural_liberacoes: JSON.stringify(window.listasRH.liberacoes_rh || []),
+        
         mural_aniversariantes: document.getElementById('input-aniversariantes-rh')?.value || null,
         mural_calendario: document.getElementById('input-calendario-rh')?.value || null
     };
@@ -33,6 +36,7 @@ window.salvarDadosRH = async function(msgId = 'msg-rh-1', isSilent = false) {
         if (!_supa) throw new Error("Conexão com Supabase não estabelecida.");
         
         const { data: existe } = await _supa.from('rh_indicadores').select('id').eq('data_registro', obterDataHoje()).limit(1);
+        
         let erroBanco = null;
         
         if (existe && existe.length > 0) {
@@ -55,18 +59,21 @@ window.salvarDadosRH = async function(msgId = 'msg-rh-1', isSilent = false) {
     } catch (err) {
         if (msg && !isSilent) { msg.style.color = 'var(--vermelho)'; msg.innerText = "Falha de conexão ao tentar salvar!"; }
     }
-};
+}
 
 window.limparMuralRH = async function(idMural) {
+    if(!confirm("Tem certeza que deseja apagar todos os itens desta lista? Esta ação não pode ser desfeita.")) {
+        return;
+    }
     const el = document.getElementById(idMural);
     if(el) el.value = '';
     await window.salvarDadosRH('msg-murais-rh', true);
     const msg = document.getElementById('msg-murais-rh');
     if(msg) {
-        msg.style.color = 'var(--verde)'; msg.innerText = "Limpo com sucesso!";
+        msg.style.color = 'var(--verde)'; msg.innerText = "Lista limpa com sucesso!";
         setTimeout(() => msg.innerText = "", 3000);
     }
-};
+}
 
 window.adicionarVaga = async function() {
     const cargo = document.getElementById('vaga-cargo').value;
@@ -84,7 +91,7 @@ window.adicionarVaga = async function() {
         document.getElementById('vaga-qtd').value = '';
         window.carregarDadosRH();
     } catch (err) { alert("Erro de conexão. Verifique sua rede."); }
-};
+}
 
 window.concluirVaga = async function(id) {
     if(confirm("Deseja marcar esta vaga como concluída?")) {
@@ -94,7 +101,7 @@ window.concluirVaga = async function(id) {
             window.carregarDadosRH();
         } catch (err) { alert("Falha de conexão."); }
     }
-};
+}
 
 window.carregarDadosRH = async function() {
     if (!_supa) return;
@@ -125,6 +132,7 @@ window.carregarDadosRH = async function() {
             if (window.listasRH) {
                 window.listasRH.avisos_rh = safeParseMuralRH(dados.mural_avisos);
                 window.listasRH.liberacoes_rh = safeParseMuralRH(dados.mural_liberacoes);
+
                 if(typeof window.renderizarListaMuralRH === 'function') {
                     window.renderizarListaMuralRH('avisos_rh');
                     window.renderizarListaMuralRH('liberacoes_rh');
@@ -150,8 +158,10 @@ window.carregarDadosRH = async function() {
         }
         
         const { data: vagas, error: vagasError } = await _supa.from('rh_vagas').select('*').eq('status', 'Aberta').order('data_criacao', { ascending: false });
+
         let totalVagas = 0; let listaVagas = [];
         if (!vagasError && vagas) { listaVagas = vagas; vagas.forEach(v => { totalVagas += parseInt(v.quantidade || 0); }); }
+
         if(document.getElementById('val-vagas')) document.getElementById('val-vagas').innerText = totalVagas;
         
         const tbodyLancamento = document.getElementById('tabela-vagas-lancamento');
@@ -165,7 +175,8 @@ window.carregarDadosRH = async function() {
             if (listaVagas.length === 0) { tbodyDash.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px; color: var(--text-dim);">Todas as vagas foram preenchidas!</td></tr>'; } 
             else { tbodyDash.innerHTML = listaVagas.map(v => `<tr style="background: rgba(255,255,255,0.02);"><td style="color: white; font-weight: bold; border-bottom: 1px solid var(--border); padding: 12px;">${v.cargo}</td><td style="color: var(--text-dim); border-bottom: 1px solid var(--border); padding: 12px;"><i class="fas fa-building"></i> ${v.setor}</td><td style="text-align: center; border-bottom: 1px solid var(--border); padding: 12px;"><span class="badge bg-amarelo">${v.quantidade} Vaga(s)</span></td></tr>`).join(''); }
         }
+
     } catch (err) { console.error("Erro geral ao puxar dados do banco:", err); }
-};
+}
 
 window.carregarDadosRH();
