@@ -6,7 +6,7 @@ if (!window.supabaseClientGlobal && typeof supabase !== 'undefined' && typeof SU
 }
 const _supa = window.supabaseClientGlobal;
 
-// Mantemos uma data fixa apenas como referência de segurança no banco
+// Data fixa para manter apenas uma linha "mestra" no banco, funcionando como formulário contínuo
 function obterDataMestra() {
     return '2099-12-31';
 }
@@ -37,17 +37,17 @@ window.salvarDadosRH = async function(msgId = 'msg-rh-1', isSilent = false) {
     try {
         if (!_supa) throw new Error("Conexão com Supabase não estabelecida.");
         
-        // BUSCA SEMPRE O PRIMEIRO REGISTRO EXISTENTE (Não importa a data)
-        const { data: registros } = await _supa.from('rh_indicadores').select('id').limit(1);
+        // BUSCA EXATAMENTE A LINHA MESTRA, IGNORANDO AS ANTIGAS
+        const { data: existe } = await _supa.from('rh_indicadores').select('id').eq('data_registro', obterDataMestra()).limit(1);
         
         let erroBanco = null;
         
-        if (registros && registros.length > 0) {
-            // Se já existe uma linha, ATUALIZA ela pelo ID único
-            const { error } = await _supa.from('rh_indicadores').update(dados).eq('id', registros[0].id);
+        if (existe && existe.length > 0) {
+            // Se já existe a linha mestra, ATUALIZA ela mesma
+            const { error } = await _supa.from('rh_indicadores').update(dados).eq('data_registro', obterDataMestra());
             erroBanco = error;
         } else {
-            // Se a tabela estiver totalmente vazia, cria a primeira linha
+            // Se não existe, cria a linha mestra pela primeira vez
             const { error } = await _supa.from('rh_indicadores').insert([dados]);
             erroBanco = error;
         }
@@ -78,8 +78,11 @@ window.carregarDadosRH = async function() {
     }
 
     try {
-        // BUSCA SEMPRE O REGISTRO MAIS RECENTE PARA PREENCHER OS CAMPOS
-        const { data: indData, error: indError } = await _supa.from('rh_indicadores').select('*').limit(1);
+        // BUSCA SEMPRE A LINHA MESTRA PARA PREENCHER OS CAMPOS (mantém seus dados de ontem)
+        const { data: indData, error: indError } = await _supa.from('rh_indicadores')
+            .select('*')
+            .eq('data_registro', obterDataMestra())
+            .limit(1);
         
         if (!indError && indData && indData.length > 0) {
             const dados = indData[0];
@@ -126,7 +129,7 @@ window.carregarDadosRH = async function() {
             if(typeof window.gerarCalendarioVisual === 'function') window.gerarCalendarioVisual(dados.mural_calendario || '');
         }
         
-        // Carregamento de Vagas (Mantido original)
+        // Carregamento de Vagas
         const { data: vagas } = await _supa.from('rh_vagas').select('*').eq('status', 'Aberta').order('data_criacao', { ascending: false });
         let totalVagas = 0;
         if (vagas) {
@@ -141,7 +144,6 @@ window.carregarDadosRH = async function() {
     } catch (err) { console.error("Erro ao carregar dados:", err); }
 }
 
-// Funções de Vagas e Murais (sem alterações)
 window.limparMuralRH = async function(idMural) {
     if(!confirm("Deseja apagar todos os itens desta lista?")) return;
     const el = document.getElementById(idMural);
@@ -156,6 +158,13 @@ window.adicionarVaga = async function() {
     if(!cargo || !setor || !qtd) return;
     const { error } = await _supa.from('rh_vagas').insert([{ cargo, setor, quantidade: parseInt(qtd), status: 'Aberta' }]);
     if(!error) { window.carregarDadosRH(); }
+}
+
+window.concluirVaga = async function(id) {
+    if(confirm("Deseja marcar esta vaga como concluída?")) {
+        const { error } = await _supa.from('rh_vagas').update({ status: 'Concluída' }).eq('id', id);
+        if (!error) window.carregarDadosRH();
+    }
 }
 
 window.carregarDadosRH();
