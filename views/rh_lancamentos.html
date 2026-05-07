@@ -1,5 +1,4 @@
 <div class="dashboard-grid">
-    <!-- Bloco 1: Indicadores Gerais -->
     <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid var(--primary);">
         <h3 class="nav-label" style="margin-bottom: 20px; color: var(--primary);"><i class="fas fa-edit"></i> INDICADORES FIXOS GERAIS - RH</h3>
         
@@ -24,6 +23,10 @@
                 <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim);">Integrações Realizadas</label>
                 <input type="number" id="input-integracoes" class="config-input" placeholder="Ex: 4">
             </div>
+            <div class="input-group">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.8rem; color: #06b6d4; font-weight: bold;">SGT (Cadastrados)</label>
+                <input type="number" id="input-sgt" class="config-input" placeholder="Ex: 150" style="border-color: rgba(6, 182, 212, 0.3);">
+            </div>
         </div>
         <div style="margin-top: 20px; display: flex; align-items: center;">
             <button class="btn-salvar" onclick="salvarDadosRH('msg-rh-1')" style="background: var(--primary);">
@@ -33,7 +36,6 @@
         </div>
     </div>
 
-    <!-- Bloco 1.5: Murais de Comunicação RH e Calendário -->
     <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid #8b5cf6; margin-top: 10px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3 class="nav-label" style="color: #8b5cf6; margin: 0;"><i class="fas fa-chalkboard"></i> MURAIS DE COMUNICAÇÃO E EVENTOS (SALVAMENTO AUTOMÁTICO)</h3>
@@ -42,7 +44,6 @@
 
         <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
             
-            <!-- CAIXAS DE LISTAS AVISOS/LIBERAÇÕES -->
             <div class="input-group" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
                 <label style="display:block; margin-bottom: 8px; font-size: 0.9rem; font-weight: bold; color: var(--amarelo);"><i class="fas fa-bullhorn"></i> Avisos Gerais</label>
                 <div style="display: flex; gap: 8px; margin-bottom: 12px;">
@@ -63,7 +64,6 @@
                 <div id="lista-liberacoes_rh" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto;"></div>
             </div>
 
-            <!-- GERADOR DE ANIVERSARIANTES -->
             <div class="input-group" style="grid-column: 1 / -1; background: rgba(236, 72, 153, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(236, 72, 153, 0.3);">
                 <label style="display:block; margin-bottom: 12px; font-size: 0.9rem; color: #ec4899; font-weight: bold;"><i class="fas fa-birthday-cake"></i> Gerenciar Aniversariantes do Mês</label>
                 <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 15px;">
@@ -88,7 +88,6 @@
                 <button type="button" class="btn-kanban" style="background: var(--vermelho); margin-top: 8px; width: 100%;" onclick="window.limparMuralRH('input-aniversariantes-rh')"><i class="fas fa-trash"></i> Limpar Lista de Aniversariantes</button>
             </div>
 
-            <!-- GERADOR DE EVENTOS -->
             <div class="input-group" style="grid-column: 1 / -1; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
                 <label style="display:block; margin-bottom: 12px; font-size: 0.9rem; color: var(--verde); font-weight: bold;"><i class="fas fa-calendar-plus"></i> Gerenciar Calendário de Eventos / Pagamentos</label>
                 <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 15px;">
@@ -117,7 +116,6 @@
         </div>
     </div>
 
-    <!-- Bloco 2: Gestão de Vagas -->
     <div class="kpi-card" style="grid-column: 1 / -1; border-left: 5px solid var(--amarelo); margin-top: 10px;">
         <h3 class="nav-label" style="margin-bottom: 20px; color: var(--amarelo);"><i class="fas fa-briefcase"></i> GESTÃO DE VAGAS (RECRUTAMENTO E SELEÇÃO)</h3>
         

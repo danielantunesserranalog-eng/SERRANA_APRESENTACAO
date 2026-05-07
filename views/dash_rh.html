@@ -29,6 +29,14 @@
         <div class="kpi-value status-amarelo" id="val-vagas">0</div>
         <p class="status-msg"><i class="fas fa-briefcase"></i> Somatório de cargos pendentes</p>
     </div>
+    <div class="kpi-card" style="border-left: 4px solid #06b6d4;">
+        <p class="nav-label" style="color: #06b6d4;">SGT</p>
+        <div class="kpi-value" style="color: #06b6d4; display: flex; align-items: baseline; gap: 5px;">
+            <span id="val-sgt">0</span>
+            <span id="val-sgt-pct" style="font-size: 0.45em; opacity: 0.8; font-weight: normal;">(0%)</span>
+        </div>
+        <p class="status-msg"><i class="fas fa-id-badge"></i> Cadastrados vs Efetivo</p>
+    </div>
 </div>
 
 <div class="content-panel kpi-card" style="margin-top: 25px; border-left: 5px solid var(--primary); padding: 25px;">
@@ -258,6 +266,28 @@
         if (temAlgumEvento) { legenda.innerHTML = legendaHtml; } 
         else { legenda.innerHTML = `<div style="padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px dashed var(--border); color: var(--text-dim); text-align: center;"><i class="fas fa-info-circle" style="margin-bottom: 10px; font-size: 1.5rem; display: block; opacity: 0.5;"></i>Nenhum evento ou feriado registrado.</div>`; }
     };
+
+    // Função para calcular automaticamente a porcentagem do SGT baseada no Total de Colaboradores
+    window.atualizarPorcentagemSGT = function() {
+        const sgtEl = document.getElementById('val-sgt');
+        const headcountEl = document.getElementById('val-headcount');
+        const pctEl = document.getElementById('val-sgt-pct');
+        
+        if(sgtEl && headcountEl && pctEl) {
+            const sgt = parseInt(sgtEl.innerText.replace(/\D/g, '')) || 0;
+            const headcount = parseInt(headcountEl.innerText.replace(/\D/g, '')) || 0;
+            
+            if(headcount > 0) {
+                const pct = ((sgt / headcount) * 100).toFixed(1);
+                pctEl.innerText = `(${pct}%)`;
+            } else {
+                pctEl.innerText = `(0%)`;
+            }
+        }
+    };
+
+    // Monitora as atualizações a cada 1 segundo para manter a porcentagem sempre correta
+    setInterval(window.atualizarPorcentagemSGT, 1000);
 
     setTimeout(function() {
         if (typeof window.carregarDadosRH === 'function') {

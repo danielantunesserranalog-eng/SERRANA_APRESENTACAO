@@ -24,6 +24,7 @@ window.salvarDadosRH = async function(msgId = 'msg-rh-1', isSilent = false) {
         afastamentos: parseInt(document.getElementById('input-afastamentos')?.value || 0),
         admissoes: parseInt(document.getElementById('input-admissoes')?.value || 0),
         integracoes: parseInt(document.getElementById('input-integracoes')?.value || 0),
+        sgt: parseInt(document.getElementById('input-sgt')?.value || 0), // ADICIONADO SGT PARA O BANCO
         
         mural_avisos: JSON.stringify(window.listasRH.avisos_rh || []),
         mural_liberacoes: JSON.stringify(window.listasRH.liberacoes_rh || []),
@@ -128,6 +129,7 @@ window.carregarDadosRH = async function() {
             if(document.getElementById('input-afastamentos')) document.getElementById('input-afastamentos').value = dados.afastamentos || '';
             if(document.getElementById('input-admissoes')) document.getElementById('input-admissoes').value = dados.admissoes || '';
             if(document.getElementById('input-integracoes')) document.getElementById('input-integracoes').value = dados.integracoes || '';
+            if(document.getElementById('input-sgt')) document.getElementById('input-sgt').value = dados.sgt || ''; // CARREGA SGT NO INPUT DE LANÇAMENTO
             
             if (window.listasRH) {
                 window.listasRH.avisos_rh = safeParseMuralRH(dados.mural_avisos);
@@ -147,6 +149,7 @@ window.carregarDadosRH = async function() {
             if(document.getElementById('val-afastamentos')) document.getElementById('val-afastamentos').innerText = dados.afastamentos || 0;
             if(document.getElementById('val-admissoes')) document.getElementById('val-admissoes').innerText = dados.admissoes || 0;
             if(document.getElementById('val-integracoes')) document.getElementById('val-integracoes').innerText = dados.integracoes || 0;
+            if(document.getElementById('val-sgt')) document.getElementById('val-sgt').innerText = dados.sgt || 0; // CARREGA SGT NO DASHBOARD VISUAL
             
             if(typeof window.renderizarListaApresentacaoRH === 'function') {
                 window.renderizarListaApresentacaoRH('mural-avisos-rh', dados.mural_avisos, 'var(--amarelo)');
