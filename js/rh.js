@@ -4,26 +4,23 @@ if (!window.supabaseClientGlobal && typeof supabase !== 'undefined' && typeof SU
 }
 const _supa = window.supabaseClientGlobal;
 
-// Flag de segurança para evitar salvar dados vazios antes de carregar o banco
+// Trava de segurança: impede de salvar valores zerados antes da tela carregar o que já tem no banco
 window.rhCarregado = false;
 
-function obterDataMestra() {
-    return '2099-12-31';
-}
-
 window.salvarDadosRH = async function(msgId = 'msg-rh-1', isSilent = false) {
-    // Se o sistema ainda não carregou os dados do banco, bloqueia o salvamento 
-    // para não sobrescrever os números atuais com "0" ou vazio.
-    if (!window.rhCarregado && !isSilent) return;
+    if (!window.rhCarregado && !isSilent) {
+        alert("Aguarde os dados carregarem antes de salvar.");
+        return;
+    }
 
     const msg = document.getElementById(msgId);
     if (msg && !isSilent) {
         msg.style.color = 'var(--text-dim)';
-        msg.innerText = "Sincronizando dados...";
+        msg.innerText = "Salvando alterações...";
     }
     
+    // Pegamos todos os valores da tela (sem a data de registro, para evitar erros do banco)
     const dados = {
-        data_registro: obterDataMestra(),
         headcount: parseInt(document.getElementById('input-headcount')?.value || 0),
         atestados: parseInt(document.getElementById('input-atestados')?.value || 0),
         afastamentos: parseInt(document.getElementById('input-afastamentos')?.value || 0),
@@ -39,18 +36,32 @@ window.salvarDadosRH = async function(msgId = 'msg-rh-1', isSilent = false) {
     };
     
     try {
-        if (!_supa) throw new Error("Supabase offline.");
+        if (!_supa) throw new Error("Conexão falhou.");
         
-        // UPSERT: Se a data 2099-12-31 já existir, ele atualiza. Se não, ele cria.
-        const { error } = await _supa
-            .from('rh_indicadores')
-            .upsert(dados, { onConflict: 'data_registro' });
+        // Busca a ÚLTIMA linha que já existe no seu banco de dados
+        const { data: linhas } = await _supa.from('rh_indicadores').select('id').order('id', { ascending: false }).limit(1);
         
-        if (error) throw error;
+        let erroBanco = null;
+
+        if (linhas && linhas.length > 0) {
+            // Se achou uma linha, ATUALIZA apenas ela (nunca cria uma nova)
+            const { error } = await _supa.from('rh_indicadores').update(dados).eq('id', linhas[0].id);
+            erroBanco = error;
+        } else {
+            // Se o banco estiver 100% vazio, ele cria a primeira linha com a data de hoje
+            dados.data_registro = new Date().toISOString().split('T')[0];
+            const { error } = await _supa.from('rh_indicadores').insert([dados]);
+            erroBanco = error;
+        }
+        
+        if (erroBanco) {
+            if (msg && !isSilent) { msg.style.color = 'var(--vermelho)'; msg.innerText = "ERRO: " + erroBanco.message; }
+            return;
+        }
         
         if (msg && !isSilent) {
             msg.style.color = 'var(--verde)';
-            msg.innerText = "Dados sincronizados!";
+            msg.innerText = "Dados atualizados com sucesso!";
             setTimeout(() => msg.innerText = "", 3000);
         }
     } catch (err) {
@@ -63,14 +74,17 @@ window.carregarDadosRH = async function() {
     if (!_supa) return;
     
     try {
-        const { data, error } = await _supa
+        // Busca a linha MAIS RECENTE do banco para preencher os campos com os valores atuais
+        const { data: indData, error } = await _supa
             .from('rh_indicadores')
             .select('*')
-            .eq('data_registro', obterDataMestra())
-            .maybeSingle(); // Busca apenas a linha mestra
+            .order('id', { ascending: false })
+            .limit(1);
         
-        if (data) {
-            // Preenche os campos de lançamento
+        if (!error && indData && indData.length > 0) {
+            const data = indData[0];
+            
+            // Preenche os campos do formulário para você não perder o que já tinha
             if(document.getElementById('input-headcount')) document.getElementById('input-headcount').value = data.headcount || 0;
             if(document.getElementById('input-atestados')) document.getElementById('input-atestados').value = data.atestados || 0;
             if(document.getElementById('input-afastamentos')) document.getElementById('input-afastamentos').value = data.afastamentos || 0;
@@ -81,7 +95,7 @@ window.carregarDadosRH = async function() {
             if(document.getElementById('input-aniversariantes-rh')) document.getElementById('input-aniversariantes-rh').value = data.mural_aniversariantes || '';
             if(document.getElementById('input-calendario-rh')) document.getElementById('input-calendario-rh').value = data.mural_calendario || '';
 
-            // Atualiza os Murais
+            // Atualiza as Listas dos Murais
             if (window.listasRH) {
                 try {
                     window.listasRH.avisos_rh = JSON.parse(data.mural_avisos || '[]');
@@ -93,7 +107,7 @@ window.carregarDadosRH = async function() {
                 } catch(e) { console.error("Erro parse listas", e); }
             }
             
-            // Atualiza o Dashboard Visual
+            // Atualiza os Valores Visuais no Dashboard Principal do RH
             const setTxt = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val || 0; };
             setTxt('val-headcount', data.headcount);
             setTxt('val-atestados', data.atestados);
@@ -116,23 +130,20 @@ window.carregarDadosRH = async function() {
         if (vagas) {
             vagas.forEach(v => totalVagas += parseInt(v.quantidade || 0));
             const tbodyDash = document.getElementById('tabela-vagas-dash');
-            if (tbodyDash) {
-                tbodyDash.innerHTML = vagas.map(v => `<tr style="background: rgba(255,255,255,0.02);"><td style="color: white; font-weight: bold; border-bottom: 1px solid var(--border); padding: 12px;">${v.cargo}</td><td style="color: var(--text-dim); border-bottom: 1px solid var(--border); padding: 12px;"><i class="fas fa-building"></i> ${v.setor}</td><td style="text-align: center; border-bottom: 1px solid var(--border); padding: 12px;"><span class="badge bg-amarelo">${v.quantidade} Vaga(s)</span></td></tr>`).join('');
-            }
+            if (tbodyDash) tbodyDash.innerHTML = vagas.map(v => `<tr style="background: rgba(255,255,255,0.02);"><td style="color: white; font-weight: bold; border-bottom: 1px solid var(--border); padding: 12px;">${v.cargo}</td><td style="color: var(--text-dim); border-bottom: 1px solid var(--border); padding: 12px;"><i class="fas fa-building"></i> ${v.setor}</td><td style="text-align: center; border-bottom: 1px solid var(--border); padding: 12px;"><span class="badge bg-amarelo">${v.quantidade} Vaga(s)</span></td></tr>`).join('');
+            
             const tbodyLanc = document.getElementById('tabela-vagas-lancamento');
-            if (tbodyLanc) {
-                tbodyLanc.innerHTML = vagas.map(v => `<tr style="background: rgba(255,255,255,0.02);"><td style="color: white; font-weight: bold; border-bottom: 1px solid var(--border); padding: 12px;">${v.cargo}</td><td style="color: var(--text-dim); border-bottom: 1px solid var(--border); padding: 12px;">${v.setor}</td><td style="color: var(--amarelo); text-align: center; border-bottom: 1px solid var(--border); padding: 12px;">${v.quantidade}</td><td style="text-align: right; border-bottom: 1px solid var(--border); padding: 12px;"><button class="btn-kanban" style="background: var(--verde);" onclick="concluirVaga(${v.id})"><i class="fas fa-check"></i></button></td></tr>`).join('');
-            }
+            if (tbodyLanc) tbodyLanc.innerHTML = vagas.map(v => `<tr style="background: rgba(255,255,255,0.02);"><td style="color: white; font-weight: bold; border-bottom: 1px solid var(--border); padding: 12px;">${v.cargo}</td><td style="color: var(--text-dim); border-bottom: 1px solid var(--border); padding: 12px;">${v.setor}</td><td style="color: var(--amarelo); text-align: center; border-bottom: 1px solid var(--border); padding: 12px;">${v.quantidade}</td><td style="text-align: right; border-bottom: 1px solid var(--border); padding: 12px;"><button class="btn-kanban" style="background: var(--verde);" onclick="concluirVaga(${v.id})"><i class="fas fa-check"></i></button></td></tr>`).join('');
         }
         if(document.getElementById('val-vagas')) document.getElementById('val-vagas').innerText = totalVagas;
 
-        // LIBERA O SALVAMENTO após carregar tudo com sucesso
+        // TUDO CARREGADO - LIBERA O SISTEMA PARA SALVAR
         window.rhCarregado = true;
 
     } catch (err) { console.error("Erro ao carregar RH:", err); }
 }
 
-// Funções de Vagas e Murais
+// Funções de Vagas e Murais (Sem Alterações)
 window.adicionarVaga = async function() {
     const cargo = document.getElementById('vaga-cargo').value;
     const setor = document.getElementById('vaga-setor').value;
