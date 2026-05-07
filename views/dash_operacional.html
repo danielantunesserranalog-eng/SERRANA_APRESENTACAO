@@ -289,17 +289,23 @@
                 <span id="msg-mural-setor" class="font-bold text-xs"></span>
             </div>
             <div class="p-5">
-                <div class="flex flex-wrap gap-3 mb-4 bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
+                <div class="flex flex-wrap gap-3 mb-4 bg-slate-900/50 p-3 rounded-lg border border-slate-700/50 items-center">
                     <input type="date" id="data-mural-setor" class="bg-slate-800 text-white text-sm font-bold rounded-lg border border-slate-600 px-3 py-2 focus:outline-none focus:border-sky-500">
-                    <input type="text" id="txt-mural-setor" class="bg-slate-800 text-white text-sm font-bold rounded-lg border border-slate-600 px-3 py-2 focus:outline-none focus:border-sky-500 flex-1" placeholder="Digite a informação, aviso ou lembrete do setor...">
+                    <input type="text" id="txt-mural-setor" class="bg-slate-800 text-white text-sm font-bold rounded-lg border border-slate-600 px-3 py-2 focus:outline-none focus:border-sky-500 flex-1 min-w-[200px]" placeholder="Digite a informação, aviso ou lembrete do setor...">
+                    
+                    <label for="img-mural-setor" class="bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-600 px-3 py-2 rounded-lg cursor-pointer transition-colors text-sm font-bold flex items-center gap-2">
+                        <i class="fas fa-image"></i> Imagem
+                    </label>
+                    <input type="file" id="img-mural-setor" accept="image/*" class="hidden" onchange="document.getElementById('lbl-nome-arquivo').innerText = this.files[0]?.name || ''">
+                    <span id="lbl-nome-arquivo" class="text-xs text-slate-400 font-bold max-w-[120px] truncate" title="Nome do arquivo anexo"></span>
+
                     <button type="button" class="bg-sky-600 hover:bg-sky-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-colors text-sm" onclick="window.addMuralSetor()">
                         <i class="fas fa-plus"></i> Adicionar
                     </button>
                 </div>
-                <div id="lista-mural-setor" class="flex flex-col gap-2 max-h-[250px] overflow-y-auto custom-scrollbar pr-2"></div>
+                <div id="lista-mural-setor" class="flex flex-col gap-3 max-h-[450px] overflow-y-auto custom-scrollbar pr-2"></div>
             </div>
         </div>
-
         <div class="glass-card rounded-xl border border-slate-700/50 shadow-xl overflow-hidden mb-6 bg-slate-900 relative" style="border-left: 5px solid var(--amber-500);">
             <div class="bg-slate-800/90 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
                 <h3 class="font-extrabold text-amber-400 tracking-wide uppercase text-[13px] flex items-center m-0">
@@ -330,7 +336,8 @@
                 </div>
             </div>
         </div>
-        </section>
+
+    </section>
 </div>
 
 <script>
@@ -1052,6 +1059,7 @@
         document.body.removeChild(link);
     };
 
+    // ================= LÓGICA DO MURAL DE AVISOS COM IMAGEM =================
     window.muralSetorKey = 'mural_operacional';
     window.muralSetorData = [];
 
@@ -1082,28 +1090,53 @@
             return;
         }
         
-        container.innerHTML = window.muralSetorData.map(item => `
-            <div class="flex items-center justify-between bg-slate-900/40 p-3 rounded-lg border-l-4 border-sky-400 border-t border-r border-b border-slate-700/50">
+        container.innerHTML = window.muralSetorData.map(item => {
+            const imgHtml = item.imagem ? `<div class="mt-3"><img src="${item.imagem}" class="rounded-lg border border-slate-600 max-h-48 object-contain shadow-md" alt="Imagem Anexa"></div>` : '';
+            return `
+            <div class="flex items-start justify-between bg-slate-900/40 p-3 rounded-lg border-l-4 border-sky-400 border-t border-r border-b border-slate-700/50">
                 <div class="flex-1">
-                    <span class="text-slate-400 text-xs font-bold mr-2"><i class="fas fa-calendar-day"></i> ${window.formatarDataMural(item.data)}</span>
-                    <span class="text-white text-sm font-medium">${item.texto}</span>
+                    <div class="mb-1">
+                        <span class="text-slate-400 text-xs font-bold mr-2"><i class="fas fa-calendar-day"></i> ${window.formatarDataMural(item.data)}</span>
+                        <span class="text-white text-sm font-medium">${item.texto}</span>
+                    </div>
+                    ${imgHtml}
                 </div>
-                <button class="bg-emerald-600/80 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-xs font-bold shadow-md transition-colors ml-3" onclick="window.concluirMuralSetor(${item.id})" title="Concluir / Retirar">
+                <button class="bg-emerald-600/80 hover:bg-emerald-500 text-white px-3 py-1.5 rounded text-xs font-bold shadow-md transition-colors ml-3 mt-1" onclick="window.concluirMuralSetor(${item.id})" title="Concluir / Retirar">
                     <i class="fas fa-check"></i>
                 </button>
             </div>
-        `).join('');
+            `;
+        }).join('');
     };
 
     window.addMuralSetor = async function() {
         const dt = document.getElementById('data-mural-setor').value;
         const txt = document.getElementById('txt-mural-setor').value.trim();
+        const imgInput = document.getElementById('img-mural-setor');
+
         if(!dt || !txt) { alert("Preencha a data e o texto para adicionar ao mural!"); return; }
         
-        window.muralSetorData.push({ id: Date.now(), data: dt, texto: txt });
-        document.getElementById('txt-mural-setor').value = '';
-        window.renderizarMuralSetor();
-        await window.salvarMuralSetor();
+        const finalizarAdicao = async (imagemBase64) => {
+            // Usa unshift para aparecer sempre no topo da lista
+            window.muralSetorData.unshift({ id: Date.now(), data: dt, texto: txt, imagem: imagemBase64 });
+            document.getElementById('txt-mural-setor').value = '';
+            document.getElementById('lbl-nome-arquivo').innerText = '';
+            imgInput.value = '';
+            
+            window.renderizarMuralSetor();
+            await window.salvarMuralSetor();
+        };
+
+        if (imgInput.files && imgInput.files[0]) {
+            const file = imgInput.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                finalizarAdicao(e.target.result);
+            };
+            reader.readAsDataURL(file); // Converte a imagem para Base64
+        } else {
+            finalizarAdicao(null);
+        }
     };
 
     window.concluirMuralSetor = async function(id) {
@@ -1131,6 +1164,7 @@
         }
     };
 
+    // ================= LÓGICA DO VISOR DE FROTA =================
     window.frotaPendenciasData = [];
 
     window.carregarFrotaSupabase = async function() {
