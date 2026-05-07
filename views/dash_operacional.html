@@ -31,22 +31,18 @@
 
     <section class="animate-fade-in space-y-6">
         
-        <!-- Barra de Filtros -->
         <div class="flex flex-col gap-4 mb-6">
             <div class="flex items-center gap-4 bg-slate-900/80 p-2 rounded-xl border border-sky-800 shadow-lg shadow-sky-900/20 flex-wrap">
-                <!-- MES -->
                 <div class="flex items-center gap-2 border-r border-slate-700/50 pr-4">
                     <label for="filterMesOp" class="text-xs font-bold text-sky-400 uppercase tracking-widest pl-2"><i class="fas fa-calendar-alt mr-1"></i> Mês:</label>
                     <select id="filterMesOp" class="bg-slate-800 text-white text-sm font-bold rounded-lg border border-slate-600 px-4 py-2 focus:outline-none focus:border-sky-500 cursor-pointer shadow-inner">
                         <option value="ALL">TODOS OS MESES</option>
                     </select>
                 </div>
-                <!-- DIA -->
                 <div class="flex items-center gap-2 border-r border-slate-700/50 pr-4">
                     <label for="opDatePicker" class="text-xs font-bold text-sky-400 uppercase tracking-widest pl-2"><i class="fas fa-calendar-day mr-1"></i> Dia:</label>
                     <input type="date" id="opDatePicker" class="bg-slate-800 text-white text-sm font-bold rounded-lg border border-slate-600 px-4 py-2 focus:outline-none focus:border-sky-500 cursor-pointer shadow-inner">
                 </div>
-                <!-- QUICK FILTERS -->
                 <div class="flex items-center gap-1 bg-slate-800/80 p-1 rounded-lg border border-slate-700/50 shadow-inner" id="quickFiltersGroup">
                     <button data-op-qf="D-1" class="btn-op-qf border border-transparent text-[10px] font-bold text-slate-400 hover:text-sky-300 hover:bg-slate-700/50 px-2 py-1.5 rounded transition-all">D-1</button>
                     <button data-op-qf="D-2" class="btn-op-qf border border-transparent text-[10px] font-bold text-slate-400 hover:text-sky-300 hover:bg-slate-700/50 px-2 py-1.5 rounded transition-all">D-2</button>
@@ -55,7 +51,6 @@
                     <div class="w-px h-4 bg-slate-700 mx-1"></div>
                     <button data-op-qf="ALL" class="btn-op-qf active bg-sky-900/50 text-sky-400 border border-sky-800/50 text-[10px] font-bold px-2 py-1.5 rounded transition-all shadow-[0_0_10px_rgba(14,165,233,0.2)]"><i class="fas fa-times"></i></button>
                 </div>
-                <!-- TRANSPORTADORA -->
                 <div class="flex items-center gap-2 border-l border-slate-700/50 pl-4">
                     <label for="filterTransportadora" class="text-xs font-bold text-sky-400 uppercase tracking-widest pl-2"><i class="fas fa-truck mr-1"></i> Transp:</label>
                     <select id="filterTransportadora" class="bg-slate-800 text-white text-sm font-bold rounded-lg border border-slate-600 px-4 py-2 focus:outline-none focus:border-sky-500 cursor-pointer shadow-inner">
@@ -73,7 +68,6 @@
             </div>
         </div>
 
-        <!-- Painel de Cards 1 (Volumes e Gerais) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-5">
             <div class="glass-card rounded-2xl p-5 glow-border-blue card-hover flex flex-col justify-between">
                 <div>
@@ -119,9 +113,7 @@
             </div>
         </div>
 
-        <!-- Painel de Cards 2 (Tempos e Padrões) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
-            <!-- Ciclo Médio -->
             <div class="glass-card rounded-2xl p-5 glow-border-blue card-hover flex flex-col h-full relative">
                 <div class="flex justify-between items-start mb-4">
                     <p class="text-sky-400 text-[11px] font-bold uppercase tracking-widest m-0">Ciclo Médio</p>
@@ -138,7 +130,6 @@
                 </div>
             </div>
             
-            <!-- Tempo de Campo -->
             <div class="glass-card rounded-2xl p-5 glow-border-amber card-hover flex flex-col h-full relative">
                 <div class="flex justify-between items-start mb-4">
                     <p class="text-amber-400 text-[11px] font-bold uppercase tracking-widest m-0">Tempo de Campo</p>
@@ -155,7 +146,6 @@
                 </div>
             </div>
             
-            <!-- Tempo Médio de Carga -->
             <div class="glass-card rounded-2xl p-5 glow-border-emerald card-hover flex flex-col h-full relative">
                 <div class="flex justify-between items-start mb-4">
                     <p class="text-emerald-400 text-[11px] font-bold uppercase tracking-widest m-0">Tempo Médio de Carga</p>
@@ -172,7 +162,6 @@
                 </div>
             </div>
             
-            <!-- Tempo Médio de Fábrica -->
             <div class="glass-card rounded-2xl p-5 glow-border-rose card-hover flex flex-col h-full relative">
                 <div class="flex justify-between items-start mb-4">
                     <p class="text-rose-400 text-[11px] font-bold uppercase tracking-widest m-0">Tempo Médio de Fábrica</p>
@@ -190,7 +179,6 @@
             </div>
         </div>
 
-        <!-- Comparativo por Cenários -->
         <div id="comparativoContainer" class="glass-card rounded-xl border border-slate-700/50 shadow-xl overflow-hidden mb-6 bg-slate-900 relative">
             <div class="bg-slate-800/90 px-6 py-5 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-4">
                 <h3 class="font-extrabold text-white tracking-wide uppercase text-sm flex items-center m-0">
@@ -216,7 +204,6 @@
             </div>
         </div>
 
-        <!-- Gráficos Centrais -->
         <div class="grid grid-cols-1 gap-6 mb-6">
             <div class="glass-card rounded-xl shadow-2xl p-5 border border-slate-700/50 flex flex-col w-full">
                 <div class="flex justify-between items-center mb-2 border-b border-slate-700/50 pb-3">
@@ -241,7 +228,6 @@
             </div>
         </div>
 
-        <!-- Leaderboards -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <div class="glass-card rounded-xl shadow-2xl overflow-hidden border border-slate-700/50 flex flex-col">
                 <div class="bg-slate-800/80 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
@@ -295,7 +281,6 @@
             </div>
         </div>
 
-        <!-- MURAL DE AVISOS DO SETOR OPERACIONAL -->
         <div class="glass-card rounded-xl border border-slate-700/50 shadow-xl overflow-hidden mb-6 bg-slate-900 relative">
             <div class="bg-slate-800/90 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
                 <h3 class="font-extrabold text-white tracking-wide uppercase text-[13px] flex items-center m-0">
@@ -315,7 +300,37 @@
             </div>
         </div>
 
-    </section>
+        <div class="glass-card rounded-xl border border-slate-700/50 shadow-xl overflow-hidden mb-6 bg-slate-900 relative" style="border-left: 5px solid var(--amber-500);">
+            <div class="bg-slate-800/90 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
+                <h3 class="font-extrabold text-amber-400 tracking-wide uppercase text-[13px] flex items-center m-0">
+                    <i class="fas fa-clipboard-check mr-2 text-lg"></i> Visor de Pendências da Frota (Check-list)
+                </h3>
+                <span id="msg-frota" class="font-bold text-xs text-slate-400">O cadastro é feito no menu de Pendências</span>
+            </div>
+            <div class="p-5">
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="min-w-full text-left m-0">
+                        <thead class="bg-slate-900/95 text-white font-semibold uppercase text-[10px] tracking-wider border-b border-slate-700">
+                            <tr>
+                                <th class="px-4 py-3">Placa</th>
+                                <th class="px-2 py-3 text-center">CRLVe</th>
+                                <th class="px-2 py-3 text-center">Crono.</th>
+                                <th class="px-2 py-3 text-center">ANTT</th>
+                                <th class="px-2 py-3 text-center">AET</th>
+                                <th class="px-2 py-3 text-center">APR</th>
+                                <th class="px-2 py-3 text-center">Floresta</th>
+                                <th class="px-2 py-3 text-center">Estrada</th>
+                                <th class="px-2 py-3 text-center">Hosp.</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-caminhoes-pendentes" class="divide-y divide-slate-800/80 text-slate-300 text-xs font-bold">
+                            <tr><td colspan="9" style="text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Carregando dados...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        </section>
 </div>
 
 <script>
@@ -811,7 +826,6 @@
         });
         renderTransporteChart(baseTransporte);
 
-        // Leaderboards para Serrana (mantendo padrão já existente)
         const filteredSerrana = cardsData;
         let diasConsiderados = 1;
         if(activeQuickFilterOp === 'D-7') diasConsiderados = 7;
@@ -824,6 +838,10 @@
     function renderCarregamentoChart(data) {
         const ctxCarreg = document.getElementById('evolucaoCarregamentoChart');
         if(!ctxCarreg) return;
+
+        let existingChart = Chart.getChart("evolucaoCarregamentoChart");
+        if (existingChart != undefined) { existingChart.destroy(); }
+        if (chartCarregamento) chartCarregamento.destroy();
         
         const dailyMap = new Map();
         data.forEach(d => {
@@ -840,8 +858,6 @@
         });
         const displayDates = sortedDates.slice(-30);
         const displayVols = displayDates.map(dt => dailyMap.get(dt));
-
-        if (chartCarregamento) chartCarregamento.destroy();
         
         const ctx = ctxCarreg.getContext('2d');
         let gradient = ctx.createLinearGradient(0, 0, 0, 400);
@@ -877,6 +893,10 @@
     function renderTransporteChart(data) {
         const ctxTransp = document.getElementById('evolucaoTransporteChart');
         if(!ctxTransp) return;
+
+        let existingChart = Chart.getChart("evolucaoTransporteChart");
+        if (existingChart != undefined) { existingChart.destroy(); }
+        if (chartTransporte) chartTransporte.destroy();
         
         const dailyMap = new Map();
         data.forEach(d => {
@@ -893,8 +913,6 @@
         });
         const displayDates = sortedDates.slice(-30);
         const displayVols = displayDates.map(dt => dailyMap.get(dt));
-
-        if (chartTransporte) chartTransporte.destroy();
         
         const ctx = ctxTransp.getContext('2d');
         let gradient = ctx.createLinearGradient(0, 0, 0, 400);
@@ -992,7 +1010,6 @@
         }
     }
 
-    // Exportação
     window.exportarTopVolume = function() {
         if (!window.globalTopVol || window.globalTopVol.length === 0) {
             alert("Não há dados de Volume para exportar no período selecionado."); return;
@@ -1035,7 +1052,6 @@
         document.body.removeChild(link);
     };
 
-    // --- NOVA LÓGICA: MURAL DE INFORMAÇÕES DO SETOR OPERACIONAL ---
     window.muralSetorKey = 'mural_operacional';
     window.muralSetorData = [];
 
@@ -1045,10 +1061,7 @@
 
     window.carregarMuralSetor = async function() {
         try {
-            if (!window.supabaseClientGlobal && typeof supabase !== 'undefined' && typeof SUPABASE_CONFIG !== 'undefined') {
-                window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-            }
-            const _supa = window.supabaseClientGlobal;
+            const _supa = window.supabaseClientGlobal || supabaseClientLocal;
             if(!_supa) return;
             
             const { data } = await _supa.from('configuracoes').select('valor').eq('chave', window.muralSetorKey).limit(1);
@@ -1105,11 +1118,7 @@
         if(msg) { msg.className = 'text-xs font-bold text-slate-400'; msg.innerText = 'Salvando...'; }
         
         try {
-            if (!window.supabaseClientGlobal && typeof supabase !== 'undefined' && typeof SUPABASE_CONFIG !== 'undefined') {
-                window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-            }
-            const _supa = window.supabaseClientGlobal;
-            
+            const _supa = window.supabaseClientGlobal || supabaseClientLocal;
             await _supa.from('configuracoes').upsert([{ chave: window.muralSetorKey, valor: JSON.stringify(window.muralSetorData) }], { onConflict: 'chave' });
             
             if(msg) { 
@@ -1122,15 +1131,79 @@
         }
     };
 
-    // Inicialização
+    window.frotaPendenciasData = [];
+
+    window.carregarFrotaSupabase = async function() {
+        try {
+            const client = window.supabaseClientGlobal || supabaseClientLocal;
+            const { data, error } = await client
+                .from('frota_pendencias')
+                .select('*')
+                .order('data_criacao', { ascending: false });
+                
+            if (error) throw error;
+            
+            window.frotaPendenciasData = data || [];
+            window.renderizarTabelaFrota();
+        } catch (e) {
+            console.error("Erro ao carregar frota:", e);
+        }
+    };
+
+    window.toggleStatusSupabase = async function(id, campo, valorAtual) {
+        try {
+            const client = window.supabaseClientGlobal || supabaseClientLocal;
+            const { error } = await client
+                .from('frota_pendencias')
+                .update({ [campo]: !valorAtual })
+                .eq('id', id);
+
+            if (error) throw error;
+            window.carregarFrotaSupabase();
+        } catch (e) {
+            console.error("Erro ao atualizar status:", e);
+        }
+    };
+
+    window.renderizarTabelaFrota = function() {
+        const tbody = document.getElementById('lista-caminhoes-pendentes');
+        if(!tbody) return;
+        tbody.innerHTML = '';
+
+        if(window.frotaPendenciasData.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-slate-500">Nenhuma frota com pendência cadastrada.</td></tr>';
+            return;
+        }
+
+        window.frotaPendenciasData.forEach(cam => {
+            const getIcon = (status, campo) => status 
+                ? `<i class="fas fa-check-circle text-emerald-400 text-lg cursor-pointer hover:scale-110 transition-transform" onclick="window.toggleStatusSupabase(${cam.id}, '${campo}', true)"></i>` 
+                : `<i class="fas fa-times-circle text-rose-500 text-lg cursor-pointer hover:scale-110 transition-transform" onclick="window.toggleStatusSupabase(${cam.id}, '${campo}', false)"></i>`;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="px-4 py-3 bg-slate-900/40 text-white">${cam.placa}</td>
+                <td class="px-2 py-3 text-center">${getIcon(cam.crlve, 'crlve')}</td>
+                <td class="px-2 py-3 text-center">${getIcon(cam.crono, 'crono')}</td>
+                <td class="px-2 py-3 text-center">${getIcon(cam.antt, 'antt')}</td>
+                <td class="px-2 py-3 text-center">${getIcon(cam.aet, 'aet')}</td>
+                <td class="px-2 py-3 text-center">${getIcon(cam.apr, 'apr')}</td>
+                <td class="px-2 py-3 text-center">${getIcon(cam.floresta, 'floresta')}</td>
+                <td class="px-2 py-3 text-center">${getIcon(cam.estrada, 'estrada')}</td>
+                <td class="px-2 py-3 text-center">${getIcon(cam.hosp, 'hosp')}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    };
+
     setupOperacionalFilters();
     loadOperacionalData();
     
-    // Inicia o Mural Operacional
     if(document.getElementById('data-mural-setor')) {
         document.getElementById('data-mural-setor').value = new Date().toISOString().split('T')[0];
     }
     window.carregarMuralSetor();
+    window.carregarFrotaSupabase();
 
 })();
 </script>

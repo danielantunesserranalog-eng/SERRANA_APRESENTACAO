@@ -208,3 +208,31 @@ body { font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(
 .btn-kanban.archive { background: #3b82f6; }
 .btn-kanban.archive:hover { background: #2563eb; }
 .btn-kanban.delete:hover { background: var(--vermelho); }
+
+/* ================= CHECKLIST STYLES ================= */
+.check-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-main);
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: rgba(0,0,0,0.2);
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.check-container:hover {
+    border-color: var(--amarelo);
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.check-container input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--amarelo);
+    cursor: pointer;
+}

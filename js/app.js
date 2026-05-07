@@ -10,7 +10,8 @@ const menuData = [
     { id: 'operacional', title: 'OPERACIONAL', icon: 'fa-truck', mainFile: 'dash_operacional.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos',
          submenus: [
             { id: 'op_frentes', title: 'Lançar Frentes', file: 'op_frentes.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos' },
-            { id: 'op_pbtc', title: 'Indicadores PBTC', file: 'op_pbtc.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos' }
+            { id: 'op_pbtc', title: 'Indicadores PBTC', file: 'op_pbtc.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos' },
+            { id: 'op_frota', title: 'Pendências de Frota', file: 'op_frota.html', key: 'resp_operacional', def: 'Jilcleiton / Daniel Lemos' }
         ] },
     { id: 'manutencao', title: 'MANUTENÇÃO', icon: 'fa-tools', mainFile: 'dash_manutencao.html', key: 'resp_manutencao', def: 'Gestão de Frota',
          submenus: [
@@ -119,7 +120,6 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
             document.body.removeChild(newScript);
         });
         
-        // AQUI ESTAVA O BLOQUEIO: REMOVIDO 'rh_lancamentos.html' DA LISTA DE EXCLUSÃO
         if (!['cons_historico.html', 'conf_sistema.html'].includes(fileName)) {
             injectKanbanLauncher(subTitle);
         }
@@ -324,13 +324,18 @@ window.salvarKanbanItem = async function() {
 }
 
 function updateClock() {
-    document.getElementById('clock').innerText = new Date().toLocaleTimeString('pt-BR');
+    const clockElement = document.getElementById('clock');
+    if (clockElement) {
+        clockElement.innerText = new Date().toLocaleTimeString('pt-BR');
+    }
 }
 
 function iniciarReuniao() {
     const splash = document.getElementById('splash-screen');
-    splash.classList.add('hidden');
-    setTimeout(() => { splash.style.display = 'none'; }, 600);
+    if (splash) {
+        splash.classList.add('hidden');
+        setTimeout(() => { splash.style.display = 'none'; }, 600);
+    }
     
     loadModule(null, 'SSMA - INDICADORES GERAIS', 'dash_ssma.html', 'resp_ssma', 'Segurança do Trabalho');
     
