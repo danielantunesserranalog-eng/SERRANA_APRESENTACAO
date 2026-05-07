@@ -1,21 +1,25 @@
 // ARQUIVO: js/rh.js
-// Inicializa a conexão com o Supabase usando a configuração global do sistema
-
 if (!window.supabaseClientGlobal && typeof supabase !== 'undefined' && typeof SUPABASE_CONFIG !== 'undefined') {
     window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
 }
 const _supa = window.supabaseClientGlobal;
 
-// Data fixa para manter apenas uma linha "mestra" no banco, funcionando como formulário contínuo
+// Flag de segurança para evitar salvar dados vazios antes de carregar o banco
+window.rhCarregado = false;
+
 function obterDataMestra() {
     return '2099-12-31';
 }
 
 window.salvarDadosRH = async function(msgId = 'msg-rh-1', isSilent = false) {
+    // Se o sistema ainda não carregou os dados do banco, bloqueia o salvamento 
+    // para não sobrescrever os números atuais com "0" ou vazio.
+    if (!window.rhCarregado && !isSilent) return;
+
     const msg = document.getElementById(msgId);
     if (msg && !isSilent) {
         msg.style.color = 'var(--text-dim)';
-        msg.innerText = "Salvando alterações...";
+        msg.innerText = "Sincronizando dados...";
     }
     
     const dados = {
@@ -35,100 +39,77 @@ window.salvarDadosRH = async function(msgId = 'msg-rh-1', isSilent = false) {
     };
     
     try {
-        if (!_supa) throw new Error("Conexão com Supabase não estabelecida.");
+        if (!_supa) throw new Error("Supabase offline.");
         
-        // BUSCA EXATAMENTE A LINHA MESTRA, IGNORANDO AS ANTIGAS
-        const { data: existe } = await _supa.from('rh_indicadores').select('id').eq('data_registro', obterDataMestra()).limit(1);
+        // UPSERT: Se a data 2099-12-31 já existir, ele atualiza. Se não, ele cria.
+        const { error } = await _supa
+            .from('rh_indicadores')
+            .upsert(dados, { onConflict: 'data_registro' });
         
-        let erroBanco = null;
-        
-        if (existe && existe.length > 0) {
-            // Se já existe a linha mestra, ATUALIZA ela mesma
-            const { error } = await _supa.from('rh_indicadores').update(dados).eq('data_registro', obterDataMestra());
-            erroBanco = error;
-        } else {
-            // Se não existe, cria a linha mestra pela primeira vez
-            const { error } = await _supa.from('rh_indicadores').insert([dados]);
-            erroBanco = error;
-        }
-        
-        if (erroBanco) {
-            if (msg && !isSilent) { msg.style.color = 'var(--vermelho)'; msg.innerText = "ERRO: " + erroBanco.message; }
-            return;
-        }
+        if (error) throw error;
         
         if (msg && !isSilent) {
-            msg.style.color = 'var(--verde)'; msg.innerText = "Dados atualizados com sucesso!";
-            setTimeout(() => msg.innerText = "", 4000);
+            msg.style.color = 'var(--verde)';
+            msg.innerText = "Dados sincronizados!";
+            setTimeout(() => msg.innerText = "", 3000);
         }
     } catch (err) {
-        if (msg && !isSilent) { msg.style.color = 'var(--vermelho)'; msg.innerText = "Falha de conexão!"; }
+        console.error("Erro ao salvar:", err);
+        if (msg && !isSilent) { msg.style.color = 'var(--vermelho)'; msg.innerText = "Erro ao salvar!"; }
     }
 }
 
 window.carregarDadosRH = async function() {
     if (!_supa) return;
     
-    function safeParseMuralRH(str) {
-        if (!str || str.trim() === '') return [];
-        try {
-            let parsed = JSON.parse(str);
-            return Array.isArray(parsed) ? parsed : [];
-        } catch(e) { return []; }
-    }
-
     try {
-        // BUSCA SEMPRE A LINHA MESTRA PARA PREENCHER OS CAMPOS (mantém seus dados de ontem)
-        const { data: indData, error: indError } = await _supa.from('rh_indicadores')
+        const { data, error } = await _supa
+            .from('rh_indicadores')
             .select('*')
             .eq('data_registro', obterDataMestra())
-            .limit(1);
+            .maybeSingle(); // Busca apenas a linha mestra
         
-        if (!indError && indData && indData.length > 0) {
-            const dados = indData[0];
+        if (data) {
+            // Preenche os campos de lançamento
+            if(document.getElementById('input-headcount')) document.getElementById('input-headcount').value = data.headcount || 0;
+            if(document.getElementById('input-atestados')) document.getElementById('input-atestados').value = data.atestados || 0;
+            if(document.getElementById('input-afastamentos')) document.getElementById('input-afastamentos').value = data.afastamentos || 0;
+            if(document.getElementById('input-admissoes')) document.getElementById('input-admissoes').value = data.admissoes || 0;
+            if(document.getElementById('input-integracoes')) document.getElementById('input-integracoes').value = data.integracoes || 0;
+            if(document.getElementById('input-sgt')) document.getElementById('input-sgt').value = data.sgt || 0;
             
-            // Preenche os inputs de lançamento (para você não perder o que já digitou)
-            if(document.getElementById('input-headcount')) document.getElementById('input-headcount').value = dados.headcount || 0;
-            if(document.getElementById('input-atestados')) document.getElementById('input-atestados').value = dados.atestados || 0;
-            if(document.getElementById('input-afastamentos')) document.getElementById('input-afastamentos').value = dados.afastamentos || 0;
-            if(document.getElementById('input-admissoes')) document.getElementById('input-admissoes').value = dados.admissoes || 0;
-            if(document.getElementById('input-integracoes')) document.getElementById('input-integracoes').value = dados.integracoes || 0;
-            if(document.getElementById('input-sgt')) document.getElementById('input-sgt').value = dados.sgt || 0;
-            
-            if(document.getElementById('input-aniversariantes-rh')) document.getElementById('input-aniversariantes-rh').value = dados.mural_aniversariantes || '';
-            if(document.getElementById('input-calendario-rh')) document.getElementById('input-calendario-rh').value = dados.mural_calendario || '';
+            if(document.getElementById('input-aniversariantes-rh')) document.getElementById('input-aniversariantes-rh').value = data.mural_aniversariantes || '';
+            if(document.getElementById('input-calendario-rh')) document.getElementById('input-calendario-rh').value = data.mural_calendario || '';
 
-            // Atualiza as listas internas
+            // Atualiza os Murais
             if (window.listasRH) {
-                window.listasRH.avisos_rh = safeParseMuralRH(dados.mural_avisos);
-                window.listasRH.liberacoes_rh = safeParseMuralRH(dados.mural_liberacoes);
-                if(typeof window.renderizarListaMuralRH === 'function') {
-                    window.renderizarListaMuralRH('avisos_rh');
-                    window.renderizarListaMuralRH('liberacoes_rh');
-                }
+                try {
+                    window.listasRH.avisos_rh = JSON.parse(data.mural_avisos || '[]');
+                    window.listasRH.liberacoes_rh = JSON.parse(data.mural_liberacoes || '[]');
+                    if(typeof window.renderizarListaMuralRH === 'function') {
+                        window.renderizarListaMuralRH('avisos_rh');
+                        window.renderizarListaMuralRH('liberacoes_rh');
+                    }
+                } catch(e) { console.error("Erro parse listas", e); }
             }
             
-            // Atualiza os valores visuais no Dashboard
-            const atualizarTexto = (id, valor) => {
-                const el = document.getElementById(id);
-                if(el) el.innerText = valor || 0;
-            };
-
-            atualizarTexto('val-headcount', dados.headcount);
-            atualizarTexto('val-atestados', dados.atestados);
-            atualizarTexto('val-afastamentos', dados.afastamentos);
-            atualizarTexto('val-admissoes', dados.admissoes);
-            atualizarTexto('val-integracoes', dados.integracoes);
-            atualizarTexto('val-sgt', dados.sgt);
+            // Atualiza o Dashboard Visual
+            const setTxt = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val || 0; };
+            setTxt('val-headcount', data.headcount);
+            setTxt('val-atestados', data.atestados);
+            setTxt('val-afastamentos', data.afastamentos);
+            setTxt('val-admissoes', data.admissoes);
+            setTxt('val-integracoes', data.integracoes);
+            setTxt('val-sgt', data.sgt);
             
             if(typeof window.renderizarListaApresentacaoRH === 'function') {
-                window.renderizarListaApresentacaoRH('mural-avisos-rh', dados.mural_avisos, 'var(--amarelo)');
-                window.renderizarListaApresentacaoRH('mural-liberacoes-rh', dados.mural_liberacoes, '#0ea5e9');
+                window.renderizarListaApresentacaoRH('mural-avisos-rh', data.mural_avisos, 'var(--amarelo)');
+                window.renderizarListaApresentacaoRH('mural-liberacoes-rh', data.mural_liberacoes, '#0ea5e9');
             }
-            if(typeof window.gerarAniversariantesVisual === 'function') window.gerarAniversariantesVisual(dados.mural_aniversariantes || '');
-            if(typeof window.gerarCalendarioVisual === 'function') window.gerarCalendarioVisual(dados.mural_calendario || '');
+            if(typeof window.gerarAniversariantesVisual === 'function') window.gerarAniversariantesVisual(data.mural_aniversariantes || '');
+            if(typeof window.gerarCalendarioVisual === 'function') window.gerarCalendarioVisual(data.mural_calendario || '');
         }
-        
+
         // Carregamento de Vagas
         const { data: vagas } = await _supa.from('rh_vagas').select('*').eq('status', 'Aberta').order('data_criacao', { ascending: false });
         let totalVagas = 0;
@@ -138,33 +119,46 @@ window.carregarDadosRH = async function() {
             if (tbodyDash) {
                 tbodyDash.innerHTML = vagas.map(v => `<tr style="background: rgba(255,255,255,0.02);"><td style="color: white; font-weight: bold; border-bottom: 1px solid var(--border); padding: 12px;">${v.cargo}</td><td style="color: var(--text-dim); border-bottom: 1px solid var(--border); padding: 12px;"><i class="fas fa-building"></i> ${v.setor}</td><td style="text-align: center; border-bottom: 1px solid var(--border); padding: 12px;"><span class="badge bg-amarelo">${v.quantidade} Vaga(s)</span></td></tr>`).join('');
             }
+            const tbodyLanc = document.getElementById('tabela-vagas-lancamento');
+            if (tbodyLanc) {
+                tbodyLanc.innerHTML = vagas.map(v => `<tr style="background: rgba(255,255,255,0.02);"><td style="color: white; font-weight: bold; border-bottom: 1px solid var(--border); padding: 12px;">${v.cargo}</td><td style="color: var(--text-dim); border-bottom: 1px solid var(--border); padding: 12px;">${v.setor}</td><td style="color: var(--amarelo); text-align: center; border-bottom: 1px solid var(--border); padding: 12px;">${v.quantidade}</td><td style="text-align: right; border-bottom: 1px solid var(--border); padding: 12px;"><button class="btn-kanban" style="background: var(--verde);" onclick="concluirVaga(${v.id})"><i class="fas fa-check"></i></button></td></tr>`).join('');
+            }
         }
         if(document.getElementById('val-vagas')) document.getElementById('val-vagas').innerText = totalVagas;
 
-    } catch (err) { console.error("Erro ao carregar dados:", err); }
+        // LIBERA O SALVAMENTO após carregar tudo com sucesso
+        window.rhCarregado = true;
+
+    } catch (err) { console.error("Erro ao carregar RH:", err); }
 }
 
-window.limparMuralRH = async function(idMural) {
-    if(!confirm("Deseja apagar todos os itens desta lista?")) return;
-    const el = document.getElementById(idMural);
-    if(el) el.value = '';
-    await window.salvarDadosRH('msg-murais-rh', true);
-}
-
+// Funções de Vagas e Murais
 window.adicionarVaga = async function() {
     const cargo = document.getElementById('vaga-cargo').value;
     const setor = document.getElementById('vaga-setor').value;
     const qtd = document.getElementById('vaga-qtd').value;
     if(!cargo || !setor || !qtd) return;
     const { error } = await _supa.from('rh_vagas').insert([{ cargo, setor, quantidade: parseInt(qtd), status: 'Aberta' }]);
-    if(!error) { window.carregarDadosRH(); }
-}
-
-window.concluirVaga = async function(id) {
-    if(confirm("Deseja marcar esta vaga como concluída?")) {
-        const { error } = await _supa.from('rh_vagas').update({ status: 'Concluída' }).eq('id', id);
-        if (!error) window.carregarDadosRH();
+    if(!error) { 
+        document.getElementById('vaga-cargo').value = '';
+        document.getElementById('vaga-setor').value = '';
+        document.getElementById('vaga-qtd').value = '';
+        window.carregarDadosRH(); 
     }
 }
 
+window.concluirVaga = async function(id) {
+    if(!confirm("Concluir esta vaga?")) return;
+    const { error } = await _supa.from('rh_vagas').update({ status: 'Concluída' }).eq('id', id);
+    if (!error) window.carregarDadosRH();
+}
+
+window.limparMuralRH = async function(idMural) {
+    if(!confirm("Deseja apagar esta lista?")) return;
+    const el = document.getElementById(idMural);
+    if(el) el.value = '';
+    await window.salvarDadosRH('msg-murais-rh', false);
+}
+
+// Inicializa
 window.carregarDadosRH();
