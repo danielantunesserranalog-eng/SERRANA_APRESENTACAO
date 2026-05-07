@@ -111,6 +111,28 @@
     </div>
 </div>
 
+<div class="content-panel kpi-card" style="border-left: 4px solid #10b981; padding: 20px; margin-bottom: 40px; background: rgba(15,23,42,0.6);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+        <h3 class="nav-label" style="color: #10b981; margin: 0;"><i class="fas fa-camera-retro"></i> MURAL DE IMAGENS E EVIDÊNCIAS (SSMA)</h3>
+        <span id="msg-mural-img-ssma" style="font-size: 0.8rem; font-weight: bold;"></span>
+    </div>
+    
+    <div style="display: flex; gap: 15px; margin-bottom: 25px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; flex-wrap: wrap; align-items: center; border: 1px solid rgba(255,255,255,0.05);">
+        <input type="text" id="txt-img-ssma" style="flex: 1; min-width: 250px; background: rgba(15,23,42,0.8); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 6px; font-size: 0.9rem;" placeholder="Digite o título ou descrição da imagem...">
+        
+        <label for="file-img-ssma" style="background: rgba(15,23,42,0.8); color: #0ea5e9; border: 1px solid var(--border); padding: 12px 15px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; font-weight: bold; display: flex; align-items: center; gap: 8px; transition: 0.2s;">
+            <i class="fas fa-image"></i> Escolher Imagem
+        </label>
+        <input type="file" id="file-img-ssma" accept="image/*" style="display: none;" onchange="document.getElementById('lbl-file-ssma').innerText = this.files[0]?.name || ''">
+        <span id="lbl-file-ssma" style="color: var(--text-dim); font-size: 0.8rem; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold;"></span>
+
+        <button onclick="window.adicionarImagemSSMA()" style="background: #10b981; color: white; border: none; padding: 12px 25px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 6px rgba(0,0,0,0.2);"><i class="fas fa-plus"></i> Publicar</button>
+    </div>
+
+    <div id="grid-imagens-ssma" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+        <div style="grid-column: 1 / -1; color: var(--text-dim); text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Carregando mural...</div>
+    </div>
+</div>
 <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 40px;">
     <div class="table-box">
         <h3 class="nav-label"><i class="fas fa-user-graduate" style="color: var(--verde);"></i> TREINAMENTOS REALIZADOS (HISTÓRICO RECENTE)</h3>
@@ -209,11 +231,9 @@
         // ==============================================================================
         async function renderizarMatrizDashboardDinamica() {
             try {
-                // 1. Busca as regras
                 const { data: configData } = await _supa.from('ssma_cad_ferramentas').select('*');
                 const ferramentasConfig = configData || [];
 
-                // 2. Busca os colaboradores
                 const { data: colabData } = await _supa.from('ssma_fs_colab').select('*').order('nome', { ascending: true });
                 const colaboradores = colabData || [];
 
@@ -263,11 +283,9 @@
                         painelFerramentasHTML += `</div>`;
                     }
 
-                    // Somatório para o gráfico Geral
                     globalProg += totalProg;
                     globalReal += totalReal;
 
-                    // Cálculo do Colaborador (individual)
                     const percGeral = totalProg > 0 ? Math.round((totalReal / totalProg) * 100) : 0;
                     const corPerc = percGeral === 100 ? 'var(--verde)' : (percGeral >= 50 ? 'var(--amarelo)' : 'var(--vermelho)');
 
@@ -287,13 +305,11 @@
                     `);
                 });
 
-                // ======= ATUALIZAR O RESUMO GERAL =======
                 const percGlobal = globalProg > 0 ? Math.round((globalReal / globalProg) * 100) : 0;
                 
                 safeSet('tot-programado', globalProg);
                 safeSet('tot-realizado', globalReal);
                 
-                // Animação numérica
                 const gaugeEl = document.getElementById('gauge-aderencia');
                 if (gaugeEl) {
                     let start = 0;
@@ -311,7 +327,6 @@
                     }, 16);
                 }
 
-                // Ajuste visual da Barra e Mensagem baseada na %
                 const bar = document.getElementById('bar-aderencia-geral');
                 const msg = document.getElementById('msg-aderencia-geral');
                 const gaugeText = document.getElementById('gauge-aderencia');
@@ -319,17 +334,17 @@
                 if (bar) {
                     bar.style.width = `${percGlobal}%`;
                     if (percGlobal >= 80) {
-                        bar.style.background = 'linear-gradient(90deg, #10b981, #34d399)'; // Verde
+                        bar.style.background = 'linear-gradient(90deg, #10b981, #34d399)';
                         gaugeText.style.color = '#10b981';
                         gaugeText.style.textShadow = '0 0 15px rgba(16, 185, 129, 0.4)';
                         if(msg) msg.innerHTML = '<i class="fas fa-trophy" style="color: #10b981;"></i> Excelente! Aderência altíssima das ferramentas pela equipe.';
                     } else if (percGlobal >= 40) {
-                        bar.style.background = 'linear-gradient(90deg, #f59e0b, #fbbf24)'; // Amarelo
+                        bar.style.background = 'linear-gradient(90deg, #f59e0b, #fbbf24)';
                         gaugeText.style.color = '#f59e0b';
                         gaugeText.style.textShadow = '0 0 15px rgba(245, 158, 11, 0.4)';
                         if(msg) msg.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i> Atenção: Estamos no caminho, mas existem ferramentas pendentes.';
                     } else {
-                        bar.style.background = 'linear-gradient(90deg, #ef4444, #f87171)'; // Vermelho
+                        bar.style.background = 'linear-gradient(90deg, #ef4444, #f87171)';
                         gaugeText.style.color = '#ef4444';
                         gaugeText.style.textShadow = '0 0 15px rgba(239, 68, 68, 0.4)';
                         if(msg) msg.innerHTML = '<i class="fas fa-exclamation-circle" style="color: #ef4444;"></i> Alerta Crítico: Baixíssima adesão nas ferramentas de segurança.';
@@ -517,6 +532,11 @@
             
             // CHAMADA PARA A NOVA TABELA DINÂMICA
             await renderizarMatrizDashboardDinamica();
+
+            // ==============================================================================
+            // CARREGAR IMAGENS MURAL SSMA (NOVA LÓGICA)
+            // ==============================================================================
+            window.carregarImagensSSMA();
             
             if(statusEl) statusEl.innerHTML = '<i class="fas fa-check-circle" style="color: var(--verde);"></i> Atualizado agora';
 
@@ -525,4 +545,107 @@
             if(statusEl) statusEl.innerHTML = '<i class="fas fa-exclamation-triangle" style="color: var(--vermelho);"></i> Erro na conexão';
         }
     })();
+
+    // ==============================================================================
+    // FUNÇÕES DO MURAL DE IMAGENS SSMA (GLOBAlS PARA OS BOTÕES ONCLICK)
+    // ==============================================================================
+    window.muralImagensSSMA = [];
+
+    window.carregarImagensSSMA = async function() {
+        try {
+            const client = window.supabaseClientGlobal;
+            if(!client) return;
+            const { data } = await client.from('configuracoes').select('valor').eq('chave', 'mural_imagens_ssma').limit(1);
+            if(data && data.length > 0 && data[0].valor) {
+                window.muralImagensSSMA = JSON.parse(data[0].valor);
+            } else {
+                window.muralImagensSSMA = [];
+            }
+            window.renderizarImagensSSMA();
+        } catch(e) { console.error("Erro Imagens SSMA:", e); }
+    };
+
+    window.renderizarImagensSSMA = function() {
+        const grid = document.getElementById('grid-imagens-ssma');
+        if(!grid) return;
+        
+        if(window.muralImagensSSMA.length === 0) {
+            grid.innerHTML = '<div style="grid-column: 1 / -1; color: var(--text-dim); text-align: center; padding: 20px;">Nenhuma imagem ou evidência publicada.</div>';
+            return;
+        }
+
+        grid.innerHTML = window.muralImagensSSMA.map(item => `
+            <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">
+                <div style="height: 200px; width: 100%; background: #0f172a; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    ${item.imagem 
+                        ? `<img src="${item.imagem}" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer; transition: 0.3s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'" onclick="window.open('${item.imagem}', '_blank')">` 
+                        : '<i class="fas fa-image" style="font-size: 3rem; color: #334155;"></i>'}
+                </div>
+                <div style="padding: 15px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                    <p style="color: white; font-size: 0.9rem; margin: 0 0 15px 0; line-height: 1.4; font-weight: 500;">${item.texto}</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
+                        <span style="color: var(--text-dim); font-size: 0.75rem; font-weight: bold;"><i class="fas fa-calendar-alt text-emerald-500"></i> ${item.data}</span>
+                        <button onclick="window.removerImagemSSMA(${item.id})" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 6px 10px; border-radius: 6px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#ef4444'; this.style.color='white';" onmouseout="this.style.background='rgba(239, 68, 68, 0.15)'; this.style.color='#ef4444';" title="Excluir Evidência"><i class="fas fa-trash"></i></button>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    };
+
+    window.adicionarImagemSSMA = async function() {
+        const txt = document.getElementById('txt-img-ssma').value.trim();
+        const fileInput = document.getElementById('file-img-ssma');
+        const msg = document.getElementById('msg-mural-img-ssma');
+
+        if(!txt && (!fileInput.files || fileInput.files.length === 0)) {
+            msg.style.color = '#ef4444'; msg.innerText = 'Insira uma descrição e uma imagem!';
+            setTimeout(()=>msg.innerText='', 3000);
+            return;
+        }
+
+        msg.style.color = 'var(--text-dim)'; msg.innerText = 'Processando...';
+
+        const finalizar = async (base64) => {
+            const dataAtual = new Date().toLocaleDateString('pt-BR');
+            window.muralImagensSSMA.unshift({
+                id: Date.now(),
+                texto: txt || 'Evidência Fotográfica',
+                imagem: base64,
+                data: dataAtual
+            });
+
+            document.getElementById('txt-img-ssma').value = '';
+            document.getElementById('lbl-file-ssma').innerText = '';
+            fileInput.value = '';
+
+            window.renderizarImagensSSMA();
+
+            try {
+                const client = window.supabaseClientGlobal;
+                await client.from('configuracoes').upsert([{ chave: 'mural_imagens_ssma', valor: JSON.stringify(window.muralImagensSSMA) }], { onConflict: 'chave' });
+                msg.style.color = '#10b981'; msg.innerText = 'Publicado com sucesso!';
+            } catch(e) {
+                msg.style.color = '#ef4444'; msg.innerText = 'Erro ao salvar!';
+            }
+            setTimeout(()=>msg.innerText='', 3000);
+        };
+
+        if(fileInput.files && fileInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => finalizar(e.target.result);
+            reader.readAsDataURL(fileInput.files[0]);
+        } else {
+            finalizar(null);
+        }
+    };
+
+    window.removerImagemSSMA = async function(id) {
+        if(!confirm("Tem certeza que deseja remover esta evidência?")) return;
+        window.muralImagensSSMA = window.muralImagensSSMA.filter(i => i.id !== id);
+        window.renderizarImagensSSMA();
+        try {
+            const client = window.supabaseClientGlobal;
+            await client.from('configuracoes').upsert([{ chave: 'mural_imagens_ssma', valor: JSON.stringify(window.muralImagensSSMA) }], { onConflict: 'chave' });
+        } catch(e) { console.error(e); }
+    };
 </script>
