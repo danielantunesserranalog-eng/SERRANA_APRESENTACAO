@@ -320,13 +320,13 @@
                             <tr>
                                 <th class="px-4 py-3">Placa</th>
                                 <th class="px-2 py-3 text-center">CRLVe</th>
-                                <th class="px-2 py-3 text-center">tacógrafo</th>
+                                <th class="px-2 py-3 text-center">Crono.</th>
                                 <th class="px-2 py-3 text-center">ANTT</th>
                                 <th class="px-2 py-3 text-center">AET</th>
                                 <th class="px-2 py-3 text-center">APR</th>
-                                <th class="px-2 py-3 text-center">Floresta Seg.</th>
-                                <th class="px-2 py-3 text-center">Estrada Seg.</th>
-                                <th class="px-2 py-3 text-center">Map. Hosp.</th>
+                                <th class="px-2 py-3 text-center">Floresta</th>
+                                <th class="px-2 py-3 text-center">Estrada</th>
+                                <th class="px-2 py-3 text-center">Hosp.</th>
                             </tr>
                         </thead>
                         <tbody id="lista-caminhoes-pendentes" class="divide-y divide-slate-800/80 text-slate-300 text-xs font-bold">
@@ -346,6 +346,27 @@
         setTimeout(initNovoDashboardOperacional, 50);
         return; 
     }
+
+    // --- FUNÇÃO GLOBAL: MODAL DE IMAGEM ---
+    window.abrirModalImagem = function(src) {
+        let modal = document.getElementById('modal-imagem-global');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'modal-imagem-global';
+            modal.style.cssText = 'display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 999999; justify-content: center; align-items: center; backdrop-filter: blur(5px);';
+            modal.onclick = function(e) { if(e.target.id === 'modal-imagem-global') modal.style.display = 'none'; };
+            
+            modal.innerHTML = `
+                <div style="position: relative; max-width: 90vw; max-height: 90vh; display: flex; justify-content: center; align-items: center;">
+                    <button onclick="document.getElementById('modal-imagem-global').style.display='none'" style="position: absolute; top: -15px; right: -15px; background: rgba(239, 68, 68, 0.9); border: 2px solid white; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; z-index: 100000; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.2s;" onmouseover="this.style.background='#ef4444'" onmouseout="this.style.background='rgba(239, 68, 68, 0.9)'"><i class="fas fa-times"></i></button>
+                    <img id="img-modal-src-global" src="" style="max-width: 90vw; max-height: 85vh; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); object-fit: contain;">
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+        document.getElementById('img-modal-src-global').src = src;
+        modal.style.display = 'flex';
+    };
 
     const chartDataLabelsPlugin = {
         id: 'customDataLabels',
@@ -1059,7 +1080,6 @@
         document.body.removeChild(link);
     };
 
-    // ================= LÓGICA DO MURAL DE AVISOS COM IMAGEM =================
     window.muralSetorKey = 'mural_operacional';
     window.muralSetorData = [];
 
@@ -1091,7 +1111,8 @@
         }
         
         container.innerHTML = window.muralSetorData.map(item => {
-            const imgHtml = item.imagem ? `<div class="mt-3"><img src="${item.imagem}" class="rounded-lg border border-slate-600 max-h-48 object-contain shadow-md" alt="Imagem Anexa"></div>` : '';
+            // AQUI ESTÁ O NOVO CÓDIGO DA IMAGEM PARA O MODAL
+            const imgHtml = item.imagem ? `<div class="mt-3"><img src="${item.imagem}" class="rounded-lg border border-slate-600 max-h-48 object-contain shadow-md" alt="Imagem Anexa" onclick="window.abrirModalImagem('${item.imagem}')" style="cursor: pointer; transition: 0.3s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'"></div>` : '';
             return `
             <div class="flex items-start justify-between bg-slate-900/40 p-3 rounded-lg border-l-4 border-sky-400 border-t border-r border-b border-slate-700/50">
                 <div class="flex-1">
@@ -1117,7 +1138,6 @@
         if(!dt || !txt) { alert("Preencha a data e o texto para adicionar ao mural!"); return; }
         
         const finalizarAdicao = async (imagemBase64) => {
-            // Usa unshift para aparecer sempre no topo da lista
             window.muralSetorData.unshift({ id: Date.now(), data: dt, texto: txt, imagem: imagemBase64 });
             document.getElementById('txt-mural-setor').value = '';
             document.getElementById('lbl-nome-arquivo').innerText = '';
@@ -1133,7 +1153,7 @@
             reader.onload = function(e) {
                 finalizarAdicao(e.target.result);
             };
-            reader.readAsDataURL(file); // Converte a imagem para Base64
+            reader.readAsDataURL(file); 
         } else {
             finalizarAdicao(null);
         }
@@ -1164,7 +1184,6 @@
         }
     };
 
-    // ================= LÓGICA DO VISOR DE FROTA =================
     window.frotaPendenciasData = [];
 
     window.carregarFrotaSupabase = async function() {
