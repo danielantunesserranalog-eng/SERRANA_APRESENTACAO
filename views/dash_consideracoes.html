@@ -1,4 +1,3 @@
-<!-- ================= HEADER COM BOTÃO PDF ================= -->
 <div class="action-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: rgba(15, 23, 42, 0.8); padding: 15px 20px; border-radius: 12px; border-left: 5px solid #eab308; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
     <h2 style="color: white; margin: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
         <i class="fas fa-clipboard-list" style="color: #eab308;"></i> Painel Executivo e Considerações do Dia
@@ -8,7 +7,6 @@
     </button>
 </div>
 
-<!-- ================= RESUMO D-1 (OPERAÇÃO E MANUTENÇÃO) ================= -->
 <div class="content-panel" style="margin-bottom: 25px; border-left: 5px solid #0ea5e9; background: rgba(15, 23, 42, 0.8); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
     <div style="padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center;">
         <h3 class="nav-label" style="font-size: 1rem; color: white; margin: 0;">
@@ -17,7 +15,6 @@
         <span id="status-load-d1" style="font-size: 0.8rem; color: var(--amarelo); font-weight: bold;"><i class="fas fa-sync fa-spin"></i> Buscando dados...</span>
     </div>
 
-    <!-- Grid Operacional D-1 -->
     <div style="padding: 20px; background: rgba(0,0,0,0.2);">
         <h4 style="color: #10b981; font-size: 0.85rem; margin-bottom: 15px; text-transform: uppercase; font-weight: 800;"><i class="fas fa-truck"></i> Operacional (D-1)</h4>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 15px;">
@@ -60,7 +57,6 @@
         </div>
     </div>
 
-    <!-- Grid Manutenção D-1 -->
     <div style="padding: 20px; border-top: 1px solid rgba(255,255,255,0.05);">
         <h4 style="color: #f59e0b; font-size: 0.85rem; margin-bottom: 15px; text-transform: uppercase; font-weight: 800;"><i class="fas fa-tools"></i> Manutenção (D-1)</h4>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
@@ -84,7 +80,6 @@
     </div>
 </div>
 
-<!-- ================= MURAIS DE COMUNICAÇÃO GLOBAIS ================= -->
 <div class="content-panel" style="margin-bottom: 25px; border-left: 5px solid #8b5cf6; background: rgba(15, 23, 42, 0.8); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
     <div style="padding: 15px 20px; border-bottom: 1px solid rgba(255,255,255,0.05);">
         <h3 class="nav-label" style="font-size: 1rem; color: white; margin: 0;"><i class="fas fa-bullhorn" style="color: #8b5cf6;"></i> MURAIS DE INFORMAÇÕES DOS SETORES</h3>
@@ -92,7 +87,6 @@
     
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; padding: 20px;">
         
-        <!-- SSMA -->
         <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
             <h4 style="color: #10b981; font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;"><i class="fas fa-shield-alt"></i> Mural SSMA</h4>
             <div id="mural-global-ssma" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
@@ -100,7 +94,6 @@
             </div>
         </div>
 
-        <!-- RH -->
         <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
             <h4 style="color: #ec4899; font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;"><i class="fas fa-users"></i> Mural RH</h4>
             <div id="mural-global-rh" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
@@ -108,7 +101,6 @@
             </div>
         </div>
 
-        <!-- OPERACIONAL -->
         <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
             <h4 style="color: #0ea5e9; font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;"><i class="fas fa-truck"></i> Mural Operacional</h4>
             <div id="mural-global-op" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
@@ -116,7 +108,6 @@
             </div>
         </div>
 
-        <!-- MANUTENÇÃO -->
         <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 15px;">
             <h4 style="color: #f59e0b; font-size: 0.9rem; margin-bottom: 15px; font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;"><i class="fas fa-tools"></i> Mural Manutenção</h4>
             <div id="mural-global-man" style="display: flex; flex-direction: column; gap: 8px; max-height: 250px; overflow-y: auto;">
@@ -127,11 +118,9 @@
     </div>
 </div>
 
-<!-- ================= QUADRO KANBAN ================= -->
 <div class="content-panel kanban-container" style="margin-top: 10px; border-top: 5px solid var(--primary); padding-top: 20px;">
     <h3 class="nav-label" style="font-size: 1rem; color: white;"><i class="fas fa-columns" style="color: var(--primary);"></i> QUADRO KANBAN - METAS E AÇÕES DAS REUNIÕES</h3>
     
-    <!-- Lançamentos de hoje do Kanban (Resumo Rápido) -->
     <div id="resumo-dia-lista" style="margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 8px; display: flex; flex-direction: column; gap: 10px;">
         <p style="color: var(--text-dim); font-size: 0.85rem;">Carregando metas do dia...</p>
     </div>
@@ -218,7 +207,7 @@
             if (opData.length > 0) {
                 // Filtro exato para puxar apenas Serrana para bater com o dashboard original
                 const serranaLoaders = ['GSR0001', 'GSR0002', 'GSR0003', 'GSR0007', 'GSR0008', 'GRB0015', 'GRB0022'];
-                const isSerranaTransp = (d) => String(d.transportadora || '').toUpperCase().includes('SERRANALOG');
+                const isSerranaTransp = (d) => String(d.transportadora || '').toUpperCase().includes('SERRANALOG') || String(d.transportadora || '').toUpperCase().includes('SERRANA FLORESTAL');
                 const checkLoader = (d, loaderArray) => {
                     const val = String(d.carregadorFlorestal || d.grua || '').trim().toUpperCase();
                     if (val && val !== '-') return loaderArray.includes(val);
@@ -548,7 +537,7 @@
         window.carregarKanbanDash();
     };
 
-    // --- LÓGICA DE GERAÇÃO DO PDF EXECUTIVO COMPLETÃO ---
+    // --- LÓGICA DE GERAÇÃO DO PDF EXECUTIVO (PRETO E BRANCO, MULTIPÁGINAS) ---
     window.gerarPDFConsideracoes = async function(event) {
         if (!window.jspdf || !window.jspdf.jsPDF) { alert("Biblioteca de PDF não carregou corretamente. Recarregue a página."); return; }
         
@@ -599,7 +588,7 @@
                 ].sort((a,b) => new Date(b.data) - new Date(a.data));
             }
             
-            // Build elements
+            // Build elements para PDF Monocromático
             reportDiv = document.createElement('div');
             reportDiv.id = 'relatorio-pdf-temp';
             reportDiv.style.width = '800px';
@@ -622,15 +611,15 @@
             const manDm = document.getElementById('d1-dm').innerText;
             const manAtivos = document.getElementById('d1-ativos').innerText;
 
-            const buildPdfMural = (title, arr, color) => {
-                let html = `<div style="margin-bottom: 15px; background: #f8fafc; padding: 10px; border-radius: 6px; border-left: 3px solid ${color};">
-                    <h4 style="color: ${color}; font-size: 13px; margin: 0 0 8px 0; text-transform: uppercase;">${title}</h4>`;
+            const buildPdfMural = (title, arr) => {
+                let html = `<div style="margin-bottom: 15px; background: #ffffff; padding: 10px; border: 1px solid #333; border-radius: 4px;">
+                    <h4 style="color: #000; font-size: 13px; margin: 0 0 8px 0; text-transform: uppercase;">${title}</h4>`;
                 if(!arr || arr.length === 0) {
-                    html += `<p style="margin: 0; font-size: 11px; color: #94a3b8;">Nenhum registro.</p>`;
+                    html += `<p style="margin: 0; font-size: 11px; color: #555;">Nenhum registro.</p>`;
                 } else {
-                    html += `<ul style="list-style: none; padding: 0; margin: 0; font-size: 11px; color: #334155;">`;
+                    html += `<ul style="list-style: none; padding: 0; margin: 0; font-size: 11px; color: #000;">`;
                     arr.forEach(i => {
-                        html += `<li style="margin-bottom: 4px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 4px;"><strong>[${formatDataMural(i.data)}]</strong> ${i.texto}</li>`;
+                        html += `<li style="margin-bottom: 4px; border-bottom: 1px dashed #ccc; padding-bottom: 4px;"><strong>[${formatDataMural(i.data)}]</strong> ${i.texto}</li>`;
                     });
                     html += `</ul>`;
                 }
@@ -639,76 +628,76 @@
             };
 
             let htmlContent = `
-                <div style="border-bottom: 3px solid #10b981; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
+                <div style="border-bottom: 2px solid #000; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
                     <div style="display: flex; align-items: center; gap: 20px;">
                         <img src="./assets/logoverde.png" alt="Logo Serrana" style="height: 55px; object-fit: contain;">
                         <div>
-                            <h1 style="color: #0f172a; font-size: 24px; font-weight: bold; margin: 0; text-transform: uppercase;">Serrana Florestal</h1>
-                            <h2 style="color: #475569; font-size: 15px; margin: 5px 0 0 0;">Ata Executiva de Reunião Diária</h2>
+                            <h1 style="color: #000; font-size: 24px; font-weight: bold; margin: 0; text-transform: uppercase;">Serrana Florestal</h1>
+                            <h2 style="color: #333; font-size: 15px; margin: 5px 0 0 0;">Ata Executiva de Reunião Diária</h2>
                         </div>
                     </div>
                     <div style="text-align: right;">
-                        <p style="font-size: 14px; font-weight: bold; margin: 0; color: #0f172a;">Data: ${dataHoje}</p>
-                        <p style="font-size: 12px; margin: 2px 0 0 0; color: #64748b;">Gerado às: ${horaAtual}</p>
+                        <p style="font-size: 14px; font-weight: bold; margin: 0; color: #000;">Data: ${dataHoje}</p>
+                        <p style="font-size: 12px; margin: 2px 0 0 0; color: #555;">Gerado às: ${horaAtual}</p>
                     </div>
                 </div>
 
                 <div style="margin-bottom: 25px;">
-                    <h3 style="color: #0f172a; font-size: 16px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">1. Destaques D-1</h3>
-                    <div style="display: flex; justify-content: space-between; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <h3 style="color: #000; font-size: 16px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 5px;">1. Destaques D-1</h3>
+                    <div style="display: flex; justify-content: space-between; background: #fff; padding: 15px; border-radius: 4px; border: 1px solid #333;">
                         <div style="text-align: center;">
-                            <div style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase;">Viagens (Op)</div>
-                            <div style="font-size: 18px; font-weight: bold; color: #0f172a; margin-top: 4px;">${opViagens}</div>
+                            <div style="font-size: 11px; color: #333; font-weight: bold; text-transform: uppercase;">Viagens (Op)</div>
+                            <div style="font-size: 18px; font-weight: bold; color: #000; margin-top: 4px;">${opViagens}</div>
                         </div>
-                        <div style="text-align: center; border-left: 1px solid #cbd5e1; padding-left: 20px;">
-                            <div style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase;">PBTC Médio</div>
-                            <div style="font-size: 18px; font-weight: bold; color: #0ea5e9; margin-top: 4px;">${opPbtc}</div>
+                        <div style="text-align: center; border-left: 1px solid #ccc; padding-left: 20px;">
+                            <div style="font-size: 11px; color: #333; font-weight: bold; text-transform: uppercase;">PBTC Médio</div>
+                            <div style="font-size: 18px; font-weight: bold; color: #000; margin-top: 4px;">${opPbtc}</div>
                         </div>
-                        <div style="text-align: center; border-left: 1px solid #cbd5e1; padding-left: 20px;">
-                            <div style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase;">Vol. Médio</div>
-                            <div style="font-size: 18px; font-weight: bold; color: #8b5cf6; margin-top: 4px;">${opVol}</div>
+                        <div style="text-align: center; border-left: 1px solid #ccc; padding-left: 20px;">
+                            <div style="font-size: 11px; color: #333; font-weight: bold; text-transform: uppercase;">Vol. Médio</div>
+                            <div style="font-size: 18px; font-weight: bold; color: #000; margin-top: 4px;">${opVol}</div>
                         </div>
-                        <div style="text-align: center; border-left: 1px solid #cbd5e1; padding-left: 20px;">
-                            <div style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase;">DM Geral (Man)</div>
-                            <div style="font-size: 18px; font-weight: bold; color: #10b981; margin-top: 4px;">${manDm}</div>
+                        <div style="text-align: center; border-left: 1px solid #ccc; padding-left: 20px;">
+                            <div style="font-size: 11px; color: #333; font-weight: bold; text-transform: uppercase;">DM Geral (Man)</div>
+                            <div style="font-size: 18px; font-weight: bold; color: #000; margin-top: 4px;">${manDm}</div>
                         </div>
-                        <div style="text-align: center; border-left: 1px solid #cbd5e1; padding-left: 20px;">
-                            <div style="font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase;">Ativos Médio</div>
-                            <div style="font-size: 18px; font-weight: bold; color: #0f172a; margin-top: 4px;">${manAtivos}</div>
+                        <div style="text-align: center; border-left: 1px solid #ccc; padding-left: 20px;">
+                            <div style="font-size: 11px; color: #333; font-weight: bold; text-transform: uppercase;">Ativos Médio</div>
+                            <div style="font-size: 18px; font-weight: bold; color: #000; margin-top: 4px;">${manAtivos}</div>
                         </div>
                     </div>
                 </div>
 
                 <div style="margin-bottom: 25px;">
-                    <h3 style="color: #0f172a; font-size: 16px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">2. Comunicações e Avisos Setoriais</h3>
+                    <h3 style="color: #000; font-size: 16px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 5px;">2. Comunicações e Avisos Setoriais</h3>
                     <div style="display: flex; flex-wrap: wrap; gap: 20px;">
                         <div style="flex: 1; min-width: 300px;">
-                            ${buildPdfMural('Mural SSMA', arrSsma, '#10b981')}
-                            ${buildPdfMural('Mural Operacional', arrOp, '#0ea5e9')}
+                            ${buildPdfMural('Mural SSMA', arrSsma)}
+                            ${buildPdfMural('Mural Operacional', arrOp)}
                         </div>
                         <div style="flex: 1; min-width: 300px;">
-                            ${buildPdfMural('Mural RH', arrRh, '#ec4899')}
-                            ${buildPdfMural('Mural Manutenção', arrMan, '#d97706')}
+                            ${buildPdfMural('Mural RH', arrRh)}
+                            ${buildPdfMural('Mural Manutenção', arrMan)}
                         </div>
                     </div>
                 </div>
                 
                 <div style="margin-bottom: 20px;">
-                    <h3 style="color: #0f172a; font-size: 16px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #cbd5e1; padding-bottom: 5px;">3. Plano de Ação e Metas (Kanban)</h3>
+                    <h3 style="color: #000; font-size: 16px; margin-bottom: 10px; text-transform: uppercase; border-bottom: 1px solid #000; padding-bottom: 5px;">3. Plano de Ação e Metas (Kanban)</h3>
                 </div>
             `;
             
             if (dadosKanban.length === 0) {
-                htmlContent += `<p style="color: #64748b; font-size: 14px; text-align: center; margin-top: 20px;">Nenhuma meta ou ação registrada.</p>`;
+                htmlContent += `<p style="color: #333; font-size: 14px; text-align: center; margin-top: 20px;">Nenhuma meta ou ação registrada.</p>`;
             } else {
-                htmlContent += `<table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                htmlContent += `<table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; border: 1px solid #000;">
                     <thead>
-                        <tr style="background-color: #f8fafc; border-bottom: 2px solid #cbd5e1;">
-                            <th style="padding: 10px; color: #334155;">Status</th>
-                            <th style="padding: 10px; color: #334155;">Ação / Meta</th>
-                            <th style="padding: 10px; color: #334155;">Responsável</th>
-                            <th style="padding: 10px; color: #334155;">Setor</th>
-                            <th style="padding: 10px; color: #334155;">Prazo</th>
+                        <tr style="background-color: #f2f2f2; border-bottom: 2px solid #000;">
+                            <th style="padding: 10px; color: #000; border-right: 1px solid #000;">Status</th>
+                            <th style="padding: 10px; color: #000; border-right: 1px solid #000;">Ação / Meta</th>
+                            <th style="padding: 10px; color: #000; border-right: 1px solid #000;">Responsável</th>
+                            <th style="padding: 10px; color: #000; border-right: 1px solid #000;">Setor</th>
+                            <th style="padding: 10px; color: #000;">Prazo</th>
                         </tr>
                     </thead>
                     <tbody>`;
@@ -716,56 +705,55 @@
                 const ordenacao = { 'TODO': 1, 'DOING': 2, 'DONE': 3 };
                 dadosKanban.sort((a, b) => ordenacao[a.status] - ordenacao[b.status]);
                 
-                dadosKanban.forEach((item, index) => {
+                dadosKanban.forEach((item) => {
                     let statusText = item.status === 'TODO' ? 'A Cumprir' : (item.status === 'DOING' ? 'Em Andamento' : 'Concluído');
-                    let statusColor = item.status === 'TODO' ? '#e11d48' : (item.status === 'DOING' ? '#d97706' : '#059669');
-                    let bgColor = index % 2 === 0 ? '#ffffff' : '#f8fafc';
                     
                     htmlContent += `
-                        <tr style="background-color: ${bgColor}; border-bottom: 1px solid #e2e8f0;">
-                            <td style="padding: 10px; font-weight: bold; color: ${statusColor}; width: 15%; vertical-align: top;">${statusText}</td>
-                            <td style="padding: 10px; color: #0f172a; width: 40%; vertical-align: top;">
+                        <tr style="background-color: #fff; border-bottom: 1px solid #000;">
+                            <td style="padding: 10px; font-weight: bold; color: #000; width: 15%; vertical-align: top; border-right: 1px solid #000;">${statusText}</td>
+                            <td style="padding: 10px; color: #000; width: 40%; vertical-align: top; border-right: 1px solid #000;">
                                 <strong style="display: block; margin-bottom: 4px;">${item.meta}</strong>
-                                ${item.consideracao ? `<span style="color: #64748b; font-size: 11px; line-height: 1.4; display: block;">${item.consideracao}</span>` : ''}
+                                ${item.consideracao ? `<span style="color: #555; font-size: 11px; line-height: 1.4; display: block;">${item.consideracao}</span>` : ''}
                             </td>
-                            <td style="padding: 10px; color: #334155; font-weight: 600; width: 15%; vertical-align: top;">${item.responsavel}</td>
-                            <td style="padding: 10px; color: #475569; width: 15%; vertical-align: top;">${item.setor}</td>
-                            <td style="padding: 10px; color: #0f172a; font-weight: bold; width: 15%; vertical-align: top;">${window.formatarDataBR(item.data_previsao) || '-'}</td>
+                            <td style="padding: 10px; color: #000; width: 15%; vertical-align: top; border-right: 1px solid #000;">${item.responsavel}</td>
+                            <td style="padding: 10px; color: #000; width: 15%; vertical-align: top; border-right: 1px solid #000;">${item.setor}</td>
+                            <td style="padding: 10px; color: #000; font-weight: bold; width: 15%; vertical-align: top;">${window.formatarDataBR(item.data_previsao) || '-'}</td>
                         </tr>
                     `;
                 });
                 htmlContent += `</tbody></table>`;
             }
             
+            // Seção de assinaturas posicionada com margem grande para ficar bem separada e no final
             htmlContent += `
-                <div style="margin-top: 60px; display: flex; justify-content: space-around; text-align: center;">
+                <div style="margin-top: 80px; display: flex; justify-content: space-around; text-align: center;">
                     <div>
                         <div style="border-top: 1px solid #000; width: 220px; margin: 0 auto 5px auto;"></div>
-                        <p style="margin: 0; font-size: 12px; color: #0f172a; font-weight: bold;">Diretoria Executiva</p>
+                        <p style="margin: 0; font-size: 12px; color: #000; font-weight: bold;">Diretoria Executiva</p>
                     </div>
                     <div>
                         <div style="border-top: 1px solid #000; width: 220px; margin: 0 auto 5px auto;"></div>
-                        <p style="margin: 0; font-size: 12px; color: #0f172a; font-weight: bold;">Gestão de Operações</p>
+                        <p style="margin: 0; font-size: 12px; color: #000; font-weight: bold;">Gestão de Operações</p>
                     </div>
                 </div>
                 
                 <div style="margin-top: 50px; display: flex; justify-content: space-between; text-align: center; gap: 20px;">
                     <div style="flex: 1;">
                         <div style="border-top: 1px solid #000; width: 180px; margin: 0 auto 5px auto;"></div>
-                        <p style="margin: 0; font-size: 12px; color: #0f172a; font-weight: bold;">Gestão de Manutenção</p>
+                        <p style="margin: 0; font-size: 12px; color: #000; font-weight: bold;">Gestão de Manutenção</p>
                     </div>
                     <div style="flex: 1;">
                         <div style="border-top: 1px solid #000; width: 180px; margin: 0 auto 5px auto;"></div>
-                        <p style="margin: 0; font-size: 12px; color: #0f172a; font-weight: bold;">Recursos Humanos (RH)</p>
+                        <p style="margin: 0; font-size: 12px; color: #000; font-weight: bold;">Recursos Humanos (RH)</p>
                     </div>
                     <div style="flex: 1;">
                         <div style="border-top: 1px solid #000; width: 180px; margin: 0 auto 5px auto;"></div>
-                        <p style="margin: 0; font-size: 12px; color: #0f172a; font-weight: bold;">SSMA</p>
+                        <p style="margin: 0; font-size: 12px; color: #000; font-weight: bold;">SSMA</p>
                     </div>
                 </div>
                 
-                <div style="margin-top: 40px; text-align: center; border-top: 1px solid #cbd5e1; padding-top: 10px;">
-                    <p style="margin: 0; font-size: 10px; color: #94a3b8;">Documento gerado automaticamente pelo Sistema de Gestão Serrana Florestal.</p>
+                <div style="margin-top: 40px; text-align: center; border-top: 1px solid #000; padding-top: 10px;">
+                    <p style="margin: 0; font-size: 10px; color: #555;">Documento gerado automaticamente pelo Sistema de Gestão Serrana Florestal.</p>
                 </div>
             `;
             
@@ -774,6 +762,7 @@
             
             await new Promise(resolve => setTimeout(resolve, 500));
             
+            // Gerar o Canvas
             const canvas = await html2canvas(reportDiv, { 
                 scale: 2, 
                 backgroundColor: '#ffffff',
@@ -781,12 +770,29 @@
             });
             
             const imgData = canvas.toDataURL('image/png');
-            const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
-            const imgProps = pdf.getImageProperties(imgData);
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
             
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            // Lógica de Múltiplas Páginas no jsPDF
+            const pdf = new window.jspdf.jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            
+            const imgProps = pdf.getImageProperties(imgData);
+            const totalImgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            
+            let heightLeft = totalImgHeight;
+            let position = 0;
+            
+            // Adiciona a primeira página
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalImgHeight);
+            heightLeft -= pdfHeight;
+            
+            // Laço para adicionar as páginas seguintes, caso o conteúdo ultrapasse a altura de uma folha A4
+            while (heightLeft > 0) {
+                position = heightLeft - totalImgHeight; // Posiciona a imagem "para cima" de forma exata
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, totalImgHeight);
+                heightLeft -= pdfHeight;
+            }
             
             pdf.save(`Ata_Reuniao_Serrana_${dataHoje.replace(/\//g, '-')}.pdf`);
             
