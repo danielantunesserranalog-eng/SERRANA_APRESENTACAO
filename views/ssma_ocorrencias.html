@@ -10,10 +10,12 @@
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">DNAs Concluídos (Total do Mês)</label>
                 <input type="number" id="ssma-dnas-concluidos" class="config-input" placeholder="Ex: 10" style="border-color: #8b5cf6;">
             </div>
+            
             <div class="input-group">
-                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Dias Sem Acidentes (C/ Afastamento)</label>
-                <input type="number" id="ssma-dias-acidente" class="config-input" placeholder="Ex: 342">
+                <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Data do Último Acidente (C/ Afastamento)</label>
+                <input type="date" id="ssma-data-acidente" class="config-input" style="border-color: var(--verde);">
             </div>
+            
             <div class="input-group">
                 <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Incidentes (Sem Afastamento)</label>
                 <input type="number" id="ssma-incidentes" class="config-input" placeholder="Ex: 2">
@@ -314,13 +316,20 @@
 
         async function carregarIndicadoresDeHoje() {
             try {
-                const { data: configData } = await _supa.from('configuracoes').select('chave, valor').eq('chave', 'meta_diaria_dna');
-                if (configData && configData.length > 0) document.getElementById('ssma-meta-dna').value = configData[0].valor;
+                // AGORA BUSCAMOS TAMBÉM A DATA DO ÚLTIMO ACIDENTE NAS CONFIGURAÇÕES
+                const { data: configData } = await _supa.from('configuracoes').select('chave, valor').in('chave', ['meta_diaria_dna', 'data_ultimo_acidente']);
+                
+                if (configData && configData.length > 0) {
+                    const metaDna = configData.find(c => c.chave === 'meta_diaria_dna');
+                    if (metaDna) document.getElementById('ssma-meta-dna').value = metaDna.valor;
+                    
+                    const dataAcid = configData.find(c => c.chave === 'data_ultimo_acidente');
+                    if (dataAcid) document.getElementById('ssma-data-acidente').value = dataAcid.valor;
+                }
                 
                 const { data } = await _supa.from('ssma_indicadores_gerais').select('*').neq('data_registro', '2099-12-31').order('data_registro', { ascending: false }).limit(1);
                 if (data && data.length > 0) {
                     const ind = data[0]; window.idRegistroSSMA = ind.id; 
-                    document.getElementById('ssma-dias-acidente').value = ind.dias_sem_acidentes !== null ? ind.dias_sem_acidentes : '';
                     document.getElementById('ssma-incidentes').value = ind.incidentes_sem_afastamento !== null ? ind.incidentes_sem_afastamento : '';
                     document.getElementById('ssma-visitas').value = ind.visitas_campo !== null ? ind.visitas_campo : '';
                     document.getElementById('ssma-campanha-mes').value = ind.campanha_mes || '';
@@ -337,17 +346,24 @@
         carregarIndicadoresDeHoje();
         
         window.salvarIndicadoresGerais = async function() {
-            const msg = document.getElementById('msg-ssma-geral'); const metaDna = document.getElementById('ssma-meta-dna').value;
+            const msg = document.getElementById('msg-ssma-geral'); 
+            const metaDna = document.getElementById('ssma-meta-dna').value;
+            const dataAcidente = document.getElementById('ssma-data-acidente').value;
+            
             const dados = {
-                dias_sem_acidentes: parseInt(document.getElementById('ssma-dias-acidente').value, 10) || 0,
                 incidentes_sem_afastamento: parseInt(document.getElementById('ssma-incidentes').value, 10) || 0,
                 visitas_campo: parseInt(document.getElementById('ssma-visitas').value, 10) || 0,
-                campanha_mes: document.getElementById('ssma-campanha-mes').value || null, campanha_tema: document.getElementById('ssma-campanha-tema').value || null,
-                campanha_cor: document.getElementById('ssma-campanha-cor').value || '#f59e0b', dnas_concluidos: parseInt(document.getElementById('ssma-dnas-concluidos').value, 10) || 0
+                campanha_mes: document.getElementById('ssma-campanha-mes').value || null, 
+                campanha_tema: document.getElementById('ssma-campanha-tema').value || null,
+                campanha_cor: document.getElementById('ssma-campanha-cor').value || '#f59e0b', 
+                dnas_concluidos: parseInt(document.getElementById('ssma-dnas-concluidos').value, 10) || 0
             };
             msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando no banco...';
             try {
+                // Salva a Meta e a Data na tabela de configurações globais
                 if (metaDna) await _supa.from('configuracoes').upsert([{ chave: 'meta_diaria_dna', valor: metaDna }], { onConflict: 'chave' });
+                if (dataAcidente) await _supa.from('configuracoes').upsert([{ chave: 'data_ultimo_acidente', valor: dataAcidente }], { onConflict: 'chave' });
+                
                 let res;
                 if (window.idRegistroSSMA) res = await _supa.from('ssma_indicadores_gerais').update(dados).eq('id', window.idRegistroSSMA);
                 else { dados.data_registro = hojeIso; res = await _supa.from('ssma_indicadores_gerais').insert([dados]).select(); if(res.data && res.data.length > 0) window.idRegistroSSMA = res.data[0].id; }
@@ -442,7 +458,7 @@
         }
 
         window.adicionarFsColaborador = async function() {
-            const area = 'N/A'; // O banco de dados recebe N/A para não dar erro
+            const area = 'N/A'; 
             const nome = document.getElementById('fs-colab-nome').value.trim().toUpperCase();
             const funcao = document.getElementById('fs-colab-funcao').value;
 

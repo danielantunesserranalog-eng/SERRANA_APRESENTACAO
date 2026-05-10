@@ -377,12 +377,37 @@
 
         try {
             let META_DIARIA_DNA = 2;
+            let dataUltimoAcidente = null;
+            
             try {
-                const { data: confData } = await _supa.from('configuracoes').select('valor').eq('chave', 'meta_diaria_dna').limit(1);
-                if (confData && confData.length > 0) { META_DIARIA_DNA = parseInt(confData[0].valor, 10) || 2; }
+                // NOVA LÓGICA: Busca tanto a meta quanto a Data do Acidente do banco de configurações
+                const { data: confData } = await _supa.from('configuracoes').select('chave, valor').in('chave', ['meta_diaria_dna', 'data_ultimo_acidente']);
+                if (confData && confData.length > 0) { 
+                    const mDna = confData.find(c => c.chave === 'meta_diaria_dna');
+                    if (mDna) META_DIARIA_DNA = parseInt(mDna.valor, 10) || 2; 
+
+                    const dAcidente = confData.find(c => c.chave === 'data_ultimo_acidente');
+                    if (dAcidente) dataUltimoAcidente = dAcidente.valor;
+                }
             } catch(e) { }
             
             safeSet('label-meta-diaria', META_DIARIA_DNA);
+            
+            // --- CÁLCULO INTELIGENTE DOS DIAS SEM ACIDENTES ---
+            let diasSemAcidentesCalc = 0;
+            if (dataUltimoAcidente) {
+                const hojeCalc = new Date();
+                hojeCalc.setHours(0,0,0,0);
+                const dAcidCalc = new Date(dataUltimoAcidente + 'T00:00:00');
+                dAcidCalc.setHours(0,0,0,0);
+                
+                if (hojeCalc >= dAcidCalc) {
+                    const diffTime = Math.abs(hojeCalc - dAcidCalc);
+                    diasSemAcidentesCalc = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                }
+            }
+            safeSet('val-dias-sem-acidentes', diasSemAcidentesCalc);
+            // ----------------------------------------------------
             
             let dnasConcluidosMes = 0;
             
@@ -425,7 +450,6 @@
 
             if (indData && indData.length > 0) {
                 const ind = indData[0];
-                safeSet('val-dias-sem-acidentes', ind.dias_sem_acidentes || 0);
                 safeSet('val-incidentes', ind.incidentes_sem_afastamento || 0);
                 safeSet('val-visitas', ind.visitas_campo || 0);
                 safeSet('val-campanha-titulo', ind.campanha_mes || 'Não Definido');
