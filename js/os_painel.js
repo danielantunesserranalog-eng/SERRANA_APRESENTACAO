@@ -90,25 +90,31 @@ window.getDatasFiltroGlobal = function() {
     let fim = new Date(hoje);
     fim.setHours(23, 59, 59, 999);
 
+    // --- NOVA LÓGICA DE DATAS: O 'FIM' AGORA É SEMPRE 'ONTEM' PARA INTERVALOS ---
     if (window.estadoFiltroGlobal.tipo === 'D-1') {
         inicio.setDate(hoje.getDate() - 1); inicio.setHours(0, 0, 0, 0);
         fim = new Date(hoje); fim.setDate(hoje.getDate() - 1); fim.setHours(23, 59, 59, 999);
     } else if (window.estadoFiltroGlobal.tipo === 'D-2') {
         inicio.setDate(hoje.getDate() - 2); inicio.setHours(0, 0, 0, 0);
+        fim = new Date(hoje); fim.setDate(hoje.getDate() - 2); fim.setHours(23, 59, 59, 999);
     } else if (window.estadoFiltroGlobal.tipo === 'D-3') {
-        inicio.setDate(hoje.getDate() - 2); // Hoje, Ontem e Anteontem = 3 dias
-        inicio.setHours(0, 0, 0, 0);
+        inicio.setDate(hoje.getDate() - 3); inicio.setHours(0, 0, 0, 0);
+        fim = new Date(hoje); fim.setDate(hoje.getDate() - 1); fim.setHours(23, 59, 59, 999);
     } else if (window.estadoFiltroGlobal.tipo === 'D-7') {
         inicio.setDate(hoje.getDate() - 7); inicio.setHours(0, 0, 0, 0);
+        fim = new Date(hoje); fim.setDate(hoje.getDate() - 1); fim.setHours(23, 59, 59, 999);
+    } else if (window.estadoFiltroGlobal.tipo === 'D-30') {
+        inicio.setDate(hoje.getDate() - 30); inicio.setHours(0, 0, 0, 0);
+        fim = new Date(hoje); fim.setDate(hoje.getDate() - 1); fim.setHours(23, 59, 59, 999);
     } else if (window.estadoFiltroGlobal.tipo === 'MES_ESPECIFICO' && window.estadoFiltroGlobal.mesAno) {
         const [ano, mes] = window.estadoFiltroGlobal.mesAno.split('-');
         inicio = new Date(parseInt(ano), parseInt(mes) - 1, 1, 0, 0, 0);
         fim = new Date(parseInt(ano), parseInt(mes), 0, 23, 59, 59, 999);
         if (inicio.getFullYear() === hoje.getFullYear() && inicio.getMonth() === hoje.getMonth()) {
-            fim = new Date(hoje); fim.setHours(23, 59, 59, 999);
+            fim = new Date(hoje); fim.setHours(23, 59, 59, 999); // Mês específico atual considera até hoje
         }
     } else {
-        inicio.setDate(1); inicio.setHours(0, 0, 0, 0);
+        inicio.setDate(1); inicio.setHours(0, 0, 0, 0); // Mês Atual
     }
     return { inicio: inicio, fim: fim, valorBruto: window.estadoFiltroGlobal.tipo };
 };

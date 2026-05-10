@@ -389,11 +389,14 @@ window.initNovoDashboardOperacional = function() {
                     return parsed.getTime() === dr.getTime() && mTransp;
                 }
                 const diff = Math.round((hj - parsed)/86400000);
-                if (activeQuickFilterOp === 'D-1') return diff === 1 && mTransp;
-                if (activeQuickFilterOp === 'D-2') return diff === 2 && mTransp;
-                if (activeQuickFilterOp === 'D-3') return diff >= 0 && diff <= 2 && mTransp;
-                if (activeQuickFilterOp === 'D-7') return diff >= 0 && diff <= 7 && mTransp;
-                if (activeQuickFilterOp === 'D-30') return diff >= 0 && diff <= 30 && mTransp;
+                
+                // --- NOVA LÓGICA DE DATAS (Excluindo o Hoje diff=0) ---
+                if (activeQuickFilterOp === 'D-1') return diff === 1 && mTransp; // Só ontem
+                if (activeQuickFilterOp === 'D-2') return diff === 2 && mTransp; // Só anteontem
+                if (activeQuickFilterOp === 'D-3') return diff >= 1 && diff <= 3 && mTransp; // 3 últimos dias (fechados)
+                if (activeQuickFilterOp === 'D-7') return diff >= 1 && diff <= 7 && mTransp; // 7 últimos dias (fechados)
+                if (activeQuickFilterOp === 'D-30') return diff >= 1 && diff <= 30 && mTransp; // 30 últimos dias (fechados)
+                
                 if (activeQuickFilterOp === 'SEM') {
                     const inicioSemana = new Date(hj);
                     inicioSemana.setDate(hj.getDate() - hj.getDay());
@@ -418,7 +421,6 @@ window.initNovoDashboardOperacional = function() {
             }
         }
 
-        // --- LÓGICA DA META DE VIAGENS VS DISPONIBILIDADE DA MANUTENÇÃO ---
         const totalViagens = cardsData.length;
         const elTotalViagens = document.getElementById('totalViagens');
         const elMetaTexto = document.getElementById('metaViagensText');
@@ -443,7 +445,7 @@ window.initNovoDashboardOperacional = function() {
                 dataInicioCalc = new Date(ano, mes, 1, 0,0,0);
                 dataFimCalc = new Date(ano, mes + 1, 0, 23,59,59,999);
                 if (dataInicioCalc.getFullYear() === hjCalc.getFullYear() && dataInicioCalc.getMonth() === hjCalc.getMonth()) {
-                    dataFimCalc = new Date(); dataFimCalc.setHours(23,59,59,999);
+                    dataFimCalc = new Date(); dataFimCalc.setDate(hjCalc.getDate() - 1); dataFimCalc.setHours(23,59,59,999);
                 }
                 diasConsideradosCalc = Math.max(1, Math.ceil((dataFimCalc - dataInicioCalc) / (1000 * 60 * 60 * 24)));
             } else {
@@ -460,18 +462,27 @@ window.initNovoDashboardOperacional = function() {
                     dataFimCalc = new Date(dataInicioCalc); dataFimCalc.setHours(23,59,59,999);
                     diasConsideradosCalc = 1;
                 } else if (activeQuickFilterOp === 'D-3') {
-                    dataInicioCalc.setDate(hjCalc.getDate() - 2);
-                    dataFimCalc = new Date(hjCalc); dataFimCalc.setHours(23,59,59,999);
+                    dataInicioCalc.setDate(hjCalc.getDate() - 3);
+                    dataFimCalc = new Date(hjCalc); 
+                    dataFimCalc.setDate(hjCalc.getDate() - 1); 
+                    dataFimCalc.setHours(23,59,59,999);
                     diasConsideradosCalc = 3;
                 } else if (activeQuickFilterOp === 'D-7') {
                     dataInicioCalc.setDate(hjCalc.getDate() - 7);
-                    diasConsideradosCalc = 8;
+                    dataFimCalc = new Date(hjCalc); 
+                    dataFimCalc.setDate(hjCalc.getDate() - 1); 
+                    dataFimCalc.setHours(23,59,59,999);
+                    diasConsideradosCalc = 7;
                 } else if (activeQuickFilterOp === 'D-30') {
                     dataInicioCalc.setDate(hjCalc.getDate() - 30);
-                    diasConsideradosCalc = 31;
+                    dataFimCalc = new Date(hjCalc); 
+                    dataFimCalc.setDate(hjCalc.getDate() - 1); 
+                    dataFimCalc.setHours(23,59,59,999);
+                    diasConsideradosCalc = 30;
                 } else if (activeQuickFilterOp === 'SEM') {
                     dataInicioCalc.setDate(hjCalc.getDate() - hjCalc.getDay());
-                    diasConsideradosCalc = hjCalc.getDay() + 1;
+                    dataFimCalc = new Date(hjCalc); dataFimCalc.setDate(hjCalc.getDate() - 1); dataFimCalc.setHours(23,59,59,999);
+                    diasConsideradosCalc = Math.max(1, hjCalc.getDay());
                 } else {
                     if (filteredGlobal.length > 0) {
                         const datasSort = filteredGlobal.map(d => parseDateTime(d.dataDaBaseExcel)).filter(Boolean).sort((a,b) => a-b);
