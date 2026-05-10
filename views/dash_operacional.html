@@ -408,6 +408,47 @@
     const reflorestarLoaders = ['GRB0017', 'GRB0020', 'GRB0029'];
     const jslLoaders = ['GSL0012', 'GSL0016'];
 
+    // --- NOVA REGRA DO CICLO MÉDIO (VERSÃO BLINDADA) ---
+    function normalizarCiclos(dataArr) {
+        const pMap = new Map();
+        
+        // Passo 1: Garantir que temos o valor original e somar os ciclos bons
+        dataArr.forEach(d => {
+            // Se ainda não salvou o original, salva agora
+            if (d.cicloHorasOriginal === undefined) {
+                d.cicloHorasOriginal = d.cicloHoras;
+            }
+
+            // Usamos sempre o original para calcular quem são os melhores (<= 12h)
+            if (d.cicloHorasOriginal > 0 && d.cicloHorasOriginal <= 12) { 
+                const pl = d.placa || 'N/A';
+                if (!pMap.has(pl)) pMap.set(pl, { ciclos: 0, count: 0 });
+                pMap.get(pl).ciclos += d.cicloHorasOriginal;
+                pMap.get(pl).count++;
+            }
+        });
+        
+        // Passo 2: Calcula a média das frotas e pega as 20 com o menor tempo
+        const frotas = Array.from(pMap.values())
+            .map(x => x.ciclos / x.count)
+            .sort((a, b) => a - b)
+            .slice(0, 20);
+            
+        if (frotas.length === 0) return;
+        
+        const mediaMenores = frotas.reduce((a, b) => a + b, 0) / frotas.length;
+        
+        // Passo 3: Aplica a regra de substituição (Estourou 12h -> recebe a média das 20 melhores)
+        dataArr.forEach(d => {
+            if (d.cicloHorasOriginal > 12) {
+                d.cicloHoras = mediaMenores;
+            } else {
+                d.cicloHoras = d.cicloHorasOriginal; 
+            }
+        });
+    }
+    // -------------------------------------------------------------------
+
     function checkLoader(d, loaderArray) {
         const val = String(d.carregadorFlorestal || d.grua || '').trim().toUpperCase();
         if (val && val !== '-') return loaderArray.includes(val);
@@ -509,6 +550,10 @@
                     return !motorista.includes('JULIO CESAR ALMEIDA NUNES') && motorista !== '-';
                 });
                 fullHistoricoDataOp = historico.reverse();
+                
+                // --- APLICA A REGRA DO CICLO MÉDIO AQUI ---
+                normalizarCiclos(fullHistoricoDataOp);
+                // ------------------------------------------
             }
 
             const filterMesOp = document.getElementById('filterMesOp');
@@ -1111,7 +1156,6 @@
         }
         
         container.innerHTML = window.muralSetorData.map(item => {
-            // AQUI ESTÁ O NOVO CÓDIGO DA IMAGEM PARA O MODAL
             const imgHtml = item.imagem ? `<div class="mt-3"><img src="${item.imagem}" class="rounded-lg border border-slate-600 max-h-48 object-contain shadow-md" alt="Imagem Anexa" onclick="window.abrirModalImagem('${item.imagem}')" style="cursor: pointer; transition: 0.3s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'"></div>` : '';
             return `
             <div class="flex items-start justify-between bg-slate-900/40 p-3 rounded-lg border-l-4 border-sky-400 border-t border-r border-b border-slate-700/50">
@@ -1259,4 +1303,4 @@
     window.carregarFrotaSupabase();
 
 })();
-</script>''
+</script>
