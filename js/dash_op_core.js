@@ -43,31 +43,90 @@ window.metaCaixaMedia = 0;
 window.metaVolumeDiario = 0;
 window.metaViagensCalculada = 0;
 
+// Metas de Tempo Padrão (Fallback caso esteja vazio no banco)
+window.metaCicloDecimal = 10.083; // 10h 05m
+window.metaFilaCampoDecimal = 1.333; // 1h 20m
+window.metaCargaDecimal = 0.5; // 30m
+window.metaFilaFabricaDecimal = 0.5; // 30m
+
+// TRADUTOR PODEROSO: Transforma String de Relógio ("10:05") ou Números em Decimal Matemático
+window.parseMetaTempo = function(val) {
+    if (val === null || val === undefined || val === '') return null;
+    if (typeof val === 'number') return val;
+    if (typeof val === 'string') {
+        if (val.includes(':')) {
+            let p = val.split(':');
+            let h = parseInt(p[0], 10) || 0;
+            let m = parseInt(p[1], 10) || 0;
+            return h + (m / 60);
+        }
+        let num = parseFloat(val);
+        if (!isNaN(num)) return num;
+    }
+    return null;
+};
+
 window.carregarMetasGlobais = async function() {
     try {
-        // Puxa diretamente da tabela 'metas_globais'
-        const { data, error } = await window.supabaseClientLocal
+        // 1. Busca na Tabela Principal: metas_globais
+        const { data: metasData, error: metasError } = await window.supabaseClientLocal
             .from('metas_globais')
             .select('*')
-            .limit(1); // Pega a linha principal de configurações
+            .limit(1); 
         
-        if (data && data.length > 0) {
-            const metas = data[0];
+        if (metasData && metasData.length > 0) {
+            const m = metasData[0];
             
-            // Coluna cx_prog para a Caixa Média (m³)
-            if (metas.cx_prog !== undefined && metas.cx_prog !== null) {
-                window.metaCaixaMedia = parseFloat(metas.cx_prog);
-            }
-            
-            // Coluna vol_prog para o Volume Diário Global (m³)
-            if (metas.vol_prog !== undefined && metas.vol_prog !== null) {
-                window.metaVolumeDiario = parseFloat(metas.vol_prog);
-            }
+            // Puxa as metas de Volume (m³)
+            if (m.cx_prog !== undefined && m.cx_prog !== null) window.metaCaixaMedia = parseFloat(m.cx_prog);
+            if (m.vol_prog !== undefined && m.vol_prog !== null) window.metaVolumeDiario = parseFloat(m.vol_prog);
 
-            console.log("🎯 Metas do Banco Carregadas:", { CaixaMedia: window.metaCaixaMedia, VolumeDiario: window.metaVolumeDiario });
-        } else {
-            console.log("⚠️ Nenhuma meta encontrada na tabela 'metas_globais'.");
+            // Puxa as metas de Tempo
+            let ciclo = window.parseMetaTempo(m.meta_ciclo) || window.parseMetaTempo(m.cfg_meta_ciclo);
+            if (ciclo) window.metaCicloDecimal = ciclo;
+
+            let filaC = window.parseMetaTempo(m.meta_fila_campo) || window.parseMetaTempo(m.cfg_meta_fila_campo);
+            if (filaC) window.metaFilaCampoDecimal = filaC;
+
+            let carga = window.parseMetaTempo(m.meta_carga) || window.parseMetaTempo(m.cfg_meta_carga) || window.parseMetaTempo(m.meta_carregamento);
+            if (carga) window.metaCargaDecimal = carga;
+
+            let filaF = window.parseMetaTempo(m.meta_fila_fabrica) || window.parseMetaTempo(m.cfg_meta_fila_fabrica);
+            if (filaF) window.metaFilaFabricaDecimal = filaF;
         }
+
+        // 2. Busca Secundária: Tabela de configuracoes (Caso o painel salve em chave-valor)
+        const { data: cfgData } = await window.supabaseClientLocal
+            .from('configuracoes')
+            .select('*')
+            .in('chave', ['cfg_meta_ciclo', 'cfg_meta_fila_campo', 'cfg_meta_carga', 'cfg_meta_fila_fabrica', 'metas_globais']);
+        
+        if (cfgData && cfgData.length > 0) {
+            cfgData.forEach(item => {
+                let v = window.parseMetaTempo(item.valor);
+                if (item.chave === 'cfg_meta_ciclo' && v) window.metaCicloDecimal = v;
+                if (item.chave === 'cfg_meta_fila_campo' && v) window.metaFilaCampoDecimal = v;
+                if (item.chave === 'cfg_meta_carga' && v) window.metaCargaDecimal = v;
+                if (item.chave === 'cfg_meta_fila_fabrica' && v) window.metaFilaFabricaDecimal = v;
+
+                // Caso esteja dentro de um JSON compactado
+                if (item.chave === 'metas_globais' && item.valor && item.valor.includes('{')) {
+                    try {
+                        const p = JSON.parse(item.valor);
+                        if (p.cfg_meta_ciclo) window.metaCicloDecimal = window.parseMetaTempo(p.cfg_meta_ciclo);
+                        if (p.cfg_meta_fila_campo) window.metaFilaCampoDecimal = window.parseMetaTempo(p.cfg_meta_fila_campo);
+                        if (p.cfg_meta_carga) window.metaCargaDecimal = window.parseMetaTempo(p.cfg_meta_carga);
+                        if (p.cfg_meta_fila_fabrica) window.metaFilaFabricaDecimal = window.parseMetaTempo(p.cfg_meta_fila_fabrica);
+                    } catch(e) {}
+                }
+            });
+        }
+        
+        console.log("🎯 Tempos Parametrizados Atualizados:", {
+            Ciclo: window.metaCicloDecimal, FilaCampo: window.metaFilaCampoDecimal, 
+            Carga: window.metaCargaDecimal, FilaFabrica: window.metaFilaFabricaDecimal
+        });
+
     } catch (e) {
         console.error("Erro ao buscar metas globais:", e);
     }
@@ -417,7 +476,7 @@ window.atualizarPainelOperacional = function() {
     
     window.metaViagensCalculada = 0;
     let diasConsideradosCalc = 1;
-    let mediaAtivosReal = 0; // Guardamos para usar no volume depois
+    let mediaAtivosReal = 0; 
 
     if (elMetaTexto && window.frotasParaMeta && window.osParaMeta) {
         let totalFrota = window.frotasParaMeta.length;
@@ -511,7 +570,6 @@ window.atualizarPainelOperacional = function() {
         } else { elMetaTexto.classList.add('hidden'); elIconeMeta.innerHTML = ''; }
     } else { if(elMetaTexto) elMetaTexto.classList.add('hidden'); if(elIconeMeta) elIconeMeta.innerHTML = ''; }
 
-    // --- NOVA LÓGICA DE METAS DE VOLUME (COM FALLBACK SE O BANCO ESTIVER ZERADO) ---
     const totalPesoKg = cardsData.reduce((s,x)=>s+(parseFloat(String(x.pesoLiquido).replace(',','.'))||0), 0);
     const mediaPbtc = totalViagens > 0 ? (totalPesoKg / 1000) / totalViagens : 0;
     
@@ -532,7 +590,6 @@ window.atualizarPainelOperacional = function() {
     
     elMediaVol.innerText = mediaVol.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
     
-    // ** FALLBACK DE SEGURANÇA: Se o banco retornar vazio, ele força 48 m³ para aparecer na tela **
     let metaCaixaFinal = window.metaCaixaMedia > 0 ? window.metaCaixaMedia : 48;
     
     if (metaCaixaFinal > 0) {
@@ -555,17 +612,13 @@ window.atualizarPainelOperacional = function() {
     
     elTotalVol.innerText = totalVol.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
     
-    // Calcula a Meta de Volume Total (com Fallback)
     let metaVolumeCalculada = 0;
     
     if (window.metaVolumeDiario > 0) {
-        // Se cadastrou o Diário Global explícito, multiplica pelos dias filtrados
         metaVolumeCalculada = window.metaVolumeDiario * diasConsideradosCalc;
     } else if (window.metaViagensCalculada > 0) {
-        // Multiplica as Viagens Esperadas pela Caixa Média esperada
         metaVolumeCalculada = window.metaViagensCalculada * metaCaixaFinal;
     } else {
-        // Fallback Extremo: Se a manutenção também não estiver preenchida no dia, supõe 50 caminhões
         metaVolumeCalculada = (50 * 2 * diasConsideradosCalc) * metaCaixaFinal;
     }
 
@@ -583,7 +636,6 @@ window.atualizarPainelOperacional = function() {
             if(iconeVolTotal) iconeVolTotal.innerHTML = '<i class="fas fa-exclamation-circle text-rose-500 text-[22px] drop-shadow-md"></i>';
         }
     }
-    // --------------------------------------------------------
 
     const mediaAsfalto = totalViagens > 0 ? cardsData.reduce((s, r) => s + (r.distanciaAsfalto||0), 0) / totalViagens : 0;
     const mediaTerra = totalViagens > 0 ? cardsData.reduce((s, r) => s + (r.distanciaTerra||0), 0) / totalViagens : 0;
@@ -605,10 +657,11 @@ window.atualizarPainelOperacional = function() {
     const validFilaFabrica = cardsData.filter(d => d.filaFabricaHoras > 0);
     const mediaFilaFabrica = validFilaFabrica.length > 0 ? validFilaFabrica.reduce((s, d) => s + d.filaFabricaHoras, 0) / validFilaFabrica.length : 0;
 
-    window.atualizarElementoTempo('cicloMedio', mediaCiclo, 10.083); 
-    window.atualizarElementoTempo('filaCampo', mediaFilaCampo, 1.333); 
-    window.atualizarElementoTempo('tempoCarregamento', mediaTempoCarregamento, 0.5); 
-    window.atualizarElementoTempo('filaFabrica', mediaFilaFabrica, 0.5); 
+    // --- AGORA SIM AS METAS DOS 4 QUADRADOS SÃO ATUALIZADAS DIRETO DO BANCO ---
+    window.atualizarElementoTempo('cicloMedio', mediaCiclo, window.metaCicloDecimal); 
+    window.atualizarElementoTempo('filaCampo', mediaFilaCampo, window.metaFilaCampoDecimal); 
+    window.atualizarElementoTempo('tempoCarregamento', mediaTempoCarregamento, window.metaCargaDecimal); 
+    window.atualizarElementoTempo('filaFabrica', mediaFilaFabrica, window.metaFilaFabricaDecimal); 
 
     const tbodyComp = document.getElementById('comparativoBody');
     if (tbodyComp) {
