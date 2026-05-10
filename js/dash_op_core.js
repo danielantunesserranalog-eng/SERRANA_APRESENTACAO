@@ -2,7 +2,7 @@
 // MÓDULO 3: NÚCLEO, FILTROS E CÁLCULOS (OPERACIONAL)
 // =========================================================
 
-// --- 1. GERENCIADOR INTELIGENTE DE CONEXÕES (EVITA MULTIPLE INSTANCES) ---
+// --- GERENCIADOR INTELIGENTE DE MÚLTIPLOS BANCOS ---
 window.SUPABASE_URL_OP = 'https://qnpwkvazkntbqjbwegcp.supabase.co';
 window.SUPABASE_KEY_OP = 'sb_publishable_bjTFgpk-qAdpVuWzr4hbng_G8O9qlc8';
 
@@ -13,17 +13,15 @@ if (!window.supabaseClientMan) {
     window.supabaseClientMan = window.supabase.createClient('https://ihgiyxzxdldqmrkziijl.supabase.co', 'sb_publishable_JpMZhW5ZrFKBr7m9KXBkoQ_cpxy1k3x');
 }
 
-// Retorna o Banco Principal (onde ficam as Configurações, Metas e Frota)
 window.getGlobalDB = function() {
     if (window.supabaseClientGlobal) return window.supabaseClientGlobal;
     if (typeof SUPABASE_CONFIG !== 'undefined') {
         window.supabaseClientGlobal = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
         return window.supabaseClientGlobal;
     }
-    // Fallback: Se não achar o config global, busca no banco da Manutenção (onde ficam as tabelas base)
-    return window.supabaseClientMan;
+    return window.supabaseClientMan; // Fallback
 };
-// -------------------------------------------------------------------------
+// --------------------------------------------------
 
 window.op_chartDataLabelsPlugin = {
     id: 'customDataLabels',
@@ -57,15 +55,15 @@ window.serranaLoaders = ['GSR0001', 'GSR0002', 'GSR0003', 'GSR0007', 'GSR0008', 
 window.reflorestarLoaders = ['GRB0017', 'GRB0020', 'GRB0029'];
 window.jslLoaders = ['GSL0012', 'GSL0016'];
 
-// --- VARIÁVEIS PARA AS METAS DINÂMICAS DO BANCO ---
+// --- VARIÁVEIS PARA AS METAS DINÂMICAS ---
 window.metaCaixaMedia = 0;
 window.metaVolumeDiario = 0;
 window.metaViagensCalculada = 0;
 
-window.metaCicloDecimal = 10.083; // 10h 05m
-window.metaFilaCampoDecimal = 1.333; // 1h 20m
-window.metaCargaDecimal = 0.5; // 30m
-window.metaFilaFabricaDecimal = 0.5; // 30m
+window.metaCicloDecimal = 10.083; // Padrão 10h 05m
+window.metaFilaCampoDecimal = 1.333; // Padrão 1h 20m
+window.metaCargaDecimal = 0.5; // Padrão 30m
+window.metaFilaFabricaDecimal = 0.5; // Padrão 30m
 
 window.parseMetaTempo = function(val) {
     if (val === null || val === undefined || val === '') return null;
@@ -83,52 +81,66 @@ window.parseMetaTempo = function(val) {
     return null;
 };
 
+// =========================================================================
+// O VARREDOR UNIVERSAL (PROCURA A META NOS 3 BANCOS DE DADOS AUTOMATICAMENTE)
+// =========================================================================
 window.carregarMetasGlobais = async function() {
     try {
-        const db = window.getGlobalDB(); // APONTA PARA O BANCO CORRETO
-        
-        const { data: metasData } = await db.from('metas_globais').select('*').limit(1); 
-        
-        if (metasData && metasData.length > 0) {
-            const m = metasData[0];
-            if (m.cx_prog !== undefined && m.cx_prog !== null) window.metaCaixaMedia = parseFloat(m.cx_prog);
-            if (m.vol_prog !== undefined && m.vol_prog !== null) window.metaVolumeDiario = parseFloat(m.vol_prog);
+        // Ele vai testar as conexões até achar onde a tabela 'metas_globais' realmente está
+        const dbs = [ window.supabaseClientLocal, window.supabaseClientMan, window.getGlobalDB() ];
+        let metasEncontradas = false;
 
-            let ciclo = window.parseMetaTempo(m.meta_ciclo) || window.parseMetaTempo(m.cfg_meta_ciclo);
-            if (ciclo) window.metaCicloDecimal = ciclo;
+        for (let db of dbs) {
+            if (!db) continue;
+            try {
+                const { data, error } = await db.from('metas_globais').select('*').limit(1);
+                if (!error && data && data.length > 0) {
+                    const m = data[0];
+                    if (m.cx_prog !== undefined && m.cx_prog !== null) window.metaCaixaMedia = parseFloat(m.cx_prog);
+                    if (m.vol_prog !== undefined && m.vol_prog !== null) window.metaVolumeDiario = parseFloat(m.vol_prog);
 
-            let filaC = window.parseMetaTempo(m.meta_fila_campo) || window.parseMetaTempo(m.cfg_meta_fila_campo);
-            if (filaC) window.metaFilaCampoDecimal = filaC;
+                    let ciclo = window.parseMetaTempo(m.meta_ciclo) ?? window.parseMetaTempo(m.cfg_meta_ciclo);
+                    if (ciclo !== null) window.metaCicloDecimal = ciclo;
 
-            let carga = window.parseMetaTempo(m.meta_carga) || window.parseMetaTempo(m.cfg_meta_carga) || window.parseMetaTempo(m.meta_carregamento);
-            if (carga) window.metaCargaDecimal = carga;
+                    let filaC = window.parseMetaTempo(m.meta_fila_campo) ?? window.parseMetaTempo(m.cfg_meta_fila_campo);
+                    if (filaC !== null) window.metaFilaCampoDecimal = filaC;
 
-            let filaF = window.parseMetaTempo(m.meta_fila_fabrica) || window.parseMetaTempo(m.cfg_meta_fila_fabrica);
-            if (filaF) window.metaFilaFabricaDecimal = filaF;
-        }
+                    let carga = window.parseMetaTempo(m.meta_carga) ?? window.parseMetaTempo(m.cfg_meta_carga) ?? window.parseMetaTempo(m.meta_carregamento);
+                    if (carga !== null) window.metaCargaDecimal = carga;
 
-        const { data: cfgData } = await db.from('configuracoes').select('*').in('chave', ['cfg_meta_ciclo', 'cfg_meta_fila_campo', 'cfg_meta_carga', 'cfg_meta_fila_fabrica', 'metas_globais']);
-        
-        if (cfgData && cfgData.length > 0) {
-            cfgData.forEach(item => {
-                let v = window.parseMetaTempo(item.valor);
-                if (item.chave === 'cfg_meta_ciclo' && v) window.metaCicloDecimal = v;
-                if (item.chave === 'cfg_meta_fila_campo' && v) window.metaFilaCampoDecimal = v;
-                if (item.chave === 'cfg_meta_carga' && v) window.metaCargaDecimal = v;
-                if (item.chave === 'cfg_meta_fila_fabrica' && v) window.metaFilaFabricaDecimal = v;
-
-                if (item.chave === 'metas_globais' && item.valor && item.valor.includes('{')) {
-                    try {
-                        const p = JSON.parse(item.valor);
-                        if (p.cfg_meta_ciclo) window.metaCicloDecimal = window.parseMetaTempo(p.cfg_meta_ciclo);
-                        if (p.cfg_meta_fila_campo) window.metaFilaCampoDecimal = window.parseMetaTempo(p.cfg_meta_fila_campo);
-                        if (p.cfg_meta_carga) window.metaCargaDecimal = window.parseMetaTempo(p.cfg_meta_carga);
-                        if (p.cfg_meta_fila_fabrica) window.metaFilaFabricaDecimal = window.parseMetaTempo(p.cfg_meta_fila_fabrica);
-                    } catch(e) {}
+                    let filaF = window.parseMetaTempo(m.meta_fila_fabrica) ?? window.parseMetaTempo(m.cfg_meta_fila_fabrica);
+                    if (filaF !== null) window.metaFilaFabricaDecimal = filaF;
+                    
+                    console.log("✅ Metas extraídas com sucesso do banco:", db.supabaseUrl);
+                    metasEncontradas = true;
+                    break; // Se achou, para de procurar nos outros bancos
                 }
-            });
+            } catch (e) { /* Ignora e tenta o próximo banco */ }
         }
-    } catch (e) { console.error("Erro ao buscar metas globais:", e); }
+
+        // Fallback: Se não achou na metas_globais, procura na tabela configuracoes
+        if (!metasEncontradas) {
+            for (let db of dbs) {
+                if (!db) continue;
+                try {
+                    const { data, error } = await db.from('configuracoes').select('*').in('chave', ['cfg_cx_prog', 'cfg_vol_prog', 'cfg_meta_ciclo', 'cfg_meta_fila_campo', 'cfg_meta_carga', 'cfg_meta_fila_fabrica']);
+                    if (!error && data && data.length > 0) {
+                        data.forEach(item => {
+                            if (item.chave === 'cfg_cx_prog' && item.valor) window.metaCaixaMedia = parseFloat(item.valor);
+                            if (item.chave === 'cfg_vol_prog' && item.valor) window.metaVolumeDiario = parseFloat(item.valor);
+                            let v = window.parseMetaTempo(item.valor);
+                            if (item.chave === 'cfg_meta_ciclo' && v !== null) window.metaCicloDecimal = v;
+                            if (item.chave === 'cfg_meta_fila_campo' && v !== null) window.metaFilaCampoDecimal = v;
+                            if (item.chave === 'cfg_meta_carga' && v !== null) window.metaCargaDecimal = v;
+                            if (item.chave === 'cfg_meta_fila_fabrica' && v !== null) window.metaFilaFabricaDecimal = v;
+                        });
+                        console.log("✅ Metas recuperadas de 'configuracoes' do Banco:", db.supabaseUrl);
+                        break;
+                    }
+                } catch (e) {}
+            }
+        }
+    } catch (e) { console.error("Erro geral na busca de metas:", e); }
 };
 
 window.normalizarCiclos = function(dataArr) {
@@ -229,7 +241,7 @@ window.setupOperacionalFilters = function() {
 
 window.loadManutencaoDataForMeta = async function() {
     try {
-        const clientMan = window.supabaseClientMan; // Usa a porta certa já aberta
+        const clientMan = window.supabaseClientMan; 
         
         const [osResp, frotasResp] = await Promise.all([
             clientMan.from('ordens_servico').select('*'),
@@ -238,9 +250,7 @@ window.loadManutencaoDataForMeta = async function() {
         
         if (osResp.data) window.osParaMeta = osResp.data;
         if (frotasResp.data) window.frotasParaMeta = frotasResp.data;
-    } catch (e) {
-        console.error("Erro ao carregar dados de manutenção para meta:", e);
-    }
+    } catch (e) { console.error("Erro dados manutenção:", e); }
 };
 
 window.loadOperacionalData = async function() {
@@ -251,7 +261,7 @@ window.loadOperacionalData = async function() {
         let fetchMore = true;
         
         while (fetchMore) {
-            const { data, error } = await window.supabaseClientLocal // Banco OP (Correto)
+            const { data, error } = await window.supabaseClientLocal
                 .from('historico_viagens')
                 .select('*')
                 .range(from, from + step - 1);
@@ -304,9 +314,7 @@ window.loadOperacionalData = async function() {
                 
                 const hj = new Date();
                 const mesAtualStr = String(hj.getMonth() + 1).padStart(2, '0') + '/' + hj.getFullYear();
-                if(allMeses.includes(mesAtualStr)) {
-                    filterMesOp.value = mesAtualStr;
-                }
+                if(allMeses.includes(mesAtualStr)) { filterMesOp.value = mesAtualStr; }
             }
             if(filterTransp) {
                 const transps = [...new Set(window.fullHistoricoDataOp.map(d => d.transportadora))].filter(Boolean).sort();
