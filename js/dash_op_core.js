@@ -2,6 +2,29 @@
 // MÓDULO 3: NÚCLEO, FILTROS E CÁLCULOS (OPERACIONAL)
 // =========================================================
 
+// --- 1. GERENCIADOR INTELIGENTE DE CONEXÕES (EVITA MULTIPLE INSTANCES) ---
+window.SUPABASE_URL_OP = 'https://qnpwkvazkntbqjbwegcp.supabase.co';
+window.SUPABASE_KEY_OP = 'sb_publishable_bjTFgpk-qAdpVuWzr4hbng_G8O9qlc8';
+
+if (!window.supabaseClientLocal) {
+    window.supabaseClientLocal = window.supabase.createClient(window.SUPABASE_URL_OP, window.SUPABASE_KEY_OP);
+}
+if (!window.supabaseClientMan) {
+    window.supabaseClientMan = window.supabase.createClient('https://ihgiyxzxdldqmrkziijl.supabase.co', 'sb_publishable_JpMZhW5ZrFKBr7m9KXBkoQ_cpxy1k3x');
+}
+
+// Retorna o Banco Principal (onde ficam as Configurações, Metas e Frota)
+window.getGlobalDB = function() {
+    if (window.supabaseClientGlobal) return window.supabaseClientGlobal;
+    if (typeof SUPABASE_CONFIG !== 'undefined') {
+        window.supabaseClientGlobal = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+        return window.supabaseClientGlobal;
+    }
+    // Fallback: Se não achar o config global, busca no banco da Manutenção (onde ficam as tabelas base)
+    return window.supabaseClientMan;
+};
+// -------------------------------------------------------------------------
+
 window.op_chartDataLabelsPlugin = {
     id: 'customDataLabels',
     afterDatasetsDraw: (chart) => {
@@ -24,10 +47,6 @@ window.op_chartDataLabelsPlugin = {
     }
 };
 
-window.SUPABASE_URL_OP = 'https://qnpwkvazkntbqjbwegcp.supabase.co';
-window.SUPABASE_KEY_OP = 'sb_publishable_bjTFgpk-qAdpVuWzr4hbng_G8O9qlc8';
-window.supabaseClientLocal = window.supabase.createClient(window.SUPABASE_URL_OP, window.SUPABASE_KEY_OP);
-
 window.fullHistoricoDataOp = [];
 window.activeQuickFilterOp = 'ALL';
 window.diasConsideradosGlobais = 1;
@@ -43,13 +62,11 @@ window.metaCaixaMedia = 0;
 window.metaVolumeDiario = 0;
 window.metaViagensCalculada = 0;
 
-// Metas de Tempo Padrão (Fallback caso esteja vazio no banco)
 window.metaCicloDecimal = 10.083; // 10h 05m
 window.metaFilaCampoDecimal = 1.333; // 1h 20m
 window.metaCargaDecimal = 0.5; // 30m
 window.metaFilaFabricaDecimal = 0.5; // 30m
 
-// TRADUTOR PODEROSO: Transforma String de Relógio ("10:05") ou Números em Decimal Matemático
 window.parseMetaTempo = function(val) {
     if (val === null || val === undefined || val === '') return null;
     if (typeof val === 'number') return val;
@@ -68,20 +85,15 @@ window.parseMetaTempo = function(val) {
 
 window.carregarMetasGlobais = async function() {
     try {
-        // 1. Busca na Tabela Principal: metas_globais
-        const { data: metasData, error: metasError } = await window.supabaseClientLocal
-            .from('metas_globais')
-            .select('*')
-            .limit(1); 
+        const db = window.getGlobalDB(); // APONTA PARA O BANCO CORRETO
+        
+        const { data: metasData } = await db.from('metas_globais').select('*').limit(1); 
         
         if (metasData && metasData.length > 0) {
             const m = metasData[0];
-            
-            // Puxa as metas de Volume (m³)
             if (m.cx_prog !== undefined && m.cx_prog !== null) window.metaCaixaMedia = parseFloat(m.cx_prog);
             if (m.vol_prog !== undefined && m.vol_prog !== null) window.metaVolumeDiario = parseFloat(m.vol_prog);
 
-            // Puxa as metas de Tempo
             let ciclo = window.parseMetaTempo(m.meta_ciclo) || window.parseMetaTempo(m.cfg_meta_ciclo);
             if (ciclo) window.metaCicloDecimal = ciclo;
 
@@ -95,11 +107,7 @@ window.carregarMetasGlobais = async function() {
             if (filaF) window.metaFilaFabricaDecimal = filaF;
         }
 
-        // 2. Busca Secundária: Tabela de configuracoes (Caso o painel salve em chave-valor)
-        const { data: cfgData } = await window.supabaseClientLocal
-            .from('configuracoes')
-            .select('*')
-            .in('chave', ['cfg_meta_ciclo', 'cfg_meta_fila_campo', 'cfg_meta_carga', 'cfg_meta_fila_fabrica', 'metas_globais']);
+        const { data: cfgData } = await db.from('configuracoes').select('*').in('chave', ['cfg_meta_ciclo', 'cfg_meta_fila_campo', 'cfg_meta_carga', 'cfg_meta_fila_fabrica', 'metas_globais']);
         
         if (cfgData && cfgData.length > 0) {
             cfgData.forEach(item => {
@@ -109,7 +117,6 @@ window.carregarMetasGlobais = async function() {
                 if (item.chave === 'cfg_meta_carga' && v) window.metaCargaDecimal = v;
                 if (item.chave === 'cfg_meta_fila_fabrica' && v) window.metaFilaFabricaDecimal = v;
 
-                // Caso esteja dentro de um JSON compactado
                 if (item.chave === 'metas_globais' && item.valor && item.valor.includes('{')) {
                     try {
                         const p = JSON.parse(item.valor);
@@ -121,15 +128,7 @@ window.carregarMetasGlobais = async function() {
                 }
             });
         }
-        
-        console.log("🎯 Tempos Parametrizados Atualizados:", {
-            Ciclo: window.metaCicloDecimal, FilaCampo: window.metaFilaCampoDecimal, 
-            Carga: window.metaCargaDecimal, FilaFabrica: window.metaFilaFabricaDecimal
-        });
-
-    } catch (e) {
-        console.error("Erro ao buscar metas globais:", e);
-    }
+    } catch (e) { console.error("Erro ao buscar metas globais:", e); }
 };
 
 window.normalizarCiclos = function(dataArr) {
@@ -230,9 +229,7 @@ window.setupOperacionalFilters = function() {
 
 window.loadManutencaoDataForMeta = async function() {
     try {
-        const SUPABASE_MAN_URL = 'https://ihgiyxzxdldqmrkziijl.supabase.co';
-        const SUPABASE_MAN_KEY = 'sb_publishable_JpMZhW5ZrFKBr7m9KXBkoQ_cpxy1k3x';
-        const clientMan = window.supabase.createClient(SUPABASE_MAN_URL, SUPABASE_MAN_KEY);
+        const clientMan = window.supabaseClientMan; // Usa a porta certa já aberta
         
         const [osResp, frotasResp] = await Promise.all([
             clientMan.from('ordens_servico').select('*'),
@@ -254,7 +251,7 @@ window.loadOperacionalData = async function() {
         let fetchMore = true;
         
         while (fetchMore) {
-            const { data, error } = await window.supabaseClientLocal
+            const { data, error } = await window.supabaseClientLocal // Banco OP (Correto)
                 .from('historico_viagens')
                 .select('*')
                 .range(from, from + step - 1);
@@ -364,16 +361,13 @@ window.atualizarElementoTempo = function(idElemento, mediaReal, metaData) {
     let icone = "";
 
     if (metaData > 0) {
-        // Conversão para minutos exatos, arredondados, para evitar erro de precisão decimal no JS
         let minutosReais = Math.round((mediaReal || 0) * 60);
         let minutosMeta = Math.round((metaData || 0) * 60);
 
         if (minutosReais > minutosMeta) {
-            // Se gastou mais tempo que a meta (piorou o resultado) = Vermelho
             corClasse = "text-rose-500";
             icone = `<i class="fas fa-exclamation-circle text-2xl text-rose-500 shadow-sm rounded-full bg-rose-500/10 p-1"></i>`;
         } else {
-            // Se gastou igual ou menos tempo que a meta (bateu a meta) = Verde
             corClasse = "text-emerald-400";
             icone = `<i class="fas fa-check-circle text-2xl text-emerald-400 shadow-sm rounded-full bg-emerald-500/10 p-1"></i>`;
         }
@@ -775,6 +769,6 @@ window.initNovoDashboardOperacional = async function() {
     if(document.getElementById('data-mural-setor')) {
         document.getElementById('data-mural-setor').value = new Date().toISOString().split('T')[0];
     }
-    window.carregarMuralSetor();
-    window.carregarFrotaSupabase();
+    if (typeof window.carregarMuralSetor === 'function') window.carregarMuralSetor();
+    if (typeof window.carregarFrotaSupabase === 'function') window.carregarFrotaSupabase();
 };

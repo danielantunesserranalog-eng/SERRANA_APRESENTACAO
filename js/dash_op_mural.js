@@ -31,10 +31,10 @@ window.formatarDataMural = function(dataIso) {
 
 window.carregarMuralSetor = async function() {
     try {
-        const _supa = window.supabaseClientLocal;
-        if(!_supa) return;
+        const db = window.getGlobalDB(); // APONTA PARA O BANCO CORRETO
+        if(!db) return;
         
-        const { data } = await _supa.from('configuracoes').select('valor').eq('chave', window.muralSetorKey).limit(1);
+        const { data } = await db.from('configuracoes').select('valor').eq('chave', window.muralSetorKey).limit(1);
         if (data && data.length > 0 && data[0].valor) {
             window.muralSetorData = JSON.parse(data[0].valor);
         } else {
@@ -110,8 +110,8 @@ window.salvarMuralSetor = async function() {
     if(msg) { msg.className = 'text-xs font-bold text-slate-400'; msg.innerText = 'Salvando...'; }
     
     try {
-        const _supa = window.supabaseClientLocal;
-        await _supa.from('configuracoes').upsert([{ chave: window.muralSetorKey, valor: JSON.stringify(window.muralSetorData) }], { onConflict: 'chave' });
+        const db = window.getGlobalDB();
+        await db.from('configuracoes').upsert([{ chave: window.muralSetorKey, valor: JSON.stringify(window.muralSetorData) }], { onConflict: 'chave' });
         
         if(msg) { 
             msg.className = 'text-xs font-bold text-emerald-400'; 
@@ -127,8 +127,8 @@ window.frotaPendenciasData = [];
 
 window.carregarFrotaSupabase = async function() {
     try {
-        const client = window.supabaseClientLocal;
-        const { data, error } = await client.from('frota_pendencias').select('*').order('data_criacao', { ascending: false });
+        const db = window.getGlobalDB(); // APONTA PARA O BANCO CORRETO
+        const { data, error } = await db.from('frota_pendencias').select('*').order('data_criacao', { ascending: false });
         if (error) throw error;
         window.frotaPendenciasData = data || [];
         window.renderizarTabelaFrota();
@@ -137,8 +137,8 @@ window.carregarFrotaSupabase = async function() {
 
 window.toggleStatusSupabase = async function(id, campo, valorAtual) {
     try {
-        const client = window.supabaseClientLocal;
-        const { error } = await client.from('frota_pendencias').update({ [campo]: !valorAtual }).eq('id', id);
+        const db = window.getGlobalDB();
+        const { error } = await db.from('frota_pendencias').update({ [campo]: !valorAtual }).eq('id', id);
         if (error) throw error;
         window.carregarFrotaSupabase();
     } catch (e) { console.error("Erro ao atualizar status:", e); }
