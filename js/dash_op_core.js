@@ -38,6 +38,41 @@ window.serranaLoaders = ['GSR0001', 'GSR0002', 'GSR0003', 'GSR0007', 'GSR0008', 
 window.reflorestarLoaders = ['GRB0017', 'GRB0020', 'GRB0029'];
 window.jslLoaders = ['GSL0012', 'GSL0016'];
 
+// --- VARIÁVEIS PARA AS METAS DINÂMICAS DO BANCO ---
+window.metaCaixaMedia = 0;
+window.metaVolumeDiario = 0;
+window.metaViagensCalculada = 0;
+
+window.carregarMetasGlobais = async function() {
+    try {
+        // Puxa diretamente da tabela 'metas_globais'
+        const { data, error } = await window.supabaseClientLocal
+            .from('metas_globais')
+            .select('*')
+            .limit(1); // Pega a linha principal de configurações
+        
+        if (data && data.length > 0) {
+            const metas = data[0];
+            
+            // Coluna cx_prog para a Caixa Média (m³)
+            if (metas.cx_prog !== undefined && metas.cx_prog !== null) {
+                window.metaCaixaMedia = parseFloat(metas.cx_prog);
+            }
+            
+            // Coluna vol_prog para o Volume Diário Global (m³)
+            if (metas.vol_prog !== undefined && metas.vol_prog !== null) {
+                window.metaVolumeDiario = parseFloat(metas.vol_prog);
+            }
+
+            console.log("🎯 Metas do Banco Carregadas:", { CaixaMedia: window.metaCaixaMedia, VolumeDiario: window.metaVolumeDiario });
+        } else {
+            console.log("⚠️ Nenhuma meta encontrada na tabela 'metas_globais'.");
+        }
+    } catch (e) {
+        console.error("Erro ao buscar metas globais:", e);
+    }
+};
+
 window.normalizarCiclos = function(dataArr) {
     const pMap = new Map();
     dataArr.forEach(d => {
@@ -380,12 +415,15 @@ window.atualizarPainelOperacional = function() {
     elTotalViagens.innerText = totalViagens;
     elTotalViagens.className = "text-[32px] font-extrabold leading-none m-0 text-white transition-all"; 
     
+    window.metaViagensCalculada = 0;
+    let diasConsideradosCalc = 1;
+    let mediaAtivosReal = 0; // Guardamos para usar no volume depois
+
     if (elMetaTexto && window.frotasParaMeta && window.osParaMeta) {
         let totalFrota = window.frotasParaMeta.length;
         
         let dataInicioCalc = new Date(); dataInicioCalc.setHours(0,0,0,0);
         let dataFimCalc = new Date(); dataFimCalc.setHours(23,59,59,999);
-        let diasConsideradosCalc = 1;
 
         const hjCalc = new Date(); hjCalc.setHours(0,0,0,0);
 
@@ -452,16 +490,17 @@ window.atualizarPainelOperacional = function() {
         const totalMsDisponivelPeriodo = totalFrota * msTotalPeriodo;
         let dispNoPeriodoMs = totalMsDisponivelPeriodo - msManutTotal;
         if (dispNoPeriodoMs < 0) dispNoPeriodoMs = 0;
-        const mediaAtivosReal = Math.round(dispNoPeriodoMs / msTotalPeriodo);
+        
+        mediaAtivosReal = Math.round(dispNoPeriodoMs / msTotalPeriodo);
 
         if (activeT === 'ALL' || activeT.toUpperCase().includes('SERRANALOG')) {
-            const metaViagens = mediaAtivosReal * 2 * diasConsideradosCalc;
+            window.metaViagensCalculada = mediaAtivosReal * 2 * diasConsideradosCalc;
             
-            elMetaTexto.innerHTML = `Disp: <b class="text-emerald-400">${mediaAtivosReal}</b> carros | Meta: <b class="text-sky-400">${metaViagens}</b>`;
+            elMetaTexto.innerHTML = `Disp: <b class="text-emerald-400">${mediaAtivosReal}</b> carros | Meta: <b class="text-sky-400">${window.metaViagensCalculada}</b>`;
             elMetaTexto.classList.remove('hidden');
             
-            if (metaViagens > 0) {
-                if (totalViagens >= metaViagens) {
+            if (window.metaViagensCalculada > 0) {
+                if (totalViagens >= window.metaViagensCalculada) {
                     elTotalViagens.className = "text-[32px] font-extrabold leading-none m-0 text-emerald-400 drop-shadow-md transition-all";
                     elIconeMeta.innerHTML = '<i class="fas fa-check-circle text-emerald-400 text-[22px] drop-shadow-md" title="Meta Atingida"></i>';
                 } else {
@@ -472,6 +511,7 @@ window.atualizarPainelOperacional = function() {
         } else { elMetaTexto.classList.add('hidden'); elIconeMeta.innerHTML = ''; }
     } else { if(elMetaTexto) elMetaTexto.classList.add('hidden'); if(elIconeMeta) elIconeMeta.innerHTML = ''; }
 
+    // --- NOVA LÓGICA DE METAS DE VOLUME (COM FALLBACK SE O BANCO ESTIVER ZERADO) ---
     const totalPesoKg = cardsData.reduce((s,x)=>s+(parseFloat(String(x.pesoLiquido).replace(',','.'))||0), 0);
     const mediaPbtc = totalViagens > 0 ? (totalPesoKg / 1000) / totalViagens : 0;
     
@@ -486,8 +526,64 @@ window.atualizarPainelOperacional = function() {
     const totalVol = cardsData.reduce((s,x)=>s+(parseFloat(String(x.volumeReal).replace(',','.'))||0), 0);
     const mediaVol = totalViagens > 0 ? (totalVol / totalViagens) : 0;
     
-    document.getElementById('mediaVolumeViagem').innerText = mediaVol.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
-    document.getElementById('totalVolumeReal').innerText = totalVol.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
+    let elMediaVol = document.getElementById('mediaVolumeViagem');
+    let metaCaixaText = document.getElementById('metaVolMediaText');
+    let iconeCaixa = document.getElementById('iconeMetaVolMedia');
+    
+    elMediaVol.innerText = mediaVol.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
+    
+    // ** FALLBACK DE SEGURANÇA: Se o banco retornar vazio, ele força 48 m³ para aparecer na tela **
+    let metaCaixaFinal = window.metaCaixaMedia > 0 ? window.metaCaixaMedia : 48;
+    
+    if (metaCaixaFinal > 0) {
+        if(metaCaixaText) {
+            metaCaixaText.innerText = `Meta: ${metaCaixaFinal} m³`;
+            metaCaixaText.classList.remove('hidden');
+        }
+        if (mediaVol >= metaCaixaFinal) {
+            elMediaVol.className = "text-[32px] font-extrabold leading-none m-0 text-emerald-400 drop-shadow-md transition-all";
+            if(iconeCaixa) iconeCaixa.innerHTML = '<i class="fas fa-check-circle text-emerald-400 text-[22px] drop-shadow-md"></i>';
+        } else {
+            elMediaVol.className = "text-[32px] font-extrabold leading-none m-0 text-rose-500 drop-shadow-md transition-all";
+            if(iconeCaixa) iconeCaixa.innerHTML = '<i class="fas fa-exclamation-circle text-rose-500 text-[22px] drop-shadow-md"></i>';
+        }
+    }
+
+    let elTotalVol = document.getElementById('totalVolumeReal');
+    let metaVolTotalText = document.getElementById('metaVolTotalText');
+    let iconeVolTotal = document.getElementById('iconeMetaVolTotal');
+    
+    elTotalVol.innerText = totalVol.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
+    
+    // Calcula a Meta de Volume Total (com Fallback)
+    let metaVolumeCalculada = 0;
+    
+    if (window.metaVolumeDiario > 0) {
+        // Se cadastrou o Diário Global explícito, multiplica pelos dias filtrados
+        metaVolumeCalculada = window.metaVolumeDiario * diasConsideradosCalc;
+    } else if (window.metaViagensCalculada > 0) {
+        // Multiplica as Viagens Esperadas pela Caixa Média esperada
+        metaVolumeCalculada = window.metaViagensCalculada * metaCaixaFinal;
+    } else {
+        // Fallback Extremo: Se a manutenção também não estiver preenchida no dia, supõe 50 caminhões
+        metaVolumeCalculada = (50 * 2 * diasConsideradosCalc) * metaCaixaFinal;
+    }
+
+    if (metaVolumeCalculada > 0) {
+        if(metaVolTotalText) {
+            metaVolTotalText.innerHTML = `Meta: <b class="text-sky-400">${metaVolumeCalculada.toLocaleString('pt-PT')} m³</b>`;
+            metaVolTotalText.classList.remove('hidden');
+        }
+        
+        if (totalVol >= metaVolumeCalculada) {
+            elTotalVol.className = "text-[32px] font-extrabold leading-none m-0 text-emerald-400 drop-shadow-md transition-all";
+            if(iconeVolTotal) iconeVolTotal.innerHTML = '<i class="fas fa-check-circle text-emerald-400 text-[22px] drop-shadow-md"></i>';
+        } else {
+            elTotalVol.className = "text-[32px] font-extrabold leading-none m-0 text-rose-500 drop-shadow-md transition-all";
+            if(iconeVolTotal) iconeVolTotal.innerHTML = '<i class="fas fa-exclamation-circle text-rose-500 text-[22px] drop-shadow-md"></i>';
+        }
+    }
+    // --------------------------------------------------------
 
     const mediaAsfalto = totalViagens > 0 ? cardsData.reduce((s, r) => s + (r.distanciaAsfalto||0), 0) / totalViagens : 0;
     const mediaTerra = totalViagens > 0 ? cardsData.reduce((s, r) => s + (r.distanciaTerra||0), 0) / totalViagens : 0;
@@ -599,7 +695,7 @@ window.atualizarPainelOperacional = function() {
 // =========================================================
 // FUNÇÃO DE INICIALIZAÇÃO GERAL DO OPERACIONAL
 // =========================================================
-window.initNovoDashboardOperacional = function() {
+window.initNovoDashboardOperacional = async function() {
     if(typeof Chart === 'undefined') {
         setTimeout(window.initNovoDashboardOperacional, 50);
         return; 
@@ -610,6 +706,10 @@ window.initNovoDashboardOperacional = function() {
     Chart.defaults.font.family = "'Inter', sans-serif";
 
     window.setupOperacionalFilters();
+    
+    // CARREGA AS METAS DO BANCO DE DADOS PRIMEIRO
+    await window.carregarMetasGlobais();
+
     window.loadManutencaoDataForMeta().finally(() => {
         window.loadOperacionalData();
     });

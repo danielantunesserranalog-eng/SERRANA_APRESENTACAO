@@ -78,16 +78,24 @@
             
             <div class="glass-card rounded-2xl p-5 glow-border-indigo card-hover flex flex-col justify-between relative">
                 <div>
-                    <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest m-0 mb-2">Média de Vol (m³)</p>
-                    <p id="mediaVolumeViagem" class="text-[32px] font-extrabold text-white leading-none m-0">0 m³</p>
+                    <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest m-0 mb-1">Média de Vol (m³)</p>
+                    <div class="flex items-center gap-2">
+                        <p id="mediaVolumeViagem" class="text-[32px] font-extrabold text-white leading-none m-0 transition-all">0 m³</p>
+                        <span id="iconeMetaVolMedia"></span>
+                    </div>
+                    <p id="metaVolMediaText" class="text-[10px] font-bold text-slate-500 mt-1 m-0 hidden">Meta: --</p>
                 </div>
                 <i class="fas fa-box-open text-indigo-400 text-[26px] absolute right-5 top-1/2 -translate-y-1/2 opacity-80"></i>
             </div>
             
             <div class="glass-card rounded-2xl p-5 glow-border-amber card-hover flex flex-col justify-between relative">
                 <div>
-                    <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest m-0 mb-2">Volume Total</p>
-                    <p id="totalVolumeReal" class="text-[32px] font-extrabold text-white leading-none m-0">0 m³</p>
+                    <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest m-0 mb-1">Volume Total</p>
+                    <div class="flex items-center gap-2">
+                        <p id="totalVolumeReal" class="text-[32px] font-extrabold text-white leading-none m-0 transition-all">0 m³</p>
+                        <span id="iconeMetaVolTotal"></span>
+                    </div>
+                    <p id="metaVolTotalText" class="text-[10px] font-bold text-slate-500 mt-1 m-0 hidden">Calculando meta...</p>
                 </div>
                 <i class="fas fa-cubes text-amber-500 text-[26px] absolute right-5 top-1/2 -translate-y-1/2 opacity-80"></i>
             </div>
@@ -332,7 +340,6 @@
 </div>
 
 <script>
-    // Gatilho para o arquivo JS externo ser ativado pelo roteador
     if(typeof window.initNovoDashboardOperacional === 'function') {
         window.initNovoDashboardOperacional();
     }
