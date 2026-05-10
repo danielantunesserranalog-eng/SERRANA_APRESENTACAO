@@ -364,10 +364,16 @@ window.atualizarElementoTempo = function(idElemento, mediaReal, metaData) {
     let icone = "";
 
     if (metaData > 0) {
-        if (mediaReal > metaData) {
+        // Conversão para minutos exatos, arredondados, para evitar erro de precisão decimal no JS
+        let minutosReais = Math.round((mediaReal || 0) * 60);
+        let minutosMeta = Math.round((metaData || 0) * 60);
+
+        if (minutosReais > minutosMeta) {
+            // Se gastou mais tempo que a meta (piorou o resultado) = Vermelho
             corClasse = "text-rose-500";
             icone = `<i class="fas fa-exclamation-circle text-2xl text-rose-500 shadow-sm rounded-full bg-rose-500/10 p-1"></i>`;
         } else {
+            // Se gastou igual ou menos tempo que a meta (bateu a meta) = Verde
             corClasse = "text-emerald-400";
             icone = `<i class="fas fa-check-circle text-2xl text-emerald-400 shadow-sm rounded-full bg-emerald-500/10 p-1"></i>`;
         }
@@ -657,7 +663,6 @@ window.atualizarPainelOperacional = function() {
     const validFilaFabrica = cardsData.filter(d => d.filaFabricaHoras > 0);
     const mediaFilaFabrica = validFilaFabrica.length > 0 ? validFilaFabrica.reduce((s, d) => s + d.filaFabricaHoras, 0) / validFilaFabrica.length : 0;
 
-    // --- AGORA SIM AS METAS DOS 4 QUADRADOS SÃO ATUALIZADAS DIRETO DO BANCO ---
     window.atualizarElementoTempo('cicloMedio', mediaCiclo, window.metaCicloDecimal); 
     window.atualizarElementoTempo('filaCampo', mediaFilaCampo, window.metaFilaCampoDecimal); 
     window.atualizarElementoTempo('tempoCarregamento', mediaTempoCarregamento, window.metaCargaDecimal); 
