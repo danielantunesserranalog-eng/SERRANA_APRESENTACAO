@@ -1,43 +1,21 @@
-// =================================================================
-// js/os_painel.js - Integração Completa do Menu de Manutenção
-// =================================================================
-
-// 1. Configuração do Supabase Exclusivo para Manutenção
 const supabaseUrlManutencao = 'https://ihgiyxzxdldqmrkziijl.supabase.co';
 const supabaseKeyManutencao = 'sb_publishable_JpMZhW5ZrFKBr7m9KXBkoQ_cpxy1k3x';
 
 const supabaseManutencao = window.supabase.createClient(supabaseUrlManutencao, supabaseKeyManutencao);
 
-// Variáveis Globais de Manutenção e Filtros
 window.ordensServico = [];
 window.frotasManutencao = [];
 window.estadoFiltroGlobal = { tipo: 'MES_ATUAL', mesAno: '' };
 
-// Função que puxa os dados ao abrir o Dashboard
 window.carregarDadosManutencao = async function() {
     try {
         const { data: osData, error: osError } = await supabaseManutencao.from('ordens_servico').select('*');
-        if (!osError && osData) {
-            window.ordensServico = osData;
-        } else {
-            window.ordensServico = [];
-        }
+        if (!osError && osData) { window.ordensServico = osData; } else { window.ordensServico = []; }
 
         const { data: frotaData, error: frotaError } = await supabaseManutencao.from('frotas_manutencao').select('*').order('cavalo', { ascending: true });
-        
-        if (!frotaError && frotaData) {
-            window.frotasManutencao = frotaData;
-        } else {
-            window.frotasManutencao = [];
-        }
-    } catch (error) {
-        console.error("Erro Crítico ao carregar dados da manutenção:", error);
-    }
+        if (!frotaError && frotaData) { window.frotasManutencao = frotaData; } else { window.frotasManutencao = []; }
+    } catch (error) { console.error("Erro Crítico ao carregar dados da manutenção:", error); }
 };
-
-// =================================================================
-// LÓGICA DE FILTROS RÁPIDOS E GLOBAIS
-// =================================================================
 
 window.preencherFiltroMesGlobal = function() {
     const select = document.getElementById('filtroMesGlobal');
@@ -72,59 +50,37 @@ window.preencherFiltroMesGlobal = function() {
             html += `<option value="${chave}">${nomeMes}/${ano.slice(2)}</option>`;
         }
     });
-    
     select.innerHTML = html;
 };
 
 window.aplicarFiltroRapido = function(tipo, btn) {
     window.estadoFiltroGlobal.tipo = tipo;
-    
-    // Atualiza Botões
     document.querySelectorAll('.btn-qf-global').forEach(b => {
-        b.classList.remove('active');
-        b.style.background = 'transparent';
-        b.style.color = '#94a3b8';
+        b.classList.remove('active'); b.style.background = 'transparent'; b.style.color = '#94a3b8';
     });
-    if(btn) {
-        btn.classList.add('active');
-        btn.style.background = '#3b82f6';
-        btn.style.color = 'white';
-    }
+    if(btn) { btn.classList.add('active'); btn.style.background = '#3b82f6'; btn.style.color = 'white'; }
     
-    // Reseta o Seletor de Mês
     const selectMes = document.getElementById('filtroMesGlobal');
     if(selectMes) selectMes.value = 'ATUAL';
-    
     window.dispararFiltrosGlobais();
 };
 
 window.aplicarFiltroMesGlobal = function() {
     const select = document.getElementById('filtroMesGlobal');
     const valor = select.value;
-    
-    // Tira seleção dos botões rápidos
     document.querySelectorAll('.btn-qf-global').forEach(b => {
-        b.classList.remove('active');
-        b.style.background = 'transparent';
-        b.style.color = '#94a3b8';
+        b.classList.remove('active'); b.style.background = 'transparent'; b.style.color = '#94a3b8';
     });
 
     if (valor === 'ATUAL') {
         window.estadoFiltroGlobal.tipo = 'MES_ATUAL';
         window.estadoFiltroGlobal.mesAno = '';
-        
-        // Reativa visualmente o botão MÊS ATUAL
         const btnMesAtual = document.querySelector('.btn-qf-global[data-qf="MES_ATUAL"]');
-        if (btnMesAtual) {
-            btnMesAtual.classList.add('active');
-            btnMesAtual.style.background = '#3b82f6';
-            btnMesAtual.style.color = 'white';
-        }
+        if (btnMesAtual) { btnMesAtual.classList.add('active'); btnMesAtual.style.background = '#3b82f6'; btnMesAtual.style.color = 'white'; }
     } else {
         window.estadoFiltroGlobal.tipo = 'MES_ESPECIFICO';
         window.estadoFiltroGlobal.mesAno = valor;
     }
-    
     window.dispararFiltrosGlobais();
 };
 
@@ -135,37 +91,25 @@ window.getDatasFiltroGlobal = function() {
     fim.setHours(23, 59, 59, 999);
 
     if (window.estadoFiltroGlobal.tipo === 'D-1') {
-        // Ontem exato (00:00 até 23:59)
-        inicio.setDate(hoje.getDate() - 1);
-        inicio.setHours(0, 0, 0, 0);
-        fim = new Date(hoje);
-        fim.setDate(hoje.getDate() - 1);
-        fim.setHours(23, 59, 59, 999);
+        inicio.setDate(hoje.getDate() - 1); inicio.setHours(0, 0, 0, 0);
+        fim = new Date(hoje); fim.setDate(hoje.getDate() - 1); fim.setHours(23, 59, 59, 999);
     } else if (window.estadoFiltroGlobal.tipo === 'D-2') {
-        // Anteontem e Ontem (Até o momento atual hoje)
-        inicio.setDate(hoje.getDate() - 2);
+        inicio.setDate(hoje.getDate() - 2); inicio.setHours(0, 0, 0, 0);
+    } else if (window.estadoFiltroGlobal.tipo === 'D-3') {
+        inicio.setDate(hoje.getDate() - 2); // Hoje, Ontem e Anteontem = 3 dias
         inicio.setHours(0, 0, 0, 0);
     } else if (window.estadoFiltroGlobal.tipo === 'D-7') {
-        // Últimos 7 dias
-        inicio.setDate(hoje.getDate() - 7);
-        inicio.setHours(0, 0, 0, 0);
+        inicio.setDate(hoje.getDate() - 7); inicio.setHours(0, 0, 0, 0);
     } else if (window.estadoFiltroGlobal.tipo === 'MES_ESPECIFICO' && window.estadoFiltroGlobal.mesAno) {
-        // Mês Fechado Histórico
         const [ano, mes] = window.estadoFiltroGlobal.mesAno.split('-');
         inicio = new Date(parseInt(ano), parseInt(mes) - 1, 1, 0, 0, 0);
         fim = new Date(parseInt(ano), parseInt(mes), 0, 23, 59, 59, 999);
-        
-        // Se for o mês atual correndo, trava o fim para agora.
         if (inicio.getFullYear() === hoje.getFullYear() && inicio.getMonth() === hoje.getMonth()) {
-            fim = new Date(hoje);
-            fim.setHours(23, 59, 59, 999);
+            fim = new Date(hoje); fim.setHours(23, 59, 59, 999);
         }
     } else {
-        // Padrão: MÊS ATUAL
-        inicio.setDate(1);
-        inicio.setHours(0, 0, 0, 0);
+        inicio.setDate(1); inicio.setHours(0, 0, 0, 0);
     }
-    
     return { inicio: inicio, fim: fim, valorBruto: window.estadoFiltroGlobal.tipo };
 };
 
@@ -176,17 +120,11 @@ window.dispararFiltrosGlobais = function() {
     try { if(typeof renderizarRelatorioTipoServico === 'function') renderizarRelatorioTipoServico(); } catch(e){}
 };
 
-// =================================================================
-// FUNÇÕES DOS KPIS E GRÁFICOS
-// =================================================================
-
 window.atualizarKPIsGlobais = function() {
     try {
         if (!window.ordensServico) return;
         const datas = window.getDatasFiltroGlobal();
-        const inicio = datas.inicio;
-        const fim = datas.fim;
-        
+        const inicio = datas.inicio, fim = datas.fim;
         let totalOS = 0, abertasOS = 0, concluidasOS = 0, msTotalTempo = 0, osComTempo = 0;
         
         window.ordensServico.forEach(os => {
@@ -201,18 +139,12 @@ window.atualizarKPIsGlobais = function() {
                 if (!osFimStr.includes('T')) osFimStr += 'T00:00:00';
                 dtConclusao = new Date(osFimStr.replace('Z', '').replace('+00:00', ''));
             }
-            
             if (dtAbertura <= fim && dtConclusao >= inicio) {
                 totalOS++;
                 if (os.status === 'Concluída' || os.status === 'Resolvido') {
                     concluidasOS++;
-                    if (dtAbertura && os.data_conclusao) { 
-                        msTotalTempo += (dtConclusao - dtAbertura);
-                        osComTempo++;
-                    }
-                } else {
-                    abertasOS++;
-                }
+                    if (dtAbertura && os.data_conclusao) { msTotalTempo += (dtConclusao - dtAbertura); osComTempo++; }
+                } else { abertasOS++; }
             }
         });
         
@@ -258,11 +190,7 @@ window.atualizarKPIsGlobais = function() {
                 if (overlapInicio < overlapFim) {
                     const tempoParado = overlapFim - overlapInicio;
                     const tipoOS = (os.tipo || os.tipo_manutencao || '').toUpperCase();
-                    if (tipoOS.includes('S.O.S') || tipoOS.includes('SOS')) {
-                        msSOS += tempoParado;
-                    } else {
-                        msManutencaoComum += tempoParado;
-                    }
+                    if (tipoOS.includes('S.O.S') || tipoOS.includes('SOS')) { msSOS += tempoParado; } else { msManutencaoComum += tempoParado; }
                 }
             });
         });
@@ -280,21 +208,17 @@ window.atualizarKPIsGlobais = function() {
         if(document.getElementById('avgAtivos')) document.getElementById('avgAtivos').innerText = mediaAtivosReal;
         if(document.getElementById('avgManut')) document.getElementById('avgManut').innerText = mediaManutReal;
         if(document.getElementById('avgSOS')) document.getElementById('avgSOS').innerText = mediaSOSReal;
-    } catch(e) {
-        console.error("Erro ao atualizar KPIs Globais:", e);
-    }
+    } catch(e) { console.error("Erro ao atualizar KPIs Globais:", e); }
 };
 
 window.renderizarGraficoEvolucaoDMDiaria = function() {
     try {
         if (!window.frotasManutencao || window.frotasManutencao.length === 0) return;
-        
         const datas = window.getDatasFiltroGlobal();
         let dataInicio = new Date(datas.inicio);
         let hoje = new Date(datas.fim);
 
-        const labelsDias = [];
-        const dadosDMDiaria = [];
+        const labelsDias = [], dadosDMDiaria = [];
         let atual = new Date(dataInicio);
         
         while (atual <= hoje) {
@@ -317,7 +241,6 @@ window.renderizarGraficoEvolucaoDMDiaria = function() {
                 window.frotasManutencao.forEach(frota => {
                     let manutencaoCavalo = 0;
                     const todasOSCavalo = window.ordensServico.filter(o => o.placa === frota.cavalo && o.status !== 'Agendada');
-                    
                     todasOSCavalo.forEach(os => {
                         let osInicioStr = os.data_abertura;
                         if (!osInicioStr) return;
@@ -332,9 +255,7 @@ window.renderizarGraficoEvolucaoDMDiaria = function() {
                         }
                         const overlapInicio = osInicio > inicioDia ? osInicio : inicioDia;
                         const overlapFim = osFim < fimParaCalculo ? osFim : fimParaCalculo;
-                        if (overlapInicio < overlapFim) {
-                            manutencaoCavalo += (overlapFim - overlapInicio);
-                        }
+                        if (overlapInicio < overlapFim) { manutencaoCavalo += (overlapFim - overlapInicio); }
                     });
                     if (manutencaoCavalo > msTotalDia) manutencaoCavalo = msTotalDia;
                     msManutencaoDia += manutencaoCavalo;
@@ -347,18 +268,12 @@ window.renderizarGraficoEvolucaoDMDiaria = function() {
                 const diaStr = String(atual.getDate()).padStart(2, '0') + '/' + String(atual.getMonth() + 1).padStart(2, '0');
                 labelsDias.push(diaStr);
                 
-                dadosDMDiaria.push({
-                    value: percentDM.toFixed(2),
-                    disp: mediaCavalosDisp,
-                    total: qtdFrotaDia 
-                });
+                dadosDMDiaria.push({ value: percentDM.toFixed(2), disp: mediaCavalosDisp, total: qtdFrotaDia });
             }
             atual.setDate(atual.getDate() + 1);
         }
 
-        // Mini KPIs baseados na seleção global
-        let somaDM = 0;
-        dadosDMDiaria.forEach(d => somaDM += parseFloat(d.value));
+        let somaDM = 0; dadosDMDiaria.forEach(d => somaDM += parseFloat(d.value));
         let mediaDM = dadosDMDiaria.length > 0 ? (somaDM / dadosDMDiaria.length).toFixed(1) : 0;
 
         let totalOSMes = 0, concluidasOSMes = 0, tempoTotalMs = 0, osComTempo = 0;
@@ -379,10 +294,7 @@ window.renderizarGraficoEvolucaoDMDiaria = function() {
                 totalOSMes++;
                 if (os.status === 'Concluída' || os.status === 'Resolvido') {
                     concluidasOSMes++;
-                    if (os.data_conclusao) {
-                        tempoTotalMs += (dtConclusao - dtAbertura);
-                        osComTempo++;
-                    }
+                    if (os.data_conclusao) { tempoTotalMs += (dtConclusao - dtAbertura); osComTempo++; }
                 }
             }
         });
@@ -417,42 +329,13 @@ window.renderizarGraficoEvolucaoDMDiaria = function() {
                     }
                 },
                 grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-                xAxis: {
-                    type: 'category',
-                    boundaryGap: false,
-                    data: labelsDias,
-                    axisLabel: { color: '#ffffff', fontWeight: 'bold' }
-                },
-                yAxis: {
-                    type: 'value',
-                    min: 0,
-                    max: 100,
-                    axisLabel: { formatter: '{value}%', color: '#ffffff', fontWeight: 'bold' },
-                    splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } }
-                },
+                xAxis: { type: 'category', boundaryGap: false, data: labelsDias, axisLabel: { color: '#ffffff', fontWeight: 'bold' } },
+                yAxis: { type: 'value', min: 0, max: 100, axisLabel: { formatter: '{value}%', color: '#ffffff', fontWeight: 'bold' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } } },
                 series: [{
-                    name: 'Média DM Diária',
-                    type: 'line',
-                    data: dadosDMDiaria,
-                    smooth: true,
-                    symbol: 'circle',
-                    symbolSize: 8,
-                    label: {
-                        show: true,
-                        position: 'top',
-                        formatter: function (params) { return `${params.data.disp}/${params.data.total}\n(${params.data.value}%)`; },
-                        color: '#ffffff',
-                        fontSize: 12,
-                        fontWeight: '900',
-                    },
-                    itemStyle: { color: '#10b981' }, 
-                    lineStyle: { width: 4 },
-                    areaStyle: {
-                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                            { offset: 0, color: 'rgba(16, 185, 129, 0.4)' },
-                            { offset: 1, color: 'rgba(16, 185, 129, 0)' }
-                        ])
-                    }
+                    name: 'Média DM Diária', type: 'line', data: dadosDMDiaria, smooth: true, symbol: 'circle', symbolSize: 8,
+                    label: { show: true, position: 'top', formatter: function (params) { return `${params.data.disp}/${params.data.total}\n(${params.data.value}%)`; }, color: '#ffffff', fontSize: 12, fontWeight: '900' },
+                    itemStyle: { color: '#10b981' }, lineStyle: { width: 4 },
+                    areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(16, 185, 129, 0.4)' }, { offset: 1, color: 'rgba(16, 185, 129, 0)' }]) }
                 }]
             };
             myChart.setOption(option);
@@ -482,15 +365,7 @@ window.renderizarRelatorioGerencialOS = function() {
     let htmlCavalos = '';
     topCavalos.forEach(([placa, qtd], index) => {
         const percent = (qtd / maxCavaloCount) * 100;
-        htmlCavalos += `
-            <div style="margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.85rem; color: #e2e8f0;">
-                    <strong>${index + 1}º ${placa}</strong><span>${qtd} O.S.</span>
-                </div>
-                <div style="background: rgba(255,255,255,0.1); border-radius: 4px; height: 12px; overflow: hidden;">
-                    <div style="background: #ef4444; width: ${percent}%; height: 100%;"></div>
-                </div>
-            </div>`;
+        htmlCavalos += `<div style="margin-bottom: 12px;"><div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.85rem; color: #e2e8f0;"><strong>${index + 1}º ${placa}</strong><span>${qtd} O.S.</span></div><div style="background: rgba(255,255,255,0.1); border-radius: 4px; height: 12px; overflow: hidden;"><div style="background: #ef4444; width: ${percent}%; height: 100%;"></div></div></div>`;
     });
     if(document.getElementById('rankingCavalosOS')) document.getElementById('rankingCavalosOS').innerHTML = htmlCavalos || '<p style="color:#94a3b8;">Sem dados.</p>';
 
@@ -502,15 +377,7 @@ window.renderizarRelatorioGerencialOS = function() {
     Object.keys(porPrioridade).forEach(p => {
         const qtd = porPrioridade[p];
         const percent = osManutencao.length > 0 ? (qtd / osManutencao.length) * 100 : 0;
-        htmlPrio += `
-            <div style="margin-bottom: 12px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.85rem; color: #e2e8f0;">
-                    <span>Prioridade <strong>${p}</strong></span><span>${qtd} ocorrências</span>
-                </div>
-                <div style="background: rgba(255,255,255,0.1); border-radius: 4px; height: 10px; overflow: hidden;">
-                    <div style="background: ${colorsPri[p]}; width: ${percent}%; height: 100%;"></div>
-                </div>
-            </div>`;
+        htmlPrio += `<div style="margin-bottom: 12px;"><div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.85rem; color: #e2e8f0;"><span>Prioridade <strong>${p}</strong></span><span>${qtd} ocorrências</span></div><div style="background: rgba(255,255,255,0.1); border-radius: 4px; height: 10px; overflow: hidden;"><div style="background: ${colorsPri[p]}; width: ${percent}%; height: 100%;"></div></div></div>`;
     });
     if(document.getElementById('graficoPrioridadeOS')) document.getElementById('graficoPrioridadeOS').innerHTML = htmlPrio || '<p style="color:#94a3b8;">Sem dados.</p>';
 
@@ -532,10 +399,7 @@ window.renderizarGraficoOcorrenciasPorTipo = function() {
     });
 
     const contagem = {};
-    filtradas.forEach(o => {
-        const t = o.tipo || 'Não Informado';
-        contagem[t] = (contagem[t] || 0) + 1;
-    });
+    filtradas.forEach(o => { const t = o.tipo || 'Não Informado'; contagem[t] = (contagem[t] || 0) + 1; });
 
     const sorted = Object.entries(contagem).sort((a,b) => b[1] - a[1]);
     const categories = sorted.map(i => i[0]);
@@ -555,29 +419,12 @@ window.renderizarGraficoOcorrenciasPorTipo = function() {
             backgroundColor: 'transparent',
             tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
             grid: { left: '3%', right: '4%', bottom: '25%', top: '15%', containLabel: true },
-            xAxis: {
-                type: 'category',
-                data: categories,
-                axisLabel: { color: '#94a3b8', rotate: 35, interval: 0, fontSize: 10, fontWeight: 'bold' }
-            },
-            yAxis: {
-                type: 'value',
-                axisLabel: { color: '#94a3b8' },
-                splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)', type: 'dashed' } }
-            },
+            xAxis: { type: 'category', data: categories, axisLabel: { color: '#94a3b8', rotate: 35, interval: 0, fontSize: 10, fontWeight: 'bold' } },
+            yAxis: { type: 'value', axisLabel: { color: '#94a3b8' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)', type: 'dashed' } } },
             series: [{
-                name: 'Ocorrências',
-                type: 'bar',
-                data: data,
-                barWidth: '40%',
+                name: 'Ocorrências', type: 'bar', data: data, barWidth: '40%',
                 label: { show: true, position: 'top', color: '#fff', fontWeight: 'bold' },
-                itemStyle: {
-                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        { offset: 0, color: '#0ea5e9' },
-                        { offset: 1, color: '#3b82f6' }
-                    ]),
-                    borderRadius: [6, 6, 0, 0] 
-                }
+                itemStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: '#0ea5e9' }, { offset: 1, color: '#3b82f6' }]), borderRadius: [6, 6, 0, 0] }
             }]
         };
         window.chartOcorrenciasTipo.setOption(option);
@@ -586,16 +433,11 @@ window.renderizarGraficoOcorrenciasPorTipo = function() {
     }
 };
 
-// =================================================================
-// NOVA TABELA: DESEMPENHO POR TIPO DE SERVIÇO
-// =================================================================
 window.renderizarRelatorioTipoServico = function() {
     const tbody = document.getElementById('tabelaRelatorioTipoServico');
     if (!tbody) return;
     
     let filtroData = window.getDatasFiltroGlobal();
-
-    // Filtra O.S. que estão dentro do período selecionado
     const osNoPeriodo = window.ordensServico.filter(o => {
         if (o.status === 'Agendada') return false;
         if (!o.data_abertura) return false;
@@ -605,48 +447,31 @@ window.renderizarRelatorioTipoServico = function() {
         return d >= filtroData.inicio && d <= filtroData.fim;
     });
 
-    // Agrupa e consolida as métricas
     const agrupado = {};
-    
     osNoPeriodo.forEach(os => {
         const tipo = os.tipo || os.tipo_manutencao || 'Não Informado';
-        if (!agrupado[tipo]) {
-            agrupado[tipo] = { quantidade: 0, tempoTotalMs: 0, concluidasComTempo: 0 };
-        }
-        
+        if (!agrupado[tipo]) { agrupado[tipo] = { quantidade: 0, tempoTotalMs: 0, concluidasComTempo: 0 }; }
         agrupado[tipo].quantidade++;
         
-        // Calcula o tempo médio apenas se estiver concluída e possuir as datas
         if ((os.status === 'Concluída' || os.status === 'Resolvido') && os.data_abertura && os.data_conclusao) {
             const inicio = new Date(os.data_abertura.replace('Z', '').replace('+00:00', ''));
             const fim = new Date(os.data_conclusao.replace('Z', '').replace('+00:00', ''));
-            if (fim > inicio) {
-                agrupado[tipo].tempoTotalMs += (fim - inicio);
-                agrupado[tipo].concluidasComTempo++;
-            }
+            if (fim > inicio) { agrupado[tipo].tempoTotalMs += (fim - inicio); agrupado[tipo].concluidasComTempo++; }
         }
     });
 
-    // Formatação e ordenação
     let dadosTabela = Object.keys(agrupado).map(tipo => {
         const info = agrupado[tipo];
         let tempoMedioStr = '-';
-        
         if (info.concluidasComTempo > 0) {
             const mediaMs = info.tempoTotalMs / info.concluidasComTempo;
             const mediaHrs = Math.floor(mediaMs / (1000 * 60 * 60));
             const mediaMin = Math.floor((mediaMs % (1000 * 60 * 60)) / (1000 * 60));
             tempoMedioStr = `${mediaHrs}h ${String(mediaMin).padStart(2, '0')}m`;
         }
-        
-        return {
-            tipo: tipo,
-            quantidade: info.quantidade,
-            tempoMedioStr: tempoMedioStr
-        };
+        return { tipo: tipo, quantidade: info.quantidade, tempoMedioStr: tempoMedioStr };
     });
 
-    // Ordenação Alfabética por Tipo de Serviço
     dadosTabela.sort((a, b) => a.tipo.localeCompare(b.tipo));
 
     if (dadosTabela.length === 0) {
@@ -655,37 +480,26 @@ window.renderizarRelatorioTipoServico = function() {
         return;
     }
 
-    tbody.innerHTML = dadosTabela.map(item => {
-        return `
-            <tr style="background: rgba(255,255,255,0.02);">
-                <td style="color: #3b82f6; font-weight: bold; font-size: 1.1rem; padding: 12px; border-bottom: 1px solid var(--border);">${item.tipo}</td>
-                <td style="color: #fff; text-align: center; font-size: 1.1rem; font-weight: bold; padding: 12px; border-bottom: 1px solid var(--border);">${item.quantidade}</td>
-                <td style="color: #a855f7; text-align: right; font-weight: bold; font-size: 1.1rem; padding: 12px; border-bottom: 1px solid var(--border);">${item.tempoMedioStr}</td>
-            </tr>
-        `;
-    }).join('');
-    
-    // Salva os dados para a exportação
+    tbody.innerHTML = dadosTabela.map(item => `
+        <tr style="background: rgba(255,255,255,0.02);">
+            <td style="color: #3b82f6; font-weight: bold; font-size: 1.1rem; padding: 12px; border-bottom: 1px solid var(--border);">${item.tipo}</td>
+            <td style="color: #fff; text-align: center; font-size: 1.1rem; font-weight: bold; padding: 12px; border-bottom: 1px solid var(--border);">${item.quantidade}</td>
+            <td style="color: #a855f7; text-align: right; font-weight: bold; font-size: 1.1rem; padding: 12px; border-bottom: 1px solid var(--border);">${item.tempoMedioStr}</td>
+        </tr>
+    `).join('');
     window.tipoServicoDataExport = dadosTabela;
 };
 
 window.exportarRelatorioTipoServicoExcel = function() {
-    if (!window.tipoServicoDataExport || window.tipoServicoDataExport.length === 0) {
-        alert("Não há dados para exportar.");
-        return;
-    }
+    if (!window.tipoServicoDataExport || window.tipoServicoDataExport.length === 0) { alert("Não há dados para exportar."); return; }
     let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
     csvContent += "Tipo de Serviço;Quantidade (O.S.);Tempo Médio de Conclusão\n";
-    window.tipoServicoDataExport.forEach(item => {
-        csvContent += `"${item.tipo}";${item.quantidade};"${item.tempoMedioStr}"\n`;
-    });
+    window.tipoServicoDataExport.forEach(item => { csvContent += `"${item.tipo}";${item.quantidade};"${item.tempoMedioStr}"\n`; });
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
     link.setAttribute("download", `Relatorio_Tipo_Servico_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
 };
 
 window.exportarGraficoPNG = async function(idElemento, nomeArquivo) {
@@ -698,19 +512,12 @@ window.exportarGraficoPNG = async function(idElemento, nomeArquivo) {
     botoes.forEach(btn => btn.style.display = 'none');
 
     try {
-        const canvas = await html2canvas(container, {
-            scale: 2, backgroundColor: '#0f172a', useCORS: true
-        });
+        const canvas = await html2canvas(container, { scale: 2, backgroundColor: '#0f172a', useCORS: true });
         const url = canvas.toDataURL('image/png');
         const link = document.createElement('a');
-        link.href = url;
-        link.download = `${nomeArquivo}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    } catch (e) {
-        console.error("Erro ao exportar:", e);
-    } finally {
+        link.href = url; link.download = `${nomeArquivo}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.png`;
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    } catch (e) { console.error("Erro ao exportar:", e); } finally {
         botoes.forEach(btn => btn.style.display = '');
     }
 };
