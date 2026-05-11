@@ -7,7 +7,8 @@ window.renderizarPatioManutencaoDash = function() {
         return;
     }
 
-    const osAtivas = window.ordensServico.filter(o => (o.status === 'Aguardando Oficina' || o.status === 'Em Manutenção') && o.tipo !== 'Sinistro');
+    // CORREÇÃO AQUI: IGNORANDO "Cavalo Disponível S/ Carreta"
+    const osAtivas = window.ordensServico.filter(o => (o.status === 'Aguardando Oficina' || o.status === 'Em Manutenção') && o.tipo !== 'Sinistro' && o.tipo !== 'Cavalo Disponível S/ Carreta');
 
     if (osAtivas.length === 0) {
         container.innerHTML = `

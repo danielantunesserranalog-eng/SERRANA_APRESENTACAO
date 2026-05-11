@@ -535,7 +535,8 @@ window.atualizarPainelOperacional = function() {
 
         let msManutTotal = 0;
         window.frotasParaMeta.forEach(frota => {
-            const todasOSCavalo = window.osParaMeta.filter(o => o.placa === frota.cavalo && o.status !== 'Agendada');
+            // CORREÇÃO AQUI: IGNORANDO "Cavalo Disponível S/ Carreta"
+            const todasOSCavalo = window.osParaMeta.filter(o => o.placa === frota.cavalo && o.status !== 'Agendada' && o.tipo !== 'Cavalo Disponível S/ Carreta');
             todasOSCavalo.forEach(os => {
                 let osInicioStr = os.data_abertura;
                 if (!osInicioStr) return;
