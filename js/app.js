@@ -20,7 +20,7 @@ const menuData = [
         ] },
     { id: 'consideracoes', title: 'CONSIDERAÇÕES', icon: 'fa-clipboard-list', mainFile: 'dash_consideracoes.html', key: 'resp_geral', def: 'Diretoria',
          submenus: [
-            { id: 'cons_resumo', title: 'Resumo da Reunião', file: 'cons_resumo.html', key: 'resp_geral', def: 'Diretoria' },
+            { id: 'cons_gestao_kanban', title: 'Gestão Kanban', file: 'cons_gestao_kanban.html', key: 'resp_geral', def: 'Diretoria' },
             { id: 'cons_historico', title: 'Histórico de Metas', file: 'cons_historico.html', key: 'resp_geral', def: 'Diretoria' }
         ] }
 ];
@@ -120,7 +120,8 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
             document.body.removeChild(newScript);
         });
         
-        if (!['cons_historico.html', 'conf_sistema.html'].includes(fileName)) {
+        // Bloqueia a exibição do gerador de metas dentro de páginas administrativas
+        if (!['cons_historico.html', 'conf_sistema.html', 'cons_gestao_kanban.html'].includes(fileName)) {
             injectKanbanLauncher(subTitle);
         }
     } catch (e) {
