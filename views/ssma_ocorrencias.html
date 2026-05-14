@@ -96,6 +96,9 @@
     <div class="form-grid" style="grid-template-columns: 1fr 1fr; grid-column: 1/-1;">
         <div class="kpi-card" style="border-left: 5px solid #0ea5e9;">
             <h3 class="nav-label" style="margin-bottom: 20px; color: #0ea5e9;"><i class="fas fa-exclamation-circle"></i> LANÇAR DNAS ABERTOS</h3>
+            
+            <input type="hidden" id="dna-id" value="">
+            
             <div class="form-grid" style="grid-template-columns: 1fr 1fr;">
                 <div class="input-group">
                     <label style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 5px; display: block;">Data de Referência</label>
@@ -107,9 +110,23 @@
                 </div>
             </div>
             <button class="btn-salvar" style="background: #0ea5e9; width: 100%; margin-top: 15px;" onclick="salvarDNA()">
-                <i class="fas fa-plus"></i> Registrar DNAs
+                <i class="fas fa-save"></i> Salvar Registro de DNAs
             </button>
-            <span id="msg-dna" style="display: block; margin-top: 10px; font-weight: bold;"></span>
+            <span id="msg-dna" style="display: block; margin-top: 10px; font-weight: bold; text-align: center;"></span>
+
+            <div style="margin-top: 20px; max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px;">
+                <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                    <thead style="background: rgba(255,255,255,0.05); position: sticky; top: 0;">
+                        <tr>
+                            <th style="padding: 10px; font-size: 0.85rem; color: var(--text-dim); border-bottom: 1px solid var(--border);">DATA</th>
+                            <th style="padding: 10px; font-size: 0.85rem; color: var(--text-dim); text-align: center; border-bottom: 1px solid var(--border);">QTD</th>
+                            <th style="padding: 10px; font-size: 0.85rem; color: var(--text-dim); text-align: center; border-bottom: 1px solid var(--border);">AÇÕES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tb-dnas">
+                        </tbody>
+                </table>
+            </div>
         </div>
 
         <div class="kpi-card" style="border-left: 5px solid var(--amarelo);">
@@ -316,7 +333,6 @@
 
         async function carregarIndicadoresDeHoje() {
             try {
-                // AGORA BUSCAMOS TAMBÉM A DATA DO ÚLTIMO ACIDENTE NAS CONFIGURAÇÕES
                 const { data: configData } = await _supa.from('configuracoes').select('chave, valor').in('chave', ['meta_diaria_dna', 'data_ultimo_acidente']);
                 
                 if (configData && configData.length > 0) {
@@ -343,8 +359,6 @@
             } catch (err) { console.error("Erro ao carregar indicadores fixos:", err); }
         }
         
-        carregarIndicadoresDeHoje();
-        
         window.salvarIndicadoresGerais = async function() {
             const msg = document.getElementById('msg-ssma-geral'); 
             const metaDna = document.getElementById('ssma-meta-dna').value;
@@ -360,7 +374,6 @@
             };
             msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando no banco...';
             try {
-                // Salva a Meta e a Data na tabela de configurações globais
                 if (metaDna) await _supa.from('configuracoes').upsert([{ chave: 'meta_diaria_dna', valor: metaDna }], { onConflict: 'chave' });
                 if (dataAcidente) await _supa.from('configuracoes').upsert([{ chave: 'data_ultimo_acidente', valor: dataAcidente }], { onConflict: 'chave' });
                 
@@ -379,14 +392,102 @@
             } catch (err) { console.error(err); }
         };
 
+        // ====== NOVO SISTEMA DE DNAS =======
+
+        window.carregarDNAs = async function() {
+            try {
+                const { data, error } = await _supa.from('ssma_dnas').select('*').order('data_abertura', { ascending: false });
+                if(error) throw error;
+                const tb = document.getElementById('tb-dnas');
+                if(!tb) return;
+                
+                if(!data || data.length === 0) {
+                    tb.innerHTML = '<tr><td colspan="3" style="text-align:center; color: var(--text-dim); padding: 15px;">Nenhum DNA lançado ainda.</td></tr>';
+                    return;
+                }
+                
+                tb.innerHTML = data.map(dna => `
+                    <tr style="border-bottom: 1px solid var(--border); transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'">
+                        <td style="padding: 10px; color: white;">${window.formatarDataLista(dna.data_abertura)}</td>
+                        <td style="padding: 10px; color: #0ea5e9; font-weight: bold; text-align: center;">${dna.quantidade || 1}</td>
+                        <td style="padding: 10px; text-align: center;">
+                            <button class="btn-kanban" style="background: var(--amarelo); color: black; padding: 6px 12px; border-radius: 4px;" onclick="editarDNA(${dna.id}, '${dna.data_abertura}', ${dna.quantidade || 1})" title="Editar este dia"><i class="fas fa-edit"></i></button>
+                            <button class="btn-kanban" style="background: var(--vermelho); padding: 6px 12px; margin-left: 5px; border-radius: 4px;" onclick="excluirDNA(${dna.id})" title="Excluir este dia"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch(e) {
+                console.error("Erro ao carregar DNAs:", e);
+            }
+        };
+
         window.salvarDNA = async function() {
-            const msg = document.getElementById('msg-dna'); const dataDNA = document.getElementById('dna-data').value; const qtdDNA = parseInt(document.getElementById('dna-qtd').value, 10);
-            if(!dataDNA || !qtdDNA || qtdDNA <= 0) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Dados inválidos!'; return; }
-            msg.style.color = 'var(--text-dim)'; msg.innerText = 'Registrando...';
-            const registros = Array.from({length: qtdDNA}, () => ({ data_abertura: dataDNA, setor: 'Lançamento em Lote', descricao: 'DNA via painel executivo', status: 'Aberto' }));
-            const { error } = await _supa.from('ssma_dnas').insert(registros);
-            if (error) { msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!'; } else { msg.style.color = 'var(--verde)'; msg.innerText = `${qtdDNA} DNA(s) Registrado(s)!`; document.getElementById('dna-qtd').value = ''; setTimeout(() => msg.innerText='', 3000); }
-        }
+            const msg = document.getElementById('msg-dna'); 
+            const dataDNA = document.getElementById('dna-data').value; 
+            const qtdDNA = parseInt(document.getElementById('dna-qtd').value, 10);
+            const dnaId = document.getElementById('dna-id').value;
+
+            if(!dataDNA || !qtdDNA || qtdDNA <= 0) { 
+                msg.style.color = 'var(--vermelho)'; msg.innerText = 'Preencha a data e a quantidade corretamente!'; return; 
+            }
+            
+            msg.style.color = 'var(--text-dim)'; msg.innerText = 'Salvando registro...';
+            
+            // Agora salvamos a quantidade no registro em vez de fazer um loop de inserts
+            const registro = { 
+                data_abertura: dataDNA, 
+                quantidade: qtdDNA, 
+                setor: 'Lançamento Consolidado', 
+                descricao: 'DNA via painel SSMA', 
+                status: 'Aberto' 
+            };
+
+            try {
+                if(dnaId) {
+                    // Modo Edição
+                    const { error } = await _supa.from('ssma_dnas').update(registro).eq('id', dnaId);
+                    if (error) throw error;
+                    msg.style.color = 'var(--verde)'; msg.innerText = 'Registro atualizado com sucesso!';
+                } else {
+                    // Modo Novo Inserir
+                    const { error } = await _supa.from('ssma_dnas').insert([registro]);
+                    if (error) throw error;
+                    msg.style.color = 'var(--verde)'; msg.innerText = 'Registro efetuado com sucesso!';
+                }
+                
+                document.getElementById('dna-qtd').value = '';
+                document.getElementById('dna-id').value = ''; // Limpar o ID de edição
+                
+                window.carregarDNAs(); // Recarrega a tabelinha
+                
+                setTimeout(() => msg.innerText='', 3000);
+            } catch(e) {
+                msg.style.color = 'var(--vermelho)'; msg.innerText = 'Erro ao salvar!';
+                console.error(e);
+            }
+        };
+
+        window.editarDNA = function(id, data_abertura, qtd) {
+            document.getElementById('dna-id').value = id;
+            document.getElementById('dna-data').value = data_abertura;
+            document.getElementById('dna-qtd').value = qtd;
+            
+            const msg = document.getElementById('msg-dna');
+            msg.style.color = 'var(--amarelo)';
+            msg.innerText = 'Modo de Edição. Salve para confirmar.';
+        };
+
+        window.excluirDNA = async function(id) {
+            if(!confirm("Tem certeza que deseja excluir este registro de DNA? O número não contabilizará mais no sistema.")) return;
+            try {
+                await _supa.from('ssma_dnas').delete().eq('id', id);
+                window.carregarDNAs();
+            } catch(e) {
+                alert("Erro ao excluir do banco!");
+            }
+        };
+
+        // ===================================
 
         window.salvarTreinamento = async function() {
             const msg = document.getElementById('msg-trei');
@@ -558,6 +659,8 @@
         }
 
         // INIT
+        carregarIndicadoresDeHoje();
+        window.carregarDNAs(); // Chama o carregamento da tabela de DNAs
         window.carregarConfigFerramentas().then(() => { window.carregarQuadroColaboradores(); });
 
     }, 50);
