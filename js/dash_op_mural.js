@@ -31,7 +31,7 @@ window.formatarDataMural = function(dataIso) {
 
 window.carregarMuralSetor = async function() {
     try {
-        const db = window.getGlobalDB(); // APONTA PARA O BANCO CORRETO
+        const db = window.getGlobalDB(); 
         if(!db) return;
         
         const { data } = await db.from('configuracoes').select('valor').eq('chave', window.muralSetorKey).limit(1);
@@ -127,7 +127,7 @@ window.frotaPendenciasData = [];
 
 window.carregarFrotaSupabase = async function() {
     try {
-        const db = window.getGlobalDB(); // APONTA PARA O BANCO CORRETO
+        const db = window.getGlobalDB(); 
         const { data, error } = await db.from('frota_pendencias').select('*').order('data_criacao', { ascending: false });
         if (error) throw error;
         window.frotaPendenciasData = data || [];
@@ -150,7 +150,7 @@ window.renderizarTabelaFrota = function() {
     tbody.innerHTML = '';
 
     if(window.frotaPendenciasData.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" class="text-center py-4 text-slate-500">Nenhuma frota com pendência cadastrada.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center py-4 text-slate-500">Nenhuma frota com pendência cadastrada.</td></tr>';
         return;
     }
 
@@ -165,11 +165,13 @@ window.renderizarTabelaFrota = function() {
             <td class="px-2 py-3 text-center">${getIcon(cam.crlve, 'crlve')}</td>
             <td class="px-2 py-3 text-center">${getIcon(cam.crono, 'crono')}</td>
             <td class="px-2 py-3 text-center">${getIcon(cam.antt, 'antt')}</td>
-            <td class="px-2 py-3 text-center">${getIcon(cam.aet, 'aet')}</td>
+            <td class="px-2 py-3 text-center">${getIcon(cam.aet_fed, 'aet_fed')}</td>
+            <td class="px-2 py-3 text-center">${getIcon(cam.aet_est, 'aet_est')}</td>
             <td class="px-2 py-3 text-center">${getIcon(cam.apr, 'apr')}</td>
             <td class="px-2 py-3 text-center">${getIcon(cam.floresta, 'floresta')}</td>
             <td class="px-2 py-3 text-center">${getIcon(cam.estrada, 'estrada')}</td>
             <td class="px-2 py-3 text-center">${getIcon(cam.hosp, 'hosp')}</td>
+            <td class="px-2 py-3 text-center">${getIcon(cam.eletromecanica, 'eletromecanica')}</td>
         `;
         tbody.appendChild(tr);
     });

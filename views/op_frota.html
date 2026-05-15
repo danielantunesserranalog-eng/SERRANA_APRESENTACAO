@@ -13,11 +13,13 @@
         <label class="check-container"><input type="checkbox" id="chk-crlve"> CRLVe</label>
         <label class="check-container"><input type="checkbox" id="chk-crono"> Certificado Cronotacógrafo</label>
         <label class="check-container"><input type="checkbox" id="chk-antt"> Registro de ANTT</label>
-        <label class="check-container"><input type="checkbox" id="chk-aet"> AET (Fed/Mun/Est)</label>
+        <label class="check-container"><input type="checkbox" id="chk-aet-fed"> AET FED.</label>
+        <label class="check-container"><input type="checkbox" id="chk-aet-est"> AET EST.</label>
         <label class="check-container"><input type="checkbox" id="chk-apr"> APR</label>
         <label class="check-container"><input type="checkbox" id="chk-floresta"> PG.12.00.0044 - Floresta Segura</label>
         <label class="check-container"><input type="checkbox" id="chk-estrada"> PG.12.00.0021 - Estrada Segura</label>
         <label class="check-container"><input type="checkbox" id="chk-hosp"> Mapeamento Hospitalar</label>
+        <label class="check-container"><input type="checkbox" id="chk-eletromecanica"> Eletromecânica</label>
     </div>
     
     <div style="margin-top: 25px; display: flex; justify-content: space-between; align-items: center;">
@@ -36,16 +38,18 @@
                     <th style="text-align:center; font-size: 0.7rem;">CRLVe</th>
                     <th style="text-align:center; font-size: 0.7rem;">Crono.</th>
                     <th style="text-align:center; font-size: 0.7rem;">ANTT</th>
-                    <th style="text-align:center; font-size: 0.7rem;">AET</th>
+                    <th style="text-align:center; font-size: 0.7rem;">AET FED.</th>
+                    <th style="text-align:center; font-size: 0.7rem;">AET EST.</th>
                     <th style="text-align:center; font-size: 0.7rem;">APR</th>
                     <th style="text-align:center; font-size: 0.7rem;">Flo. Segura</th>
                     <th style="text-align:center; font-size: 0.7rem;">Est. Segura</th>
                     <th style="text-align:center; font-size: 0.7rem;">Map. Hosp.</th>
+                    <th style="text-align:center; font-size: 0.7rem;">Eletromec.</th>
                     <th style="text-align:center; font-size: 0.7rem;">Ações</th>
                 </tr>
             </thead>
             <tbody id="lista-caminhoes-pendentes">
-                <tr><td colspan="10" style="text-align: center;"><i class="fas fa-spinner fa-spin"></i> Carregando dados...</td></tr>
+                <tr><td colspan="12" style="text-align: center;"><i class="fas fa-spinner fa-spin"></i> Carregando dados...</td></tr>
             </tbody>
         </table>
     </div>
@@ -70,7 +74,7 @@
             renderizarTabelaCaminhoes();
         } catch (e) {
             console.error("Erro ao carregar frota:", e);
-            document.getElementById('lista-caminhoes-pendentes').innerHTML = '<tr><td colspan="10" class="status-vermelho" style="text-align:center;">Erro ao carregar dados do banco.</td></tr>';
+            document.getElementById('lista-caminhoes-pendentes').innerHTML = '<tr><td colspan="12" class="status-vermelho" style="text-align:center;">Erro ao carregar dados do banco.</td></tr>';
         }
     }
 
@@ -90,11 +94,13 @@
             crlve: document.getElementById('chk-crlve').checked,
             crono: document.getElementById('chk-crono').checked,
             antt: document.getElementById('chk-antt').checked,
-            aet: document.getElementById('chk-aet').checked,
+            aet_fed: document.getElementById('chk-aet-fed').checked,
+            aet_est: document.getElementById('chk-aet-est').checked,
             apr: document.getElementById('chk-apr').checked,
             floresta: document.getElementById('chk-floresta').checked,
             estrada: document.getElementById('chk-estrada').checked,
-            hosp: document.getElementById('chk-hosp').checked
+            hosp: document.getElementById('chk-hosp').checked,
+            eletromecanica: document.getElementById('chk-eletromecanica').checked
         };
 
         msg.style.color = 'var(--text-dim)';
@@ -165,7 +171,7 @@
         tbody.innerHTML = '';
 
         if(window.frotaPendenciasData.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; color: var(--text-dim); padding: 20px;">Nenhuma frota com pendência cadastrada.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="12" style="text-align: center; color: var(--text-dim); padding: 20px;">Nenhuma frota com pendência cadastrada.</td></tr>';
             return;
         }
 
@@ -180,11 +186,13 @@
                 <td style="text-align:center;">${getIcon(cam.crlve, 'crlve')}</td>
                 <td style="text-align:center;">${getIcon(cam.crono, 'crono')}</td>
                 <td style="text-align:center;">${getIcon(cam.antt, 'antt')}</td>
-                <td style="text-align:center;">${getIcon(cam.aet, 'aet')}</td>
+                <td style="text-align:center;">${getIcon(cam.aet_fed, 'aet_fed')}</td>
+                <td style="text-align:center;">${getIcon(cam.aet_est, 'aet_est')}</td>
                 <td style="text-align:center;">${getIcon(cam.apr, 'apr')}</td>
                 <td style="text-align:center;">${getIcon(cam.floresta, 'floresta')}</td>
                 <td style="text-align:center;">${getIcon(cam.estrada, 'estrada')}</td>
                 <td style="text-align:center;">${getIcon(cam.hosp, 'hosp')}</td>
+                <td style="text-align:center;">${getIcon(cam.eletromecanica, 'eletromecanica')}</td>
                 <td style="text-align:center; border-radius: 0 8px 8px 0;">
                     <button onclick="removerFrotaSupabase(${cam.id})" style="padding: 8px 12px; background: var(--vermelho); border: none; border-radius: 6px; color: white; cursor: pointer; transition: 0.2s;" title="Remover Frota">
                         <i class="fas fa-trash"></i>
