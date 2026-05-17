@@ -51,8 +51,9 @@ window.diasConsideradosGlobais = 1;
 window.chartCarregamento = null;
 window.chartTransporte = null;
 
+// ARRAYS BLINDADOS
 window.serranaLoaders = ['GSR0001', 'GSR0002', 'GSR0003', 'GSR0007', 'GSR0008', 'GRB0015', 'GRB0022'];
-window.reflorestarLoaders = ['GRB0017', 'GRB0020', 'GRB0029'];
+window.reflorestarLoaders = ['GRB0017', 'GRB0020', 'GRB0029', 'GRB0013', 'GRB0014', 'GRB0028', 'GRB0026', 'GRB0016', 'GRB0012', 'GRB0023', 'GRB0018'];
 window.jslLoaders = ['GSL0012', 'GSL0016'];
 
 // --- VARIÁVEIS PARA AS METAS DINÂMICAS ---
@@ -86,7 +87,6 @@ window.parseMetaTempo = function(val) {
 // =========================================================================
 window.carregarMetasGlobais = async function() {
     try {
-        // Ele vai testar as conexões até achar onde a tabela 'metas_globais' realmente está
         const dbs = [ window.supabaseClientLocal, window.supabaseClientMan, window.getGlobalDB() ];
         let metasEncontradas = false;
 
@@ -113,12 +113,11 @@ window.carregarMetasGlobais = async function() {
                     
                     console.log("✅ Metas extraídas com sucesso do banco:", db.supabaseUrl);
                     metasEncontradas = true;
-                    break; // Se achou, para de procurar nos outros bancos
+                    break;
                 }
-            } catch (e) { /* Ignora e tenta o próximo banco */ }
+            } catch (e) { }
         }
 
-        // Fallback: Se não achou na metas_globais, procura na tabela configuracoes
         if (!metasEncontradas) {
             for (let db of dbs) {
                 if (!db) continue;
@@ -165,19 +164,71 @@ window.normalizarCiclos = function(dataArr) {
     });
 };
 
-window.checkLoader = function(d, loaderArray) {
-    const val = String(d.carregadorFlorestal || d.grua || '').trim().toUpperCase();
-    if (val && val !== '-') return loaderArray.includes(val);
+// =========================================================
+// SISTEMA BLINDADO DE IDENTIFICAÇÃO DE GRUAS E TRANSPORTADORA
+// =========================================================
+window.checkLoader = function(d, loaderArray, prefix = '') {
+    let colunasPrioritarias = [];
+    let outrasColunas = [];
+
     for (let key in d) {
-        if (d[key] && typeof d[key] === 'string') {
-            if (loaderArray.includes(d[key].trim().toUpperCase())) return true;
+        let keyUpper = key.toUpperCase();
+        let val = d[key];
+        if (val && typeof val === 'string') {
+            let vClean = val.trim().toUpperCase().replace(/\s+/g, '');
+            if (!vClean || vClean === '-' || vClean === 'N/A' || vClean === '0') continue;
+
+            if (keyUpper.includes('GRUA') || keyUpper.includes('CARREG') || keyUpper.includes('EQUIP') || keyUpper.includes('FRENTE')) {
+                colunasPrioritarias.push(vClean);
+            } else {
+                outrasColunas.push(vClean);
+            }
         }
     }
+
+    let valoresParaChecar = colunasPrioritarias.length > 0 ? colunasPrioritarias : outrasColunas;
+
+    for (let v of valoresParaChecar) {
+        for (let code of loaderArray) {
+            let codeClean = code.replace(/\s+/g, '');
+            if (v === codeClean || v.includes(codeClean)) {
+                return true;
+            }
+        }
+
+        if (prefix) {
+            if (prefix === 'GSR') {
+                if (v.startsWith('GSR') || v.includes('GSR0')) return true;
+                if (v.includes('GRB0015') || v.includes('GRB0022')) return true; 
+            } 
+            else if (prefix === 'GRB') {
+                if (v.startsWith('GRB') || v.includes('GRB0')) {
+                    if (v.includes('0015') || v.includes('0022')) continue; 
+                    return true;
+                }
+            } 
+            else if (prefix === 'GSL') {
+                if (v.startsWith('GSL') || v.includes('GSL0')) return true;
+            }
+        }
+    }
+
     return false;
 };
 
 window.isSerranaTransp = function(d) {
-    return String(d.transportadora || '').toUpperCase().includes('SERRANALOG');
+    let valTransp = String(d.transportadora || d['Nome da Transportadora'] || d.nomeTransportadora || '').toUpperCase().replace(/\s+/g, '');
+    if (valTransp.includes('SERRANALOG') || valTransp.includes('SERRANA')) return true;
+
+    for (let key in d) {
+        if (d[key] && typeof d[key] === 'string') {
+            let val = d[key].toUpperCase().replace(/\s+/g, '');
+            if (val.includes('SERRANALOG') || val.includes('SERRANATRANSPORTES')) {
+                return true;
+            }
+        }
+    }
+    return false;
 };
 
 window.setupOperacionalFilters = function() {
@@ -242,12 +293,10 @@ window.setupOperacionalFilters = function() {
 window.loadManutencaoDataForMeta = async function() {
     try {
         const clientMan = window.supabaseClientMan; 
-        
         const [osResp, frotasResp] = await Promise.all([
             clientMan.from('ordens_servico').select('*'),
             clientMan.from('frotas_manutencao').select('*')
         ]);
-        
         if (osResp.data) window.osParaMeta = osResp.data;
         if (frotasResp.data) window.frotasParaMeta = frotasResp.data;
     } catch (e) { console.error("Erro dados manutenção:", e); }
@@ -417,6 +466,9 @@ window.calcStats = function(dataArr) {
     return { volTotal: vol, medVol, medCiclo, medFilaCpo, medCarreg, medFilaFab, medAsfalto, medTerra };
 };
 
+// =========================================================
+// ATUALIZAÇÃO PRINCIPAL DO PAINEL OPERACIONAL
+// =========================================================
 window.atualizarPainelOperacional = function() {
     const dataRef = document.getElementById('opDatePicker') ? document.getElementById('opDatePicker').value : null;
     const filterMesOp = document.getElementById('filterMesOp');
@@ -467,9 +519,10 @@ window.atualizarPainelOperacional = function() {
     let cardsData = filteredGlobal;
     const opStatusFetch = document.getElementById('opStatusFetch');
 
+    // FILTRO DO TOPO: Tudo o que a Frota Própria (Serrana) transportou independentemente da grua/frente
     if (activeT === 'ALL') {
-        cardsData = filteredGlobal.filter(d => window.checkLoader(d, window.serranaLoaders) && window.isSerranaTransp(d));
-        if (opStatusFetch) opStatusFetch.innerHTML = `<i class="fas fa-database text-sky-500 mr-1"></i> Geral: ${filteredGlobal.length} Viagens | 100% Serrana: ${cardsData.length} Viagens`;
+        cardsData = filteredGlobal.filter(d => window.isSerranaTransp(d));
+        if (opStatusFetch) opStatusFetch.innerHTML = `<i class="fas fa-database text-sky-500 mr-1"></i> Geral: ${filteredGlobal.length} Viagens | Frota Própria: ${cardsData.length} Viagens`;
     } else {
         if (opStatusFetch) opStatusFetch.innerHTML = `<i class="fas fa-truck text-sky-500 mr-1"></i> ${activeT}: ${filteredGlobal.length} Viagens`;
     }
@@ -479,19 +532,21 @@ window.atualizarPainelOperacional = function() {
     const elMetaTexto = document.getElementById('metaViagensText');
     const elIconeMeta = document.getElementById('iconeMetaViagens');
 
-    elTotalViagens.innerText = totalViagens;
-    elTotalViagens.className = "text-[32px] font-extrabold leading-none m-0 text-white transition-all"; 
+    if (elTotalViagens) {
+        elTotalViagens.innerText = totalViagens;
+        elTotalViagens.className = "text-[32px] font-extrabold leading-none m-0 text-white transition-all"; 
+    }
     
     window.metaViagensCalculada = 0;
     let diasConsideradosCalc = 1;
     let mediaAtivosReal = 0; 
 
+    // CÁLCULO INTELIGENTE DA DISPONIBILIDADE DA FROTA (CRUZANDO COM MANUTENÇÃO)
     if (elMetaTexto && window.frotasParaMeta && window.osParaMeta) {
         let totalFrota = window.frotasParaMeta.length;
         
         let dataInicioCalc = new Date(); dataInicioCalc.setHours(0,0,0,0);
         let dataFimCalc = new Date(); dataFimCalc.setHours(23,59,59,999);
-
         const hjCalc = new Date(); hjCalc.setHours(0,0,0,0);
 
         if (mesRef !== 'ALL') {
@@ -530,12 +585,13 @@ window.atualizarPainelOperacional = function() {
             }
         }
 
+        window.diasConsideradosGlobais = diasConsideradosCalc;
+
         let msTotalPeriodo = dataFimCalc - dataInicioCalc;
         if (msTotalPeriodo <= 0) msTotalPeriodo = 1;
 
         let msManutTotal = 0;
         window.frotasParaMeta.forEach(frota => {
-            // CORREÇÃO AQUI: IGNORANDO "Cavalo Disponível S/ Carreta"
             const todasOSCavalo = window.osParaMeta.filter(o => o.placa === frota.cavalo && o.status !== 'Agendada' && o.tipo !== 'Cavalo Disponível S/ Carreta');
             todasOSCavalo.forEach(os => {
                 let osInicioStr = os.data_abertura;
@@ -569,16 +625,17 @@ window.atualizarPainelOperacional = function() {
             
             if (window.metaViagensCalculada > 0) {
                 if (totalViagens >= window.metaViagensCalculada) {
-                    elTotalViagens.className = "text-[32px] font-extrabold leading-none m-0 text-emerald-400 drop-shadow-md transition-all";
-                    elIconeMeta.innerHTML = '<i class="fas fa-check-circle text-emerald-400 text-[22px] drop-shadow-md" title="Meta Atingida"></i>';
+                    if(elTotalViagens) elTotalViagens.className = "text-[32px] font-extrabold leading-none m-0 text-emerald-400 drop-shadow-md transition-all";
+                    if(elIconeMeta) elIconeMeta.innerHTML = '<i class="fas fa-check-circle text-emerald-400 text-[22px] drop-shadow-md" title="Meta Atingida"></i>';
                 } else {
-                    elTotalViagens.className = "text-[32px] font-extrabold leading-none m-0 text-rose-500 drop-shadow-md transition-all";
-                    elIconeMeta.innerHTML = '<i class="fas fa-exclamation-circle text-rose-500 text-[22px] drop-shadow-md" title="Abaixo da Meta"></i>';
+                    if(elTotalViagens) elTotalViagens.className = "text-[32px] font-extrabold leading-none m-0 text-rose-500 drop-shadow-md transition-all";
+                    if(elIconeMeta) elIconeMeta.innerHTML = '<i class="fas fa-exclamation-circle text-rose-500 text-[22px] drop-shadow-md" title="Abaixo da Meta"></i>';
                 }
-            } else { elIconeMeta.innerHTML = ''; }
-        } else { elMetaTexto.classList.add('hidden'); elIconeMeta.innerHTML = ''; }
+            } else { if(elIconeMeta) elIconeMeta.innerHTML = ''; }
+        } else { elMetaTexto.classList.add('hidden'); if(elIconeMeta) elIconeMeta.innerHTML = ''; }
     } else { if(elMetaTexto) elMetaTexto.classList.add('hidden'); if(elIconeMeta) elIconeMeta.innerHTML = ''; }
 
+    // RENDERIZAÇÃO DOS CARDS
     const totalPesoKg = cardsData.reduce((s,x)=>s+(parseFloat(String(x.pesoLiquido).replace(',','.'))||0), 0);
     const mediaPbtc = totalViagens > 0 ? (totalPesoKg / 1000) / totalViagens : 0;
     
@@ -588,7 +645,8 @@ window.atualizarPainelOperacional = function() {
         else if (mediaPbtc >= 74 && mediaPbtc <= 77.7) { pbtcCor = "text-emerald-400"; pbtcIcone = '<i class="fas fa-check-circle text-emerald-400 text-xl ml-2" title="Ideal"></i>'; }
         else if (mediaPbtc > 77.7) { pbtcCor = "text-rose-500"; pbtcIcone = '<i class="fas fa-times-circle text-rose-500 text-xl ml-2" title="Acima do ideal"></i>'; }
     }
-    document.getElementById('totalPesoLiq').innerHTML = `<span class="${pbtcCor}">${mediaPbtc.toLocaleString('pt-PT', {maximumFractionDigits:1})} t</span>${pbtcIcone}`;
+    const elPbtc = document.getElementById('totalPesoLiq');
+    if (elPbtc) elPbtc.innerHTML = `<span class="${pbtcCor}">${mediaPbtc.toLocaleString('pt-PT', {maximumFractionDigits:1})} t</span>${pbtcIcone}`;
 
     const totalVol = cardsData.reduce((s,x)=>s+(parseFloat(String(x.volumeReal).replace(',','.'))||0), 0);
     const mediaVol = totalViagens > 0 ? (totalVol / totalViagens) : 0;
@@ -597,7 +655,7 @@ window.atualizarPainelOperacional = function() {
     let metaCaixaText = document.getElementById('metaVolMediaText');
     let iconeCaixa = document.getElementById('iconeMetaVolMedia');
     
-    elMediaVol.innerText = mediaVol.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
+    if (elMediaVol) elMediaVol.innerText = mediaVol.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
     
     let metaCaixaFinal = window.metaCaixaMedia > 0 ? window.metaCaixaMedia : 48;
     
@@ -606,12 +664,14 @@ window.atualizarPainelOperacional = function() {
             metaCaixaText.innerText = `Meta: ${metaCaixaFinal} m³`;
             metaCaixaText.classList.remove('hidden');
         }
-        if (mediaVol >= metaCaixaFinal) {
-            elMediaVol.className = "text-[32px] font-extrabold leading-none m-0 text-emerald-400 drop-shadow-md transition-all";
-            if(iconeCaixa) iconeCaixa.innerHTML = '<i class="fas fa-check-circle text-emerald-400 text-[22px] drop-shadow-md"></i>';
-        } else {
-            elMediaVol.className = "text-[32px] font-extrabold leading-none m-0 text-rose-500 drop-shadow-md transition-all";
-            if(iconeCaixa) iconeCaixa.innerHTML = '<i class="fas fa-exclamation-circle text-rose-500 text-[22px] drop-shadow-md"></i>';
+        if (elMediaVol) {
+            if (mediaVol >= metaCaixaFinal) {
+                elMediaVol.className = "text-[32px] font-extrabold leading-none m-0 text-emerald-400 drop-shadow-md transition-all";
+                if(iconeCaixa) iconeCaixa.innerHTML = '<i class="fas fa-check-circle text-emerald-400 text-[22px] drop-shadow-md"></i>';
+            } else {
+                elMediaVol.className = "text-[32px] font-extrabold leading-none m-0 text-rose-500 drop-shadow-md transition-all";
+                if(iconeCaixa) iconeCaixa.innerHTML = '<i class="fas fa-exclamation-circle text-rose-500 text-[22px] drop-shadow-md"></i>';
+            }
         }
     }
 
@@ -619,30 +679,26 @@ window.atualizarPainelOperacional = function() {
     let metaVolTotalText = document.getElementById('metaVolTotalText');
     let iconeVolTotal = document.getElementById('iconeMetaVolTotal');
     
-    elTotalVol.innerText = totalVol.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
+    if(elTotalVol) elTotalVol.innerText = totalVol.toLocaleString('pt-PT', {maximumFractionDigits:1}) + ' m³';
     
     let metaVolumeCalculada = 0;
-    
-    if (window.metaVolumeDiario > 0) {
-        metaVolumeCalculada = window.metaVolumeDiario * diasConsideradosCalc;
-    } else if (window.metaViagensCalculada > 0) {
-        metaVolumeCalculada = window.metaViagensCalculada * metaCaixaFinal;
-    } else {
-        metaVolumeCalculada = (50 * 2 * diasConsideradosCalc) * metaCaixaFinal;
-    }
+    if (window.metaVolumeDiario > 0) { metaVolumeCalculada = window.metaVolumeDiario * diasConsideradosCalc; } 
+    else if (window.metaViagensCalculada > 0) { metaVolumeCalculada = window.metaViagensCalculada * metaCaixaFinal; } 
+    else { metaVolumeCalculada = (50 * 2 * diasConsideradosCalc) * metaCaixaFinal; }
 
     if (metaVolumeCalculada > 0) {
         if(metaVolTotalText) {
             metaVolTotalText.innerHTML = `Meta: <b class="text-sky-400">${metaVolumeCalculada.toLocaleString('pt-PT')} m³</b>`;
             metaVolTotalText.classList.remove('hidden');
         }
-        
-        if (totalVol >= metaVolumeCalculada) {
-            elTotalVol.className = "text-[32px] font-extrabold leading-none m-0 text-emerald-400 drop-shadow-md transition-all";
-            if(iconeVolTotal) iconeVolTotal.innerHTML = '<i class="fas fa-check-circle text-emerald-400 text-[22px] drop-shadow-md"></i>';
-        } else {
-            elTotalVol.className = "text-[32px] font-extrabold leading-none m-0 text-rose-500 drop-shadow-md transition-all";
-            if(iconeVolTotal) iconeVolTotal.innerHTML = '<i class="fas fa-exclamation-circle text-rose-500 text-[22px] drop-shadow-md"></i>';
+        if (elTotalVol) {
+            if (totalVol >= metaVolumeCalculada) {
+                elTotalVol.className = "text-[32px] font-extrabold leading-none m-0 text-emerald-400 drop-shadow-md transition-all";
+                if(iconeVolTotal) iconeVolTotal.innerHTML = '<i class="fas fa-check-circle text-emerald-400 text-[22px] drop-shadow-md"></i>';
+            } else {
+                elTotalVol.className = "text-[32px] font-extrabold leading-none m-0 text-rose-500 drop-shadow-md transition-all";
+                if(iconeVolTotal) iconeVolTotal.innerHTML = '<i class="fas fa-exclamation-circle text-rose-500 text-[22px] drop-shadow-md"></i>';
+            }
         }
     }
 
@@ -650,9 +706,9 @@ window.atualizarPainelOperacional = function() {
     const mediaTerra = totalViagens > 0 ? cardsData.reduce((s, r) => s + (r.distanciaTerra||0), 0) / totalViagens : 0;
     const mediaDistTotal = mediaAsfalto + mediaTerra;
 
-    document.getElementById('mediaDistancia').innerText = mediaDistTotal.toLocaleString('pt-PT', {maximumFractionDigits:2}) + ' km';
-    document.getElementById('mediaAsfalto').innerText = mediaAsfalto.toLocaleString('pt-PT', {maximumFractionDigits:2});
-    document.getElementById('mediaTerra').innerText = mediaTerra.toLocaleString('pt-PT', {maximumFractionDigits:2});
+    if(document.getElementById('mediaDistancia')) document.getElementById('mediaDistancia').innerText = mediaDistTotal.toLocaleString('pt-PT', {maximumFractionDigits:2}) + ' km';
+    if(document.getElementById('mediaAsfalto')) document.getElementById('mediaAsfalto').innerText = mediaAsfalto.toLocaleString('pt-PT', {maximumFractionDigits:2});
+    if(document.getElementById('mediaTerra')) document.getElementById('mediaTerra').innerText = mediaTerra.toLocaleString('pt-PT', {maximumFractionDigits:2});
 
     const validCycles = cardsData.filter(d => d.cicloHoras > 0);
     const mediaCiclo = validCycles.length > 0 ? validCycles.reduce((s, d) => s + d.cicloHoras, 0) / validCycles.length : 0;
@@ -666,17 +722,18 @@ window.atualizarPainelOperacional = function() {
     const validFilaFabrica = cardsData.filter(d => d.filaFabricaHoras > 0);
     const mediaFilaFabrica = validFilaFabrica.length > 0 ? validFilaFabrica.reduce((s, d) => s + d.filaFabricaHoras, 0) / validFilaFabrica.length : 0;
 
-    window.atualizarElementoTempo('cicloMedio', mediaCiclo, window.metaCicloDecimal); 
-    window.atualizarElementoTempo('filaCampo', mediaFilaCampo, window.metaFilaCampoDecimal); 
-    window.atualizarElementoTempo('tempoCarregamento', mediaTempoCarregamento, window.metaCargaDecimal); 
-    window.atualizarElementoTempo('filaFabrica', mediaFilaFabrica, window.metaFilaFabricaDecimal); 
+    window.atualizarElementoTempo('cicloMedio', mediaCiclo, window.metaCicloDecimal);
+    window.atualizarElementoTempo('filaCampo', mediaFilaCampo, window.metaFilaCampoDecimal);
+    window.atualizarElementoTempo('tempoCarregamento', mediaTempoCarregamento, window.metaCargaDecimal);
+    window.atualizarElementoTempo('filaFabrica', mediaFilaFabrica, window.metaFilaFabricaDecimal);
 
+    // TABELA COMPARATIVA DE CENÁRIOS COM BLINDAGEM DE GRUAS
     const tbodyComp = document.getElementById('comparativoBody');
     if (tbodyComp) {
-        const dataC1 = filteredGlobal.filter(d => window.checkLoader(d, window.serranaLoaders) && window.isSerranaTransp(d));
-        const dataC2 = filteredGlobal.filter(d => window.checkLoader(d, window.serranaLoaders) && !window.isSerranaTransp(d));
-        const dataC3 = filteredGlobal.filter(d => window.checkLoader(d, window.reflorestarLoaders) && window.isSerranaTransp(d));
-        const dataC4 = filteredGlobal.filter(d => window.checkLoader(d, window.jslLoaders) && window.isSerranaTransp(d));
+        const dataC1 = filteredGlobal.filter(d => window.checkLoader(d, window.serranaLoaders, 'GSR') && window.isSerranaTransp(d));
+        const dataC2 = filteredGlobal.filter(d => window.checkLoader(d, window.serranaLoaders, 'GSR') && !window.isSerranaTransp(d));
+        const dataC3 = filteredGlobal.filter(d => window.checkLoader(d, window.reflorestarLoaders, 'GRB') && window.isSerranaTransp(d));
+        const dataC4 = filteredGlobal.filter(d => window.checkLoader(d, window.jslLoaders, 'GSL') && window.isSerranaTransp(d));
         
         const stC1 = window.calcStats(dataC1), stC2 = window.calcStats(dataC2), stC3 = window.calcStats(dataC3), stC4 = window.calcStats(dataC4), stGlobal = window.calcStats(filteredGlobal);
 
@@ -685,8 +742,8 @@ window.atualizarPainelOperacional = function() {
                 <td class="px-6 py-4 font-bold text-white text-[13px]"><i class="fas fa-route text-slate-400 w-5"></i> Viagens Realizadas</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${dataC1.length}</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${dataC2.length}</td>
-                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${dataC3.length}</td>
-                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${dataC4.length}</td>
+                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right text-emerald-400">${dataC3.length}</td>
+                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right text-indigo-400">${dataC4.length}</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${filteredGlobal.length}</td>
             </tr>
             <tr class="hover:bg-slate-800/30 transition-colors">
@@ -732,29 +789,13 @@ window.atualizarPainelOperacional = function() {
         `;
     }
 
-    const baseEvolucao = filteredGlobal.length > 0 ? filteredGlobal : window.fullHistoricoDataOp;
-    if (typeof window.renderCarregamentoChart === 'function') window.renderCarregamentoChart(baseEvolucao);
-    
-    const baseTransporte = baseEvolucao.filter(d => {
-        const transp = String(d.transportadora || "").toUpperCase();
-        return transp.includes('SERRANALOG') && !transp.includes('ASN');
-    });
-    if (typeof window.renderTransporteChart === 'function') window.renderTransporteChart(baseTransporte);
-
-    const filteredSerrana = cardsData;
-    let diasConsiderados = 1;
-    if(window.activeQuickFilterOp === 'D-1') diasConsiderados = 1;
-    if(window.activeQuickFilterOp === 'D-2') diasConsiderados = 1;
-    if(window.activeQuickFilterOp === 'D-3') diasConsiderados = 3;
-    if(window.activeQuickFilterOp === 'D-7') diasConsiderados = 7;
-    if(window.activeQuickFilterOp === 'D-30') diasConsiderados = 30;
-    if(window.activeQuickFilterOp === 'ALL') diasConsiderados = 30;
-    
-    if (typeof window.renderLeaderboards === 'function') window.renderLeaderboards(filteredSerrana, diasConsiderados);
+    if (window.atualizarGraficosOperacionais) {
+        window.atualizarGraficosOperacionais(cardsData, filteredGlobal);
+    }
 };
 
 // =========================================================
-// FUNÇÃO DE INICIALIZAÇÃO GERAL DO OPERACIONAL
+// INICIALIZAÇÃO GERAL DO OPERACIONAL
 // =========================================================
 window.initNovoDashboardOperacional = async function() {
     if(typeof Chart === 'undefined') {
@@ -768,7 +809,6 @@ window.initNovoDashboardOperacional = async function() {
 
     window.setupOperacionalFilters();
     
-    // CARREGA AS METAS DO BANCO DE DADOS PRIMEIRO
     await window.carregarMetasGlobais();
 
     window.loadManutencaoDataForMeta().finally(() => {
@@ -780,4 +820,15 @@ window.initNovoDashboardOperacional = async function() {
     }
     if (typeof window.carregarMuralSetor === 'function') window.carregarMuralSetor();
     if (typeof window.carregarFrotaSupabase === 'function') window.carregarFrotaSupabase();
+};
+
+window.exportarParaExcelOp = function() {
+    if (!window.fullHistoricoDataOp || window.fullHistoricoDataOp.length === 0) {
+        alert("Sem dados para exportar.");
+        return;
+    }
+    const ws = XLSX.utils.json_to_sheet(window.fullHistoricoDataOp);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Base");
+    XLSX.writeFile(wb, "Base_Operacional.xlsx");
 };
