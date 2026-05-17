@@ -5,6 +5,33 @@
     </div>
 </div>
 
+<script>
+    window.toggleFiltroDataEspecifica = function() {
+        const val = document.getElementById('filtroGlobalPeriodo').value;
+        const input = document.getElementById('filtroDataGlobalEspecifica');
+        if (val === 'data_especifica') {
+            input.style.display = 'block';
+            if(!input.value) input.value = new Date().toISOString().split('T')[0];
+        } else {
+            input.style.display = 'none';
+        }
+    };
+
+    window.dispararFiltrosGlobais = function() {
+        // Atualiza os painéis novos de DM
+        try { if(typeof window.atualizarKPIsGlobais === 'function') window.atualizarKPIsGlobais(); } catch(e){}
+        try { if(typeof window.renderizarGraficoEvolucaoDMDiaria === 'function') window.renderizarGraficoEvolucaoDMDiaria(); } catch(e){}
+        try { if(typeof window.renderizarGraficoStatusFrotaHorario === 'function') window.renderizarGraficoStatusFrotaHorario(); } catch(e){}
+        try { if(typeof window.renderizarPatioManutencaoDash === 'function') window.renderizarPatioManutencaoDash(); } catch(e){}
+        
+        // Atualiza os painéis originais que pararam de funcionar
+        try { if(typeof window.renderizarRelatorioTipoServico === 'function') window.renderizarRelatorioTipoServico(); } catch(e){}
+        try { if(typeof window.renderizarOcorrenciasTipoBarra === 'function') window.renderizarOcorrenciasTipoBarra(); } catch(e){}
+        try { if(typeof window.renderizarPrioridadeOS === 'function') window.renderizarPrioridadeOS(); } catch(e){}
+        try { if(typeof window.renderizarRankingCavalos === 'function') window.renderizarRankingCavalos(); } catch(e){}
+    };
+</script>
+
 <div class="content-panel global-filter-bar" style="grid-column: 1 / -1; margin-bottom: 25px; border: 1px solid #3b82f6; background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border-radius: 12px; padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
     <div style="display: flex; align-items: center; gap: 15px;">
         <div style="background: rgba(59, 130, 246, 0.2); padding: 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
@@ -12,31 +39,27 @@
         </div>
         <div>
             <h3 style="color: #fff; margin: 0; font-size: 1.2rem; font-weight: 700;">Filtro Global de Período</h3>
-            <span style="color: #94a3b8; font-size: 0.85rem;">Filtra todos os indicadores desta tela</span>
+            <span style="color: #94a3b8; font-size: 0.85rem;">Ao selecionar, toda a tela será atualizada automaticamente</span>
         </div>
     </div>
-    
     <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <label style="color: #94a3b8; font-size: 0.9rem; font-weight: bold;">Mês Específico:</label>
-            <select id="filtroMesGlobal" class="dark-select" onchange="window.aplicarFiltroMesGlobal()" style="background: #1e293b; border: 1px solid #3b82f6; color: white; padding: 8px 15px; border-radius: 8px; font-size: 0.95rem; font-weight: 600; outline: none; cursor: pointer;">
-                <option value="ATUAL">MÊS ATUAL</option>
-            </select>
-        </div>
-        <div style="display: flex; gap: 5px; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 8px; border: 1px solid var(--border);">
-            <button class="btn-qf-global" data-qf="D-1" onclick="window.aplicarFiltroRapido('D-1', this)" style="flex: 1; padding: 8px 15px; border: none; border-radius: 5px; background: transparent; color: #94a3b8; cursor: pointer; font-weight: bold; transition: 0.3s;">D-1</button>
-            <button class="btn-qf-global" data-qf="D-2" onclick="window.aplicarFiltroRapido('D-2', this)" style="flex: 1; padding: 8px 15px; border: none; border-radius: 5px; background: transparent; color: #94a3b8; cursor: pointer; font-weight: bold; transition: 0.3s;">D-2</button>
-            <button class="btn-qf-global" data-qf="D-3" onclick="window.aplicarFiltroRapido('D-3', this)" style="flex: 1; padding: 8px 15px; border: none; border-radius: 5px; background: transparent; color: #94a3b8; cursor: pointer; font-weight: bold; transition: 0.3s;">D-3</button>
-            <button class="btn-qf-global" data-qf="D-7" onclick="window.aplicarFiltroRapido('D-7', this)" style="flex: 1; padding: 8px 15px; border: none; border-radius: 5px; background: transparent; color: #94a3b8; cursor: pointer; font-weight: bold; transition: 0.3s;">D-7</button>
-            <button class="btn-qf-global active" data-qf="MES_ATUAL" onclick="window.aplicarFiltroRapido('MES_ATUAL', this)" style="flex: 1; padding: 8px 15px; border: none; border-radius: 5px; background: #3b82f6; color: white; cursor: pointer; font-weight: bold; transition: 0.3s;">MÊS ATUAL</button>
-        </div>
+        <select id="filtroGlobalPeriodo" class="dark-select" onchange="window.toggleFiltroDataEspecifica(); window.dispararFiltrosGlobais()" style="background: #1e293b; border: 1px solid #3b82f6; color: white; padding: 10px 20px; border-radius: 8px; font-size: 1.05rem; font-weight: 600; min-width: 200px; cursor: pointer; outline: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+            <option value="dia_atual">Somente Dia Atual</option>
+            <option value="data_especifica">Data Específica...</option>
+            <option value="semana_atual">Semana Atual</option>
+            <option value="mes_atual" selected>Mês Atual</option>
+            <option value="7">Últimos 7 Dias</option>
+            <option value="15">Últimos 15 Dias</option>
+            <option value="30">Últimos 30 Dias</option>
+        </select>
+        <input type="date" id="filtroDataGlobalEspecifica" class="dark-select" onchange="window.dispararFiltrosGlobais()" style="display: none; background: #1e293b; border: 1px solid #3b82f6; color: white; padding: 10px; border-radius: 8px; font-size: 1.05rem; outline: none;">
     </div>
 </div>
 
 <div class="quick-stats-header" style="justify-content: space-between; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; background: rgba(15, 23, 42, 0.6); padding: 20px; border-radius: 12px; border: 1px solid var(--border);">
     <div class="q-stat" style="flex: 1; text-align: center; min-width: 120px;">Total O.S. <br><span id="kpiTotalOS" style="font-size: 1.8rem; color: #fff; font-weight: bold;">0</span></div>
-    <div class="q-stat" style="flex: 1; text-align: center; min-width: 120px; border-left: 3px solid #ef4444;">Abertas <br><span id="kpiAbertasOS" style="font-size: 1.8rem; color: #f87171; font-weight: bold;">0</span></div>
     <div class="q-stat" style="flex: 1; text-align: center; min-width: 120px; border-left: 3px solid #10b981;">Concluídas <br><span id="kpiConcluidasOS" style="font-size: 1.8rem; color: #10b981; font-weight: bold;">0</span></div>
+    <div class="q-stat" style="flex: 1; text-align: center; min-width: 120px; border-left: 3px solid #ef4444;">Abertas <br><span id="kpiAbertasOS" style="font-size: 1.8rem; color: #f87171; font-weight: bold;">0</span></div>
     <div class="q-stat" style="flex: 1; text-align: center; min-width: 120px; border-left: 3px solid #3b82f6;">Conclusão <br><span id="kpiTaxaOS" style="font-size: 1.8rem; color: #3b82f6; font-weight: bold;">0%</span></div>
     <div class="q-stat" style="flex: 1; text-align: center; min-width: 120px; border-left: 3px solid #a855f7;">Tempo Médio <br><span id="kpiTempoMedioOS" style="font-size: 1.8rem; color: #a855f7; font-weight: bold;">0h 0m</span></div>
 </div>
@@ -71,6 +94,60 @@
     </div>
 </div>
 
+<div class="content-panel" style="grid-column: 1 / -1; margin-bottom: 25px; border: 1px solid rgba(245, 158, 11, 0.5); background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border-radius: 16px; overflow: hidden; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);">
+    <div class="panel-header" style="padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(90deg, rgba(245, 158, 11, 0.1) 0%, rgba(15, 23, 42, 0) 100%); border-bottom: 1px solid rgba(255,255,255,0.05); flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <h3 style="color: #f59e0b; margin: 0; display: flex; align-items: center; gap: 10px; font-size: 1.3rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                <i class="fas fa-clock"></i> Disponibilidade Horária de Equipamentos
+            </h3>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">Filtrar Dia:</span>
+            <input type="date" id="filtroDataEspecificaHoraria" class="dark-select" onchange="window.renderizarGraficoStatusFrotaHorario()" style="background: #1e293b; border: 1px solid #334155; color: white; padding: 5px 12px; border-radius: 6px; height: 34px; font-size: 0.9rem;">
+            <button class="btn-secondary-dark" onclick="exportarGraficoPNG('graficoStatusFrotaHorario', 'Disponibilidade_Horaria')" style="border-radius: 6px; background: #334155; padding: 6px 14px; font-size: 0.85rem; height: 34px; font-weight: 600; transition: all 0.3s ease;">Exportar</button>
+        </div>
+    </div>
+    <div style="display: flex; justify-content: space-around; flex-wrap: wrap; gap: 15px; padding: 15px 20px; background: rgba(0,0,0,0.25); border-bottom: 1px solid rgba(255,255,255,0.05);">
+        <div style="display: flex; align-items: center; gap: 12px; background: rgba(16, 185, 129, 0.05); padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(16, 185, 129, 0.2); flex: 1; min-width: 200px; justify-content: center;">
+            <div style="background: rgba(16, 185, 129, 0.2); padding: 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-truck-moving" style="color: #10b981; font-size: 1.4rem;"></i>
+            </div>
+            <div style="display: flex; flex-direction: column;">
+                <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Média Disponíveis</span>
+                <div style="display: flex; align-items: baseline; gap: 4px;">
+                    <span id="avgAtivosInterno" style="color: #10b981; font-size: 1.8rem; font-weight: 900; line-height: 1;">0</span>
+                    <span style="color: #64748b; font-size: 0.8rem; font-weight: 600;">veículos</span>
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; background: rgba(245, 158, 11, 0.05); padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(245, 158, 11, 0.2); flex: 1; min-width: 200px; justify-content: center;">
+            <div style="background: rgba(245, 158, 11, 0.2); padding: 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-tools" style="color: #f59e0b; font-size: 1.4rem;"></i>
+            </div>
+            <div style="display: flex; flex-direction: column;">
+                <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Média Manutenção</span>
+                <div style="display: flex; align-items: baseline; gap: 4px;">
+                    <span id="avgManutInterno" style="color: #f59e0b; font-size: 1.8rem; font-weight: 900; line-height: 1;">0</span>
+                    <span style="color: #64748b; font-size: 0.8rem; font-weight: 600;">veículos</span>
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; background: rgba(239, 68, 68, 0.05); padding: 10px 20px; border-radius: 12px; border: 1px solid rgba(239, 68, 68, 0.2); flex: 1; min-width: 200px; justify-content: center;">
+            <div style="background: rgba(239, 68, 68, 0.2); padding: 12px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-exclamation-triangle" style="color: #ef4444; font-size: 1.4rem;"></i>
+            </div>
+            <div style="display: flex; flex-direction: column;">
+                <span style="color: #94a3b8; font-size: 0.8rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Média S.O.S</span>
+                <div style="display: flex; align-items: baseline; gap: 4px;">
+                    <span id="avgSOSInterno" style="color: #ef4444; font-size: 1.8rem; font-weight: 900; line-height: 1;">0</span>
+                    <span style="color: #64748b; font-size: 0.8rem; font-weight: 600;">chamados</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div style="width: 100%; height: 350px; padding: 20px;" id="graficoStatusFrotaHorario"></div>
+</div>
+
 <div class="content-panel" style="grid-column: 1 / -1; margin-bottom: 25px; border: 1px solid rgba(16, 185, 129, 0.3); background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(10px); border-radius: 16px; overflow: hidden;">
     <div class="panel-header" style="padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); flex-wrap: wrap; gap: 10px;">
         <h3 style="color: #10b981; margin: 0; display: flex; align-items: center; gap: 10px;">
@@ -78,7 +155,10 @@
             Evolução Diária da Disponibilidade Mecânica
         </h3>
         <div style="display: flex; gap: 10px; align-items: center;">
-            <button class="btn-salvar" onclick="exportarGraficoPNG('graficoEvolucaoDMDiaria', 'Evolucao_DM_Diaria')" style="padding: 5px 12px; font-size: 0.8rem; height: 32px; background: #334155; border:none; border-radius: 6px; color: white; cursor: pointer;"><i class="fas fa-camera"></i> Exportar PNG</button>
+            <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">Filtrar Mês:</span>
+            <select id="filtroMesEvolucaoDMDiaria" class="dark-select" onchange="window.renderizarGraficoEvolucaoDMDiaria()" style="background: #1e293b; border: 1px solid #334155; color: white; padding: 5px 12px; border-radius: 6px; height: 34px; font-size: 0.9rem; outline: none; cursor: pointer;">
+                </select>
+            <button class="btn-salvar" onclick="exportarGraficoPNG('graficoEvolucaoDMDiaria', 'Evolucao_DM_Diaria')" style="padding: 5px 12px; font-size: 0.8rem; height: 34px; background: #334155; border:none; border-radius: 6px; color: white; cursor: pointer;"><i class="fas fa-camera"></i> Exportar PNG</button>
         </div>
     </div>
     
