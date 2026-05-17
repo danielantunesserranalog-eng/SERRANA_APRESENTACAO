@@ -1,3 +1,26 @@
+<style>
+    .btn-filter-periodo {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid #3b82f6;
+        color: #94a3b8;
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .btn-filter-periodo:hover {
+        background: rgba(59, 130, 246, 0.3);
+        color: white;
+    }
+    .btn-filter-periodo.active {
+        background: #3b82f6;
+        color: white;
+        box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    }
+</style>
+
 <div class="action-bar" style="display: flex; justify-content: space-between; align-items: center; position: relative; margin-bottom: 30px; padding: 10px 0;">
     <h2 style="color: #fff; margin: 0; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;">Disponibilidade de Equipamento (Manutenção)</h2>
     <div>
@@ -6,17 +29,6 @@
 </div>
 
 <script>
-    window.toggleFiltroDataEspecifica = function() {
-        const val = document.getElementById('filtroGlobalPeriodo').value;
-        const input = document.getElementById('filtroDataGlobalEspecifica');
-        if (val === 'data_especifica') {
-            input.style.display = 'block';
-            if(!input.value) input.value = new Date().toISOString().split('T')[0];
-        } else {
-            input.style.display = 'none';
-        }
-    };
-
     window.dispararFiltrosGlobais = function() {
         // Atualiza os painéis novos de DM
         try { if(typeof window.atualizarKPIsGlobais === 'function') window.atualizarKPIsGlobais(); } catch(e){}
@@ -42,17 +54,23 @@
             <span style="color: #94a3b8; font-size: 0.85rem;">Ao selecionar, toda a tela será atualizada automaticamente</span>
         </div>
     </div>
-    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-        <select id="filtroGlobalPeriodo" class="dark-select" onchange="window.toggleFiltroDataEspecifica(); window.dispararFiltrosGlobais()" style="background: #1e293b; border: 1px solid #3b82f6; color: white; padding: 10px 20px; border-radius: 8px; font-size: 1.05rem; font-weight: 600; min-width: 200px; cursor: pointer; outline: none; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-            <option value="dia_atual">Somente Dia Atual</option>
-            <option value="data_especifica">Data Específica...</option>
-            <option value="semana_atual">Semana Atual</option>
-            <option value="mes_atual" selected>Mês Atual</option>
-            <option value="7">Últimos 7 Dias</option>
-            <option value="15">Últimos 15 Dias</option>
-            <option value="30">Últimos 30 Dias</option>
-        </select>
-        <input type="date" id="filtroDataGlobalEspecifica" class="dark-select" onchange="window.dispararFiltrosGlobais()" style="display: none; background: #1e293b; border: 1px solid #3b82f6; color: white; padding: 10px; border-radius: 8px; font-size: 1.05rem; outline: none;">
+    
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;" id="botoesFiltroGlobal">
+        <button class="btn-filter-periodo active" onclick="setFiltroGlobal('hoje', this)">Hoje</button>
+        <button class="btn-filter-periodo" onclick="setFiltroGlobal('d1', this)">D-1</button>
+        <button class="btn-filter-periodo" onclick="setFiltroGlobal('d2', this)">D-2</button>
+        <button class="btn-filter-periodo" onclick="setFiltroGlobal('d3', this)">D-3</button>
+        <button class="btn-filter-periodo" onclick="setFiltroGlobal('d7', this)">D-7</button>
+        
+        <div style="display: flex; align-items: center; gap: 5px; margin-left: 10px;">
+            <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">Data Específica:</span>
+            <input type="date" id="filtroDataGlobalEspecifica" onchange="setFiltroGlobal('data_especifica', null)" class="dark-select" style="background: #1e293b; border: 1px solid #3b82f6; color: white; padding: 8px 12px; border-radius: 8px; outline: none; cursor: pointer;">
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 5px; margin-left: 10px;">
+            <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">Mês Específico:</span>
+            <input type="month" id="filtroMesGlobalEspecifico" onchange="setFiltroGlobal('mes_especifico', null)" class="dark-select" style="background: #1e293b; border: 1px solid #3b82f6; color: white; padding: 8px 12px; border-radius: 8px; outline: none; cursor: pointer;">
+        </div>
     </div>
 </div>
 
@@ -157,7 +175,7 @@
         <div style="display: flex; gap: 10px; align-items: center;">
             <span style="color: #94a3b8; font-size: 0.85rem; font-weight: 600;">Filtrar Mês:</span>
             <select id="filtroMesEvolucaoDMDiaria" class="dark-select" onchange="window.renderizarGraficoEvolucaoDMDiaria()" style="background: #1e293b; border: 1px solid #334155; color: white; padding: 5px 12px; border-radius: 6px; height: 34px; font-size: 0.9rem; outline: none; cursor: pointer;">
-                </select>
+            </select>
             <button class="btn-salvar" onclick="exportarGraficoPNG('graficoEvolucaoDMDiaria', 'Evolucao_DM_Diaria')" style="padding: 5px 12px; font-size: 0.8rem; height: 34px; background: #334155; border:none; border-radius: 6px; color: white; cursor: pointer;"><i class="fas fa-camera"></i> Exportar PNG</button>
         </div>
     </div>
@@ -229,7 +247,7 @@
     </div>
     <div class="content-panel kpi-card" style="border-left: 5px solid #fde047; padding: 20px;">
         <h3 class="nav-label" style="color: #fde047;"><i class="fas fa-bell"></i> Alertas de Prioridade</h3>
-        <div style="padding: 15px 0;" id="graficoPrioridadeOS"></div>
+        <div style="padding: 15px 0; height: 300px;" id="graficoPrioridadeOS"></div>
     </div>
 </div>
 

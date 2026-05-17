@@ -1,3 +1,65 @@
+// =================================================================
+// LÓGICA DE FILTROS GLOBAIS
+// =================================================================
+window.filtroGlobalAtual = 'hoje';
+
+window.setFiltroGlobal = function(tipo, el) {
+    window.filtroGlobalAtual = tipo;
+    
+    const botoes = document.querySelectorAll('#botoesFiltroGlobal .btn-filter-periodo');
+    botoes.forEach(b => b.classList.remove('active'));
+    
+    if(el && el.tagName === 'BUTTON') {
+        el.classList.add('active');
+    }
+
+    if (tipo !== 'data_especifica') document.getElementById('filtroDataGlobalEspecifica').value = '';
+    if (tipo !== 'mes_especifico') document.getElementById('filtroMesGlobalEspecifico').value = '';
+
+    window.dispararFiltrosGlobais();
+};
+
+window.getDatasFiltroGlobal = function() {
+    let inicio = new Date();
+    let fim = new Date();
+    const tipo = window.filtroGlobalAtual;
+
+    inicio.setHours(0,0,0,0);
+    fim.setHours(23,59,59,999);
+
+    if (tipo === 'd1') {
+        inicio.setDate(inicio.getDate() - 1);
+        fim.setDate(fim.getDate() - 1);
+    } else if (tipo === 'd2') {
+        inicio.setDate(inicio.getDate() - 2);
+        fim.setDate(fim.getDate() - 2);
+    } else if (tipo === 'd3') {
+        inicio.setDate(inicio.getDate() - 3);
+        fim.setDate(fim.getDate() - 3);
+    } else if (tipo === 'd7') {
+        inicio.setDate(inicio.getDate() - 7);
+        fim.setDate(fim.getDate() - 7);
+    } else if (tipo === 'data_especifica') {
+        const val = document.getElementById('filtroDataGlobalEspecifica').value;
+        if(val) {
+            const [y, m, d] = val.split('-');
+            inicio = new Date(y, m-1, d, 0, 0, 0);
+            fim = new Date(y, m-1, d, 23, 59, 59, 999);
+        }
+    } else if (tipo === 'mes_especifico') {
+        const val = document.getElementById('filtroMesGlobalEspecifico').value;
+        if(val) {
+            const [y, m] = val.split('-');
+            inicio = new Date(y, m-1, 1, 0, 0, 0);
+            fim = new Date(y, m, 0, 23, 59, 59, 999);
+        }
+    }
+    return { inicio, fim, valorBruto: tipo };
+};
+
+// =================================================================
+// FUNÇÕES DE CÁLCULO DE DM E GRÁFICOS
+// =================================================================
 window.renderizarPatioManutencaoDash = function() {
     const container = document.getElementById('patioManutencaoDashContainer');
     if (!container) return;
@@ -100,9 +162,6 @@ window.renderizarPatioManutencaoDash = function() {
     }).join('') + `</div>`;
 };
 
-// =================================================================
-// FUNÇÕES DE CÁLCULO DE DM E GRÁFICOS (COM LÓGICA DE DATA INICIAL)
-// =================================================================
 window.atualizarKPIsGlobais = function() {
     try {
         if (!window.ordensServico) return;
@@ -176,7 +235,6 @@ window.atualizarKPIsGlobais = function() {
         window.frotasManutencao.forEach(frota => {
             if(frota.status === 'Inativo') return;
             
-            // Lógica da DATA INICIAL do veículo (Boas práticas)
             let frotaInicioStr = frota.data_inicial ? frota.data_inicial : '2026-04-01';
             let dtEntradaVeiculo = new Date(frotaInicioStr + 'T00:00:00');
             
@@ -199,7 +257,6 @@ window.atualizarKPIsGlobais = function() {
                     osFim = new Date(osFimStr.replace('Z', '').replace('+00:00', ''));
                 }
                 
-                // Limita a OS a partir da data que o caminhão entrou
                 let inicioValido = osInicio > dtEntradaVeiculo ? osInicio : dtEntradaVeiculo;
                 let overlapInicio = inicioValido > inicio ? inicioValido : inicio;
                 const overlapFim = osFim < fimParaCalculo ? osFim : fimParaCalculo;
@@ -549,25 +606,9 @@ window.renderizarGraficoEvolucaoDMDiaria = function() {
                 hoje = agora;
             }
         } else {
-            const filtroVal = window.getDatasFiltroGlobal ? window.getDatasFiltroGlobal().valorBruto : 'mes_atual';
-            hoje = new Date();
-            hoje.setHours(23, 59, 59, 999);
-            
-            dataInicio = new Date(hoje);
-            dataInicio.setHours(0, 0, 0, 0);
-            if (filtroVal === 'dia_atual') {
-            } else if (filtroVal === 'semana_atual') {
-                const diaSemana = dataInicio.getDay(); 
-                dataInicio.setDate(dataInicio.getDate() - diaSemana);
-            } else if (filtroVal === 'mes_atual') {
-                dataInicio.setDate(1); 
-            } else if (filtroVal === '7') {
-                dataInicio.setDate(dataInicio.getDate() - 6); 
-            } else {
-                let d = parseInt(filtroVal);
-                if(isNaN(d)) d = 30;
-                dataInicio.setDate(dataInicio.getDate() - d + 1);
-            }
+            const datasFiltro = typeof window.getDatasFiltroGlobal === 'function' ? window.getDatasFiltroGlobal() : { inicio: new Date(), fim: new Date() };
+            dataInicio = new Date(datasFiltro.inicio);
+            hoje = new Date(datasFiltro.fim);
         }
 
         const labelsDias = [];
@@ -770,6 +811,201 @@ window.renderizarGraficoEvolucaoDMDiaria = function() {
 };
 
 // =================================================================
+// PAINÉIS INFERIORES FALTANTES (AGORA FUNCIONANDO)
+// =================================================================
+window.renderizarRankingCavalos = function() {
+    const container = document.getElementById('rankingCavalosOS');
+    if(!container) return;
+    const os = window.ordensServico || [];
+    const { inicio, fim } = window.getDatasFiltroGlobal();
+    
+    const contagem = {};
+    os.forEach(o => {
+        if(o.status === 'Agendada' || o.tipo === 'Cavalo Disponível S/ Carreta') return;
+        let dtStr = o.data_abertura;
+        if(!dtStr) return;
+        if (!dtStr.includes('T')) dtStr += 'T00:00:00';
+        const dtAbertura = new Date(dtStr.replace('Z', '').replace('+00:00', ''));
+        
+        if(dtAbertura >= inicio && dtAbertura <= fim && o.placa) {
+            contagem[o.placa] = (contagem[o.placa] || 0) + 1;
+        }
+    });
+
+    const top5 = Object.entries(contagem).sort((a,b) => b[1] - a[1]).slice(0, 5);
+    
+    if(top5.length === 0) {
+        container.innerHTML = '<p style="color:#94a3b8; text-align:center; padding: 20px;">Nenhuma ocorrência no período.</p>';
+        return;
+    }
+
+    container.innerHTML = top5.map((item, index) => {
+        const placa = item[0];
+        const qtd = item[1];
+        let cor = '#3b82f6';
+        if(index === 0) cor = '#ef4444';
+        else if(index === 1) cor = '#f97316';
+        else if(index === 2) cor = '#facc15';
+
+        return `
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); padding: 12px 15px; margin-bottom: 8px; border-radius: 8px; border-left: 4px solid ${cor};">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.2rem; font-weight: bold; color: ${cor};">#${index+1}</span>
+                <span style="font-size: 1.1rem; font-weight: bold; color: white;">${placa}</span>
+            </div>
+            <div style="font-size: 1.2rem; font-weight: 900; color: white;">${qtd} <span style="font-size: 0.8rem; font-weight: normal; color: #94a3b8;">O.S.</span></div>
+        </div>`;
+    }).join('');
+};
+
+window.renderizarOcorrenciasTipoBarra = function() {
+    const container = document.getElementById('graficoOcorrenciasTipoBarra');
+    if(!container || typeof echarts === 'undefined') return;
+    const os = window.ordensServico || [];
+    const { inicio, fim } = window.getDatasFiltroGlobal();
+
+    const contagem = {};
+    os.forEach(o => {
+        if(o.status === 'Agendada' || o.tipo === 'Cavalo Disponível S/ Carreta') return;
+        let dtStr = o.data_abertura;
+        if(!dtStr) return;
+        if (!dtStr.includes('T')) dtStr += 'T00:00:00';
+        const dtAbertura = new Date(dtStr.replace('Z', '').replace('+00:00', ''));
+        if(dtAbertura >= inicio && dtAbertura <= fim) {
+            const tipo = o.tipo || 'Outros';
+            contagem[tipo] = (contagem[tipo] || 0) + 1;
+        }
+    });
+
+    const keys = Object.keys(contagem).sort((a,b) => contagem[a] - contagem[b]); 
+    const values = keys.map(k => contagem[k]);
+
+    let myChart = echarts.getInstanceByDom(container);
+    if (!myChart) myChart = echarts.init(container);
+    
+    const option = {
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+        grid: { top: '10%', left: '3%', right: '10%', bottom: '5%', containLabel: true },
+        xAxis: { type: 'value', splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } }, axisLabel: { color: '#94a3b8' } },
+        yAxis: { type: 'category', data: keys, axisLabel: { color: '#ffffff', width: 120, overflow: 'truncate' } },
+        series: [{
+            name: 'Quantidade',
+            type: 'bar',
+            data: values,
+            itemStyle: { color: '#0ea5e9', borderRadius: [0, 4, 4, 0] },
+            label: { show: true, position: 'right', color: '#fff', fontWeight: 'bold' }
+        }]
+    };
+    myChart.setOption(option);
+    window.addEventListener('resize', () => myChart.resize());
+};
+
+window.renderizarPrioridadeOS = function() {
+    const container = document.getElementById('graficoPrioridadeOS');
+    if(!container || typeof echarts === 'undefined') return;
+    const os = window.ordensServico || [];
+    const { inicio, fim } = window.getDatasFiltroGlobal();
+
+    const contagem = { 'Urgente': 0, 'Alta': 0, 'Normal': 0, 'Baixa': 0 };
+    os.forEach(o => {
+        if(o.status === 'Agendada' || o.tipo === 'Cavalo Disponível S/ Carreta') return;
+        let dtStr = o.data_abertura;
+        if(!dtStr) return;
+        if (!dtStr.includes('T')) dtStr += 'T00:00:00';
+        const dtAbertura = new Date(dtStr.replace('Z', '').replace('+00:00', ''));
+        if(dtAbertura >= inicio && dtAbertura <= fim) {
+            const pri = o.prioridade || 'Normal';
+            if(contagem[pri] !== undefined) contagem[pri]++;
+            else contagem['Normal']++;
+        }
+    });
+
+    const dataPie = [
+        { value: contagem['Urgente'], name: 'Urgente', itemStyle: { color: '#ef4444' } },
+        { value: contagem['Alta'], name: 'Alta', itemStyle: { color: '#f97316' } },
+        { value: contagem['Normal'], name: 'Normal', itemStyle: { color: '#3b82f6' } },
+        { value: contagem['Baixa'], name: 'Baixa', itemStyle: { color: '#10b981' } }
+    ].filter(d => d.value > 0);
+
+    let myChart = echarts.getInstanceByDom(container);
+    if (!myChart) myChart = echarts.init(container);
+    
+    const option = {
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'item' },
+        legend: { bottom: '0', textStyle: { color: '#ffffff' } },
+        series: [{
+            name: 'Prioridade',
+            type: 'pie',
+            radius: ['40%', '70%'],
+            avoidLabelOverlap: false,
+            label: { show: false, position: 'center' },
+            emphasis: { label: { show: true, fontSize: '18', fontWeight: 'bold', color: '#fff' } },
+            labelLine: { show: false },
+            data: dataPie
+        }]
+    };
+    myChart.setOption(option);
+    window.addEventListener('resize', () => myChart.resize());
+};
+
+window.renderizarRelatorioTipoServico = function() {
+    const tbody = document.getElementById('tabelaRelatorioTipoServico');
+    if(!tbody) return;
+    const os = window.ordensServico || [];
+    const { inicio, fim } = window.getDatasFiltroGlobal();
+
+    const resumo = {};
+    os.forEach(o => {
+        if(o.status === 'Agendada' || o.tipo === 'Cavalo Disponível S/ Carreta') return;
+        let dtStr = o.data_abertura;
+        if(!dtStr) return;
+        if (!dtStr.includes('T')) dtStr += 'T00:00:00';
+        const dtAbertura = new Date(dtStr.replace('Z', '').replace('+00:00', ''));
+        
+        if(dtAbertura >= inicio && dtAbertura <= fim) {
+            const tipo = o.tipo || 'Outros';
+            if(!resumo[tipo]) resumo[tipo] = { count: 0, tempoTotal: 0, countConcluido: 0 };
+            resumo[tipo].count++;
+
+            if (o.data_conclusao && (o.status === 'Concluída' || o.status === 'Resolvido')) {
+                let cStr = o.data_conclusao;
+                if (!cStr.includes('T')) cStr += 'T00:00:00';
+                const dtConclusao = new Date(cStr.replace('Z', '').replace('+00:00', ''));
+                resumo[tipo].tempoTotal += (dtConclusao - dtAbertura);
+                resumo[tipo].countConcluido++;
+            }
+        }
+    });
+
+    const rows = Object.keys(resumo).sort((a,b) => resumo[b].count - resumo[a].count).map(tipo => {
+        const item = resumo[tipo];
+        let tempoStr = '-';
+        if(item.countConcluido > 0) {
+            const mediaMs = item.tempoTotal / item.countConcluido;
+            const horas = Math.floor(mediaMs / (1000 * 60 * 60));
+            const min = Math.floor((mediaMs % (1000 * 60 * 60)) / (1000 * 60));
+            tempoStr = `${horas}h ${min}m`;
+        }
+
+        return `
+        <tr style="background: rgba(255,255,255,0.02); border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <td style="padding: 12px 10px; color: #fff; font-weight: 600;">${tipo}</td>
+            <td style="text-align: center; padding: 12px 10px; color: #3b82f6; font-weight: bold; font-size: 1.1rem;">${item.count}</td>
+            <td style="text-align: right; padding: 12px 10px; color: #a855f7; font-weight: bold;">${tempoStr}</td>
+        </tr>
+        `;
+    });
+
+    if(rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 20px; color: #94a3b8;">Nenhum dado no período selecionado.</td></tr>';
+    } else {
+        tbody.innerHTML = rows.join('');
+    }
+};
+
+// =================================================================
 // FUNÇÕES DO MURAL
 // =================================================================
 window.muralSetorKey = 'mural_manutencao';
@@ -895,7 +1131,6 @@ window.initDashManutencao = function() {
     }, 60000);
 };
 
-// Atualizações periódicas dos gráficos para manter o dashboard com "Tempo Real"
 setInterval(() => {
     if (typeof window.frotasManutencao === 'undefined' || window.frotasManutencao.length === 0) return;
     
