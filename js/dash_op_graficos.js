@@ -10,8 +10,16 @@ window.renderCarregamentoChart = function(data) {
     if (existingChart != undefined) { existingChart.destroy(); }
     if (window.chartCarregamento) window.chartCarregamento.destroy();
     
+    // FILTRO C1 SERRANA: Apenas nossas gruas (GSR) e nossa frota
+    const dataC1 = data.filter(d => {
+        if(window.checkLoader && window.serranaLoaders && window.isSerranaTransp) {
+            return window.checkLoader(d, window.serranaLoaders, 'GSR') && window.isSerranaTransp(d);
+        }
+        return true; 
+    });
+
     const dailyMap = new Map();
-    data.forEach(d => {
+    dataC1.forEach(d => {
         const dt = d.dataDaBaseExcel;
         if (!dt || dt === 'Desconhecida') return;
         if (!dailyMap.has(dt)) dailyMap.set(dt, 0);
@@ -217,4 +225,19 @@ window.exportarTopCiclo = function() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+};
+
+// =========================================================
+// PONTE DE INTEGRAÇÃO COM O NÚCLEO (CORREÇÃO DE EXIBIÇÃO)
+// =========================================================
+window.atualizarGraficosOperacionais = function(cardsData, filteredGlobal) {
+    if (typeof window.renderCarregamentoChart === 'function') {
+        window.renderCarregamentoChart(cardsData);
+    }
+    if (typeof window.renderTransporteChart === 'function') {
+        window.renderTransporteChart(cardsData);
+    }
+    if (typeof window.renderLeaderboards === 'function') {
+        window.renderLeaderboards(cardsData, window.diasConsideradosGlobais);
+    }
 };
