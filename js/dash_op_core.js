@@ -543,7 +543,14 @@ window.atualizarPainelOperacional = function() {
 
     // CÁLCULO INTELIGENTE DA DISPONIBILIDADE DA FROTA (CRUZANDO COM MANUTENÇÃO)
     if (elMetaTexto && window.frotasParaMeta && window.osParaMeta) {
-        let totalFrota = window.frotasParaMeta.length;
+        
+        // --- FILTRANDO APENAS FROTA ATIVA DO CADASTRO ---
+        const frotasAtivas = window.frotasParaMeta.filter(f => {
+            const st = String(f.status || '').trim().toUpperCase();
+            return st === 'ATIVO' || st === 'ATIVA';
+        });
+        let totalFrota = frotasAtivas.length;
+        // --------------------------------------------------
         
         let dataInicioCalc = new Date(); dataInicioCalc.setHours(0,0,0,0);
         let dataFimCalc = new Date(); dataFimCalc.setHours(23,59,59,999);
@@ -591,7 +598,8 @@ window.atualizarPainelOperacional = function() {
         if (msTotalPeriodo <= 0) msTotalPeriodo = 1;
 
         let msManutTotal = 0;
-        window.frotasParaMeta.forEach(frota => {
+        // Percorremos apenas os Ativos agora
+        frotasAtivas.forEach(frota => {
             const todasOSCavalo = window.osParaMeta.filter(o => o.placa === frota.cavalo && o.status !== 'Agendada' && o.tipo !== 'Cavalo Disponível S/ Carreta');
             todasOSCavalo.forEach(os => {
                 let osInicioStr = os.data_abertura;
