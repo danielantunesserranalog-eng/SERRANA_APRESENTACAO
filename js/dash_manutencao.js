@@ -1,7 +1,7 @@
 // =================================================================
 // LÓGICA DE FILTROS GLOBAIS
 // =================================================================
-window.filtroGlobalAtual = 'hoje';
+window.filtroGlobalAtual = 'd1';
 
 window.setFiltroGlobal = function(tipo, el) {
     window.filtroGlobalAtual = tipo;
@@ -176,7 +176,7 @@ window.atualizarKPIsGlobais = function() {
         let osComTempo = 0;
         
         window.ordensServico.forEach(os => {
-            if (os.status === 'Agendada') return;
+            if (os.status === 'Agendada' || os.tipo === 'Cavalo Disponível S/ Carreta') return;
             let osInicioStr = os.data_abertura;
             if (!osInicioStr) return;
             if (!osInicioStr.includes('T')) osInicioStr += 'T00:00:00';
@@ -548,7 +548,7 @@ window.preencherMesesDMDiaria = function() {
     const mesAtualKey = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
 
     window.ordensServico.forEach(os => {
-        if (os.data_abertura && os.status !== 'Agendada') {
+        if (os.data_abertura && os.status !== 'Agendada' && os.tipo !== 'Cavalo Disponível S/ Carreta') {
             let dataStr = os.data_abertura;
             if (!dataStr.includes('T')) dataStr += 'T00:00:00';
             const data = new Date(dataStr.replace('Z', '').replace('+00:00', ''));
@@ -697,7 +697,7 @@ window.renderizarGraficoEvolucaoDMDiaria = function() {
         let osComTempo = 0;
 
         window.ordensServico.forEach(os => {
-            if (os.status === 'Agendada') return;
+            if (os.status === 'Agendada' || os.tipo === 'Cavalo Disponível S/ Carreta') return;
             let osInicioStr = os.data_abertura;
             if (!osInicioStr) return;
             if (!osInicioStr.includes('T')) osInicioStr += 'T00:00:00';
