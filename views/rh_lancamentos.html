@@ -65,7 +65,7 @@
             </div>
 
             <div class="input-group" style="grid-column: 1 / -1; background: rgba(236, 72, 153, 0.05); padding: 15px; border-radius: 8px; border: 1px solid rgba(236, 72, 153, 0.3);">
-                <label style="display:block; margin-bottom: 12px; font-size: 0.9rem; color: #ec4899; font-weight: bold;"><i class="fas fa-birthday-cake"></i> Gerenciar Aniversariantes do Mês</label>
+                <label style="display:block; margin-bottom: 12px; font-size: 0.9rem; color: #ec4899; font-weight: bold;"><i class="fas fa-birthday-cake"></i> Gerenciar Aniversariantes do Mês (Banco de Dados)</label>
                 <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 15px;">
                     <div style="flex: 1; min-width: 150px;">
                         <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Nome do Colaborador</label>
@@ -75,17 +75,32 @@
                         <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Setor</label>
                         <input type="text" id="novo-aniv-setor" class="config-input" placeholder="Ex: Operacional">
                     </div>
-                    <div style="width: 120px;">
+                    <div style="width: 100px;">
                         <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Dia (Ex: 15)</label>
                         <input type="number" id="novo-aniv-dia" class="config-input" min="1" max="31" placeholder="Dia">
                     </div>
-                    <button type="button" class="btn-salvar" style="padding: 14px 20px; background: #ec4899;" onclick="adicionarAniversariante()">
+                    <div style="width: 100px;">
+                        <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Mês (Ex: 05)</label>
+                        <input type="number" id="novo-aniv-mes" class="config-input" min="1" max="12" placeholder="Mês">
+                    </div>
+                    <button type="button" class="btn-salvar" style="padding: 14px 20px; background: #ec4899;" onclick="window.adicionarAniversarianteBD()">
                         <i class="fas fa-plus"></i> Adicionar
                     </button>
                 </div>
-                <label style="font-size: 0.75rem; color: var(--text-dim); margin-bottom: 5px; display: block;">Lista Final de Aniversariantes</label>
-                <textarea id="input-aniversariantes-rh" class="config-input" rows="3" placeholder="Os aniversariantes aparecerão aqui..."></textarea>
-                <button type="button" class="btn-kanban" style="background: var(--vermelho); margin-top: 8px; width: 100%;" onclick="window.limparMuralRH('input-aniversariantes-rh')"><i class="fas fa-trash"></i> Limpar Lista de Aniversariantes</button>
+                
+                <div class="table-box">
+                    <table class="exec-table" style="width: 100%; border-collapse: collapse; margin-top: 0;">
+                        <thead>
+                            <tr>
+                                <th style="color: var(--text-dim); padding-bottom: 10px;">Dia/Mês</th>
+                                <th style="color: var(--text-dim); padding-bottom: 10px;">Nome</th>
+                                <th style="color: var(--text-dim); padding-bottom: 10px;">Setor</th>
+                                <th style="text-align: right; color: var(--text-dim); padding-bottom: 10px;">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela-aniversariantes-lanc"></tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="input-group" style="grid-column: 1 / -1; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
@@ -158,6 +173,9 @@
     if(document.getElementById('data-avisos_rh')) document.getElementById('data-avisos_rh').value = hojeIsoRH;
     if(document.getElementById('data-liberacoes_rh')) document.getElementById('data-liberacoes_rh').value = hojeIsoRH;
 
+    // Seta o mês atual automaticamente no campo
+    if(document.getElementById('novo-aniv-mes')) document.getElementById('novo-aniv-mes').value = new Date().getMonth() + 1;
+
     window.listasRH = { avisos_rh: [], liberacoes_rh: [] };
 
     window.formatarDataListaRH = function(dataIso) {
@@ -167,14 +185,11 @@
     window.renderizarListaMuralRH = function(tipo) {
         const container = document.getElementById(`lista-${tipo}`);
         if(!container) return;
-        
         const itens = window.listasRH[tipo];
-        
         if(itens.length === 0) {
             container.innerHTML = '<div style="color: var(--text-dim); padding: 10px; text-align: center; font-size: 0.9rem;">Nenhuma ação/aviso pendente.</div>';
             return;
         }
-
         container.innerHTML = itens.map(item => `
             <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 10px 12px; border-radius: 6px; border-left: 3px solid ${tipo==='avisos_rh'?'var(--amarelo)':'#0ea5e9'};">
                 <div style="flex: 1;">
@@ -191,69 +206,82 @@
     window.addMuralRH = async function(tipo) {
         const dataInput = document.getElementById(`data-${tipo}`);
         const textInput = document.getElementById(`txt-${tipo}`);
-
         if(!textInput || !dataInput || !textInput.value.trim() || !dataInput.value) {
             alert("Preencha a data e o texto para adicionar."); return;
         }
-        
-        window.listasRH[tipo].push({
-            id: Date.now(),
-            data: dataInput.value,
-            texto: textInput.value.trim()
-        });
-        
+        window.listasRH[tipo].push({ id: Date.now(), data: dataInput.value, texto: textInput.value.trim() });
         textInput.value = '';
         window.renderizarListaMuralRH(tipo);
         await window.salvarDadosRH('msg-murais-rh', true); 
-        
         const msg = document.getElementById('msg-murais-rh');
-        if (msg) {
-            msg.style.color = 'var(--verde)';
-            msg.innerText = 'Item adicionado e salvo!';
-            setTimeout(() => msg.innerText='', 3000);
-        }
+        if (msg) { msg.style.color = 'var(--verde)'; msg.innerText = 'Item adicionado e salvo!'; setTimeout(() => msg.innerText='', 3000); }
     };
 
     window.concluirMuralRH = async function(tipo, id) {
         if(!confirm("Concluir e retirar este item do mural?")) return;
-        
         window.listasRH[tipo] = window.listasRH[tipo].filter(i => i.id !== id);
         window.renderizarListaMuralRH(tipo);
         await window.salvarDadosRH('msg-murais-rh', true);
-        
         const msg = document.getElementById('msg-murais-rh');
-        if (msg) {
-            msg.style.color = 'var(--verde)';
-            msg.innerText = 'Item concluído e retirado!';
-            setTimeout(() => msg.innerText='', 3000);
-        }
+        if (msg) { msg.style.color = 'var(--verde)'; msg.innerText = 'Item concluído e retirado!'; setTimeout(() => msg.innerText='', 3000); }
     };
 
-    window.adicionarAniversariante = async function() {
+    // NOVAS FUNÇÕES: BANCO DE DADOS DE ANIVERSARIANTES
+    window.renderizarTabelaAniversariantes = function(lista) {
+        const tbody = document.getElementById('tabela-aniversariantes-lanc');
+        if(!tbody) return;
+        if(lista.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 10px; color: var(--text-dim);">Nenhum aniversariante cadastrado.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = lista.map(a => `
+            <tr style="background: rgba(255,255,255,0.02);">
+                <td style="color: #ec4899; font-weight: bold; border-bottom: 1px solid var(--border); padding: 12px; width: 80px;">${String(a.dia).padStart(2,'0')}/${String(a.mes).padStart(2,'0')}</td>
+                <td style="color: white; font-weight: bold; border-bottom: 1px solid var(--border); padding: 12px;">${a.nome}</td>
+                <td style="color: var(--text-dim); border-bottom: 1px solid var(--border); padding: 12px;">${a.setor}</td>
+                <td style="text-align: right; border-bottom: 1px solid var(--border); padding: 12px;">
+                    <button class="btn-kanban" style="background: var(--vermelho);" onclick="window.removerAniversarianteBD(${a.id})"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>
+        `).join('');
+    };
+
+    window.adicionarAniversarianteBD = async function() {
         const nome = document.getElementById('novo-aniv-nome').value;
         const setor = document.getElementById('novo-aniv-setor').value;
         const dia = document.getElementById('novo-aniv-dia').value;
-        const textarea = document.getElementById('input-aniversariantes-rh');
+        const mes = document.getElementById('novo-aniv-mes').value;
 
-        if (!nome || !setor || !dia) {
-            alert("Preencha o Nome, Setor e o Dia do aniversário!"); return;
+        if(!nome || !dia || !mes) { alert('Preencha Nome, Dia e Mês do Aniversariante!'); return; }
+
+        const _supa = window.supabaseClientGlobal;
+        const { error } = await _supa.from('rh_aniversariantes').insert([{
+            nome: nome,
+            setor: setor || 'Não informado',
+            dia: parseInt(dia),
+            mes: parseInt(mes)
+        }]);
+
+        if(!error) {
+            document.getElementById('novo-aniv-nome').value = '';
+            document.getElementById('novo-aniv-setor').value = '';
+            document.getElementById('novo-aniv-dia').value = '';
+            window.carregarDadosRH();
+            const msg = document.getElementById('msg-murais-rh');
+            if(msg) { msg.style.color = 'var(--verde)'; msg.innerText = 'Aniversariante Salvo!'; setTimeout(()=>msg.innerText='', 3000); }
+        } else {
+            alert("Erro ao salvar: " + error.message);
         }
-
-        const diaFormatado = String(dia).padStart(2, '0');
-        const novoTexto = `Dia ${diaFormatado} | ${nome} | ${setor}`;
-
-        if (textarea.value.trim() === '') textarea.value = novoTexto;
-        else textarea.value += '\n' + novoTexto;
-
-        document.getElementById('novo-aniv-nome').value = '';
-        document.getElementById('novo-aniv-setor').value = '';
-        document.getElementById('novo-aniv-dia').value = '';
-        
-        await window.salvarDadosRH('msg-murais-rh', true);
-        const msg = document.getElementById('msg-murais-rh');
-        if (msg) { msg.style.color = 'var(--verde)'; msg.innerText = 'Aniversariante salvo!'; setTimeout(() => msg.innerText='', 3000); }
     };
 
+    window.removerAniversarianteBD = async function(id) {
+        if(!confirm("Tem certeza que deseja remover este colaborador?")) return;
+        const _supa = window.supabaseClientGlobal;
+        const { error } = await _supa.from('rh_aniversariantes').delete().eq('id', id);
+        if(!error) window.carregarDadosRH();
+    };
+
+    // FUNÇÕES DE CALENDÁRIO
     window.adicionarEventoCalendario = async function() {
         const selectTipo = document.getElementById('novo-evento-tipo');
         let tipo = selectTipo.value;

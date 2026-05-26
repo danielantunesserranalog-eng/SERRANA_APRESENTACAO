@@ -19,7 +19,7 @@ window.salvarDadosRH = async function(msgId = 'msg-rh-1', isSilent = false) {
         msg.innerText = "Salvando alterações...";
     }
     
-    // Pegamos todos os valores da tela (sem a data de registro, para evitar erros do banco)
+    // Pegamos todos os valores da tela
     const dados = {
         headcount: parseInt(document.getElementById('input-headcount')?.value || 0),
         atestados: parseInt(document.getElementById('input-atestados')?.value || 0),
@@ -31,7 +31,7 @@ window.salvarDadosRH = async function(msgId = 'msg-rh-1', isSilent = false) {
         mural_avisos: JSON.stringify(window.listasRH.avisos_rh || []),
         mural_liberacoes: JSON.stringify(window.listasRH.liberacoes_rh || []),
         
-        mural_aniversariantes: document.getElementById('input-aniversariantes-rh')?.value || null,
+        mural_aniversariantes: null, // Deixamos NULO pois agora usamos a tabela própria "rh_aniversariantes"
         mural_calendario: document.getElementById('input-calendario-rh')?.value || null
     };
     
@@ -44,11 +44,9 @@ window.salvarDadosRH = async function(msgId = 'msg-rh-1', isSilent = false) {
         let erroBanco = null;
 
         if (linhas && linhas.length > 0) {
-            // Se achou uma linha, ATUALIZA apenas ela (nunca cria uma nova)
             const { error } = await _supa.from('rh_indicadores').update(dados).eq('id', linhas[0].id);
             erroBanco = error;
         } else {
-            // Se o banco estiver 100% vazio, ele cria a primeira linha com a data de hoje
             dados.data_registro = new Date().toISOString().split('T')[0];
             const { error } = await _supa.from('rh_indicadores').insert([dados]);
             erroBanco = error;
@@ -74,7 +72,7 @@ window.carregarDadosRH = async function() {
     if (!_supa) return;
     
     try {
-        // Busca a linha MAIS RECENTE do banco para preencher os campos com os valores atuais
+        // 1. CARREGA OS INDICADORES BÁSICOS
         const { data: indData, error } = await _supa
             .from('rh_indicadores')
             .select('*')
@@ -84,7 +82,7 @@ window.carregarDadosRH = async function() {
         if (!error && indData && indData.length > 0) {
             const data = indData[0];
             
-            // Preenche os campos do formulário para você não perder o que já tinha
+            // Preenche os campos
             if(document.getElementById('input-headcount')) document.getElementById('input-headcount').value = data.headcount || 0;
             if(document.getElementById('input-atestados')) document.getElementById('input-atestados').value = data.atestados || 0;
             if(document.getElementById('input-afastamentos')) document.getElementById('input-afastamentos').value = data.afastamentos || 0;
@@ -92,10 +90,9 @@ window.carregarDadosRH = async function() {
             if(document.getElementById('input-integracoes')) document.getElementById('input-integracoes').value = data.integracoes || 0;
             if(document.getElementById('input-sgt')) document.getElementById('input-sgt').value = data.sgt || 0;
             
-            if(document.getElementById('input-aniversariantes-rh')) document.getElementById('input-aniversariantes-rh').value = data.mural_aniversariantes || '';
             if(document.getElementById('input-calendario-rh')) document.getElementById('input-calendario-rh').value = data.mural_calendario || '';
 
-            // Atualiza as Listas dos Murais
+            // Atualiza Murais
             if (window.listasRH) {
                 try {
                     window.listasRH.avisos_rh = JSON.parse(data.mural_avisos || '[]');
@@ -107,7 +104,7 @@ window.carregarDadosRH = async function() {
                 } catch(e) { console.error("Erro parse listas", e); }
             }
             
-            // Atualiza os Valores Visuais no Dashboard Principal do RH
+            // Atualiza Dashboard Principal
             const setTxt = (id, val) => { if(document.getElementById(id)) document.getElementById(id).innerText = val || 0; };
             setTxt('val-headcount', data.headcount);
             setTxt('val-atestados', data.atestados);
@@ -120,11 +117,10 @@ window.carregarDadosRH = async function() {
                 window.renderizarListaApresentacaoRH('mural-avisos-rh', data.mural_avisos, 'var(--amarelo)');
                 window.renderizarListaApresentacaoRH('mural-liberacoes-rh', data.mural_liberacoes, '#0ea5e9');
             }
-            if(typeof window.gerarAniversariantesVisual === 'function') window.gerarAniversariantesVisual(data.mural_aniversariantes || '');
             if(typeof window.gerarCalendarioVisual === 'function') window.gerarCalendarioVisual(data.mural_calendario || '');
         }
 
-        // Carregamento de Vagas
+        // 2. CARREGA AS VAGAS
         const { data: vagas } = await _supa.from('rh_vagas').select('*').eq('status', 'Aberta').order('data_criacao', { ascending: false });
         let totalVagas = 0;
         if (vagas) {
@@ -137,13 +133,17 @@ window.carregarDadosRH = async function() {
         }
         if(document.getElementById('val-vagas')) document.getElementById('val-vagas').innerText = totalVagas;
 
-        // TUDO CARREGADO - LIBERA O SISTEMA PARA SALVAR
+        // 3. CARREGA OS ANIVERSARIANTES DA NOVA TABELA
+        const { data: anivs } = await _supa.from('rh_aniversariantes').select('*').order('dia', { ascending: true });
+        if(typeof window.gerarAniversariantesVisual === 'function') window.gerarAniversariantesVisual(anivs || []);
+        if(typeof window.renderizarTabelaAniversariantes === 'function') window.renderizarTabelaAniversariantes(anivs || []);
+
         window.rhCarregado = true;
 
     } catch (err) { console.error("Erro ao carregar RH:", err); }
 }
 
-// Funções de Vagas e Murais (Sem Alterações)
+// Funções de Vagas e Murais
 window.adicionarVaga = async function() {
     const cargo = document.getElementById('vaga-cargo').value;
     const setor = document.getElementById('vaga-setor').value;
