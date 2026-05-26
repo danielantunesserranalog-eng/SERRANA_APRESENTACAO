@@ -2,20 +2,10 @@
 // MÓDULO 3: NÚCLEO, FILTROS E CÁLCULOS (OPERACIONAL)
 // =========================================================
 
-// Usamos 'window.' em vez de 'const' para evitar travamento de memória na troca de telas
-window.SUPABASE_URL_NOVO = 'https://tjjrzinpogjrquoosuqn.supabase.co';
-window.SUPABASE_KEY_NOVO = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqanJ6aW5wb2dqcnF1b29zdXFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzMxODksImV4cCI6MjA5NDcwOTE4OX0.IdZOXfXiWeFIUI4LPDVb1sZNyKogo4fOs-_9UcP_xj0';
+// --- GERENCIADOR INTELIGENTE DE MÚLTIPLOS BANCOS ---
+window.SUPABASE_URL_OP = 'https://tjjrzinpogjrquoosuqn.supabase.co';
+window.SUPABASE_KEY_OP = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqanJ6aW5wb2dqcnF1b29zdXFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzMxODksImV4cCI6MjA5NDcwOTE4OX0.IdZOXfXiWeFIUI4LPDVb1sZNyKogo4fOs-_9UcP_xj0';
 
-// Usa o cliente inteligente do app.js ou cria um de backup
-window.supabaseClientLocal = window.getSupabaseClient ? window.getSupabaseClient('operacional') : window.supabase.createClient(window.SUPABASE_URL_NOVO, window.SUPABASE_KEY_NOVO);
-window.supabaseClientMan = window.getSupabaseClient ? window.getSupabaseClient('manutencao') : window.supabaseClientLocal;
-
-window.getGlobalDB = function() {
-    // Para as metas e configurações antigas, sempre tenta usar o banco Global (Antigo)
-    if (window.supabaseClientGlobal) return window.supabaseClientGlobal;
-    return window.supabaseClientLocal; 
-};
-// --------------------------------------------------
 if (!window.supabaseClientLocal) {
     window.supabaseClientLocal = window.supabase.createClient(window.SUPABASE_URL_OP, window.SUPABASE_KEY_OP);
 }
@@ -61,10 +51,63 @@ window.diasConsideradosGlobais = 1;
 window.chartCarregamento = null;
 window.chartTransporte = null;
 
-// ARRAYS BLINDADOS
-window.serranaLoaders = ['GSR0001', 'GSR0002', 'GSR0003', 'GSR0007', 'GSR0008', 'GRB0015', 'GRB0022'];
-window.reflorestarLoaders = ['GRB0017', 'GRB0020', 'GRB0029', 'GRB0013', 'GRB0014', 'GRB0028', 'GRB0026', 'GRB0016', 'GRB0012', 'GRB0023', 'GRB0018'];
-window.jslLoaders = ['GSL0012', 'GSL0016'];
+// ARRAYS PADRÕES (Serão substituídos pelo Banco de Dados)
+window.frentesNomes = {
+    C1: 'C1: Serrana - Fr. 05',
+    C2: 'C2: Serrana - Fr. 06',
+    C3: 'C3: Reflorestar',
+    C4: 'C4: JSL'
+};
+window.serranaFrente05Loaders = [];
+window.serranaFrente06Loaders = [];
+window.serranaLoaders = [];
+window.reflorestarLoaders = [];
+window.jslLoaders = [];
+
+// =========================================================================
+// O BUSCADOR DINÂMICO DE GRUAS NO SUPABASE (TABELA config_gruas)
+// =========================================================================
+window.carregarConfigGruas = async function() {
+    try {
+        const { data, error } = await window.supabaseClientLocal.from('config_gruas').select('*');
+        if (!error && data && data.length > 0) {
+            let c1 = [], c2 = [], c3 = [], c4 = [];
+            
+            data.forEach(row => {
+                let ord = row.ordem ? row.ordem.toUpperCase().trim() : '';
+                
+                if (row.codigos) {
+                    // Pega os códigos do banco separados por vírgula, ex: "GSR0001, GSR0002"
+                    const codigos = row.codigos.split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
+                    if (ord === 'C1') c1.push(...codigos);
+                    else if (ord === 'C2') c2.push(...codigos);
+                    else if (ord === 'C3') c3.push(...codigos);
+                    else if (ord === 'C4') c4.push(...codigos);
+                }
+                
+                if (row.frente && ord) {
+                    window.frentesNomes[ord] = `${ord}: ${row.frente}`;
+                }
+            });
+
+            if (c1.length > 0) window.serranaFrente05Loaders = c1;
+            if (c2.length > 0) window.serranaFrente06Loaders = c2;
+            if (c3.length > 0) window.reflorestarLoaders = c3;
+            if (c4.length > 0) window.jslLoaders = c4;
+            
+            window.serranaLoaders = [...window.serranaFrente05Loaders, ...window.serranaFrente06Loaders];
+            console.log("✅ Configuração de gruas dinâmica carregada com sucesso da tabela config_gruas!");
+            
+            // Atualiza cabeçalhos da tabela no HTML automaticamente
+            const thC1 = document.getElementById('th_c1'); if(thC1) thC1.innerHTML = `<i class="fas fa-star mr-1"></i> ${window.frentesNomes['C1']}`;
+            const thC2 = document.getElementById('th_c2'); if(thC2) thC2.innerHTML = `<i class="fas fa-star mr-1"></i> ${window.frentesNomes['C2']}`;
+            const thC3 = document.getElementById('th_c3'); if(thC3) thC3.innerHTML = `<i class="fas fa-tree mr-1"></i> ${window.frentesNomes['C3']}`;
+            const thC4 = document.getElementById('th_c4'); if(thC4) thC4.innerHTML = `<i class="fas fa-leaf mr-1"></i> ${window.frentesNomes['C4']}`;
+        }
+    } catch (e) {
+        console.error("Erro ao carregar tabela config_gruas:", e);
+    }
+};
 
 // --- VARIÁVEIS PARA AS METAS DINÂMICAS ---
 window.metaCaixaMedia = 0;
@@ -93,7 +136,7 @@ window.parseMetaTempo = function(val) {
 };
 
 // =========================================================================
-// O VARREDOR UNIVERSAL (PROCURA A META NOS 3 BANCOS DE DADOS AUTOMATICAMENTE)
+// O VARREDOR UNIVERSAL DE METAS
 // =========================================================================
 window.carregarMetasGlobais = async function() {
     try {
@@ -198,6 +241,7 @@ window.checkLoader = function(d, loaderArray, prefix = '') {
 
     let valoresParaChecar = colunasPrioritarias.length > 0 ? colunasPrioritarias : outrasColunas;
 
+    // Procura exata na array de Gruas
     for (let v of valoresParaChecar) {
         for (let code of loaderArray) {
             let codeClean = code.replace(/\s+/g, '');
@@ -206,6 +250,7 @@ window.checkLoader = function(d, loaderArray, prefix = '') {
             }
         }
 
+        // Prefixo (Rede de Segurança - Usado apenas quando não há conflitos)
         if (prefix) {
             if (prefix === 'GSR') {
                 if (v.startsWith('GSR') || v.includes('GSR0')) return true;
@@ -529,7 +574,6 @@ window.atualizarPainelOperacional = function() {
     let cardsData = filteredGlobal;
     const opStatusFetch = document.getElementById('opStatusFetch');
 
-    // FILTRO DO TOPO: Tudo o que a Frota Própria (Serrana) transportou independentemente da grua/frente
     if (activeT === 'ALL') {
         cardsData = filteredGlobal.filter(d => window.isSerranaTransp(d));
         if (opStatusFetch) opStatusFetch.innerHTML = `<i class="fas fa-database text-sky-500 mr-1"></i> Geral: ${filteredGlobal.length} Viagens | Frota Própria: ${cardsData.length} Viagens`;
@@ -551,16 +595,12 @@ window.atualizarPainelOperacional = function() {
     let diasConsideradosCalc = 1;
     let mediaAtivosReal = 0; 
 
-    // CÁLCULO INTELIGENTE DA DISPONIBILIDADE DA FROTA (CRUZANDO COM MANUTENÇÃO)
     if (elMetaTexto && window.frotasParaMeta && window.osParaMeta) {
-        
-        // --- FILTRANDO APENAS FROTA ATIVA DO CADASTRO ---
         const frotasAtivas = window.frotasParaMeta.filter(f => {
             const st = String(f.status || '').trim().toUpperCase();
             return st === 'ATIVO' || st === 'ATIVA';
         });
         let totalFrota = frotasAtivas.length;
-        // --------------------------------------------------
         
         let dataInicioCalc = new Date(); dataInicioCalc.setHours(0,0,0,0);
         let dataFimCalc = new Date(); dataFimCalc.setHours(23,59,59,999);
@@ -608,7 +648,6 @@ window.atualizarPainelOperacional = function() {
         if (msTotalPeriodo <= 0) msTotalPeriodo = 1;
 
         let msManutTotal = 0;
-        // Percorremos apenas os Ativos agora
         frotasAtivas.forEach(frota => {
             const todasOSCavalo = window.osParaMeta.filter(o => o.placa === frota.cavalo && o.status !== 'Agendada' && o.tipo !== 'Cavalo Disponível S/ Carreta');
             todasOSCavalo.forEach(os => {
@@ -653,7 +692,6 @@ window.atualizarPainelOperacional = function() {
         } else { elMetaTexto.classList.add('hidden'); if(elIconeMeta) elIconeMeta.innerHTML = ''; }
     } else { if(elMetaTexto) elMetaTexto.classList.add('hidden'); if(elIconeMeta) elIconeMeta.innerHTML = ''; }
 
-    // RENDERIZAÇÃO DOS CARDS
     const totalPesoKg = cardsData.reduce((s,x)=>s+(parseFloat(String(x.pesoLiquido).replace(',','.'))||0), 0);
     const mediaPbtc = totalViagens > 0 ? (totalPesoKg / 1000) / totalViagens : 0;
     
@@ -745,22 +783,32 @@ window.atualizarPainelOperacional = function() {
     window.atualizarElementoTempo('tempoCarregamento', mediaTempoCarregamento, window.metaCargaDecimal);
     window.atualizarElementoTempo('filaFabrica', mediaFilaFabrica, window.metaFilaFabricaDecimal);
 
-    // TABELA COMPARATIVA DE CENÁRIOS COM BLINDAGEM DE GRUAS
+    // TABELA COMPARATIVA DE CENÁRIOS COM BLINDAGEM DE GRUAS EXATA
     const tbodyComp = document.getElementById('comparativoBody');
     if (tbodyComp) {
-        const dataC1 = filteredGlobal.filter(d => window.checkLoader(d, window.serranaLoaders, 'GSR') && window.isSerranaTransp(d));
-        const dataC2 = filteredGlobal.filter(d => window.checkLoader(d, window.serranaLoaders, 'GSR') && !window.isSerranaTransp(d));
+        // NOTA: Para Frentes 05 e 06 (C1 e C2), OMITI O 'GSR' DE PROPÓSITO para não roubarem os dados uma da outra!
+        const dataC1 = filteredGlobal.filter(d => window.checkLoader(d, window.serranaFrente05Loaders) && window.isSerranaTransp(d));
+        const dataC2 = filteredGlobal.filter(d => window.checkLoader(d, window.serranaFrente06Loaders) && window.isSerranaTransp(d));
+        // A ASN carrega de tudo da Serrana, então mantemos a rede de segurança de encontrar 'GSR' se ela carregar outra coisa
+        const dataASN = filteredGlobal.filter(d => window.checkLoader(d, window.serranaLoaders, 'GSR') && !window.isSerranaTransp(d));
+        // Para Reflorestar (C3) e JSL (C4), o prefixo continua lá de segurança
         const dataC3 = filteredGlobal.filter(d => window.checkLoader(d, window.reflorestarLoaders, 'GRB') && window.isSerranaTransp(d));
         const dataC4 = filteredGlobal.filter(d => window.checkLoader(d, window.jslLoaders, 'GSL') && window.isSerranaTransp(d));
         
-        const stC1 = window.calcStats(dataC1), stC2 = window.calcStats(dataC2), stC3 = window.calcStats(dataC3), stC4 = window.calcStats(dataC4), stGlobal = window.calcStats(filteredGlobal);
+        const stC1 = window.calcStats(dataC1), 
+              stC2 = window.calcStats(dataC2), 
+              stASN = window.calcStats(dataASN),
+              stC3 = window.calcStats(dataC3), 
+              stC4 = window.calcStats(dataC4), 
+              stGlobal = window.calcStats(filteredGlobal);
 
         tbodyComp.innerHTML = `
             <tr class="hover:bg-slate-800/30 transition-colors">
                 <td class="px-6 py-4 font-bold text-white text-[13px]"><i class="fas fa-route text-slate-400 w-5"></i> Viagens Realizadas</td>
-                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${dataC1.length}</td>
-                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${dataC2.length}</td>
-                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right text-emerald-400">${dataC3.length}</td>
+                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right text-emerald-400">${dataC1.length}</td>
+                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right text-emerald-400">${dataC2.length}</td>
+                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right text-purple-400">${dataASN.length}</td>
+                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right text-amber-400">${dataC3.length}</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right text-indigo-400">${dataC4.length}</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${filteredGlobal.length}</td>
             </tr>
@@ -768,6 +816,7 @@ window.atualizarPainelOperacional = function() {
                 <td class="px-6 py-4 font-bold text-white text-[13px]"><i class="fas fa-box-open text-indigo-400 w-5"></i> Caixa de Carga Média</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC1.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC2.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stASN.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC3.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC4.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stGlobal.medVol.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
@@ -776,6 +825,7 @@ window.atualizarPainelOperacional = function() {
                 <td class="px-6 py-4 font-bold text-white text-[13px]"><i class="fas fa-cubes text-cyan-400 w-5"></i> Volume Total</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC1.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC2.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
+                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stASN.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC3.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stC4.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${stGlobal.volTotal.toLocaleString('pt-PT',{maximumFractionDigits:1})} m³</td>
@@ -784,6 +834,7 @@ window.atualizarPainelOperacional = function() {
                 <td class="px-6 py-4 font-bold text-slate-300 text-[12px] uppercase tracking-wider"><i class="fas fa-stopwatch text-blue-400 w-5"></i> Ciclo Médio Total</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${window.formatarHorasMinutos(stC1.medCiclo)}</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${window.formatarHorasMinutos(stC2.medCiclo)}</td>
+                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${window.formatarHorasMinutos(stASN.medCiclo)}</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${window.formatarHorasMinutos(stC3.medCiclo)}</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${window.formatarHorasMinutos(stC4.medCiclo)}</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${window.formatarHorasMinutos(stGlobal.medCiclo)}</td>
@@ -792,17 +843,19 @@ window.atualizarPainelOperacional = function() {
                 <td class="px-6 py-4 font-bold text-slate-300 text-[12px] uppercase tracking-wider"><i class="fas fa-hourglass-half text-amber-500 w-5"></i> Espera Média Campo</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${window.formatarHorasMinutos(stC1.medFilaCpo)}</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${window.formatarHorasMinutos(stC2.medFilaCpo)}</td>
+                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${window.formatarHorasMinutos(stASN.medFilaCpo)}</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${window.formatarHorasMinutos(stC3.medFilaCpo)}</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${window.formatarHorasMinutos(stC4.medFilaCpo)}</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${window.formatarHorasMinutos(stGlobal.medFilaCpo)}</td>
             </tr>
             <tr class="hover:bg-slate-800/30 transition-colors border-t border-slate-700">
                 <td class="px-6 py-4 font-bold text-slate-300 text-[12px] uppercase tracking-wider"><i class="fas fa-road text-slate-400 w-5"></i> Dist. Média (Asfalto/Terra)</td>
-                <td class="px-6 py-4 font-mono text-white text-[14px] font-bold text-right"><span class="text-sky-300">Asf: ${stC1.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br><span class="text-amber-400">Ter: ${stC1.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span></td>
-                <td class="px-6 py-4 font-mono text-white text-[14px] font-bold text-right"><span class="text-sky-300">Asf: ${stC2.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br><span class="text-amber-400">Ter: ${stC2.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span></td>
-                <td class="px-6 py-4 font-mono text-white text-[14px] font-bold text-right"><span class="text-sky-300">Asf: ${stC3.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br><span class="text-amber-400">Ter: ${stC3.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span></td>
-                <td class="px-6 py-4 font-mono text-white text-[14px] font-bold text-right"><span class="text-sky-300">Asf: ${stC4.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br><span class="text-amber-400">Ter: ${stC4.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span></td>
-                <td class="px-6 py-4 font-mono text-white text-[14px] font-bold text-right"><span class="text-sky-300">Asf: ${stGlobal.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br><span class="text-amber-400">Ter: ${stGlobal.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span></td>
+                <td class="px-6 py-4 font-mono text-white text-[14px] font-bold text-right"><span class="text-sky-300" title="Asfalto">Asf: ${stC1.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br><span class="text-amber-400" title="Terra">Ter: ${stC1.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span></td>
+                <td class="px-6 py-4 font-mono text-white text-[14px] font-bold text-right"><span class="text-sky-300" title="Asfalto">Asf: ${stC2.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br><span class="text-amber-400" title="Terra">Ter: ${stC2.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span></td>
+                <td class="px-6 py-4 font-mono text-white text-[14px] font-bold text-right"><span class="text-sky-300" title="Asfalto">Asf: ${stASN.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br><span class="text-amber-400" title="Terra">Ter: ${stASN.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span></td>
+                <td class="px-6 py-4 font-mono text-white text-[14px] font-bold text-right"><span class="text-sky-300" title="Asfalto">Asf: ${stC3.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br><span class="text-amber-400" title="Terra">Ter: ${stC3.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span></td>
+                <td class="px-6 py-4 font-mono text-white text-[14px] font-bold text-right"><span class="text-sky-300" title="Asfalto">Asf: ${stC4.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br><span class="text-amber-400" title="Terra">Ter: ${stC4.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span></td>
+                <td class="px-6 py-4 font-mono text-white text-[14px] font-bold text-right"><span class="text-sky-300" title="Asfalto">Asf: ${stGlobal.medAsfalto.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span><br><span class="text-amber-400" title="Terra">Ter: ${stGlobal.medTerra.toLocaleString('pt-PT',{minimumFractionDigits:1, maximumFractionDigits:1})}</span></td>
             </tr>
         `;
     }
@@ -827,6 +880,8 @@ window.initNovoDashboardOperacional = async function() {
 
     window.setupOperacionalFilters();
     
+    // GATILHO DAS FUNÇÕES DINÂMICAS DO BANCO DE DADOS
+    await window.carregarConfigGruas();
     await window.carregarMetasGlobais();
 
     window.loadManutencaoDataForMeta().finally(() => {
