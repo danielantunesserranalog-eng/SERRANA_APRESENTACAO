@@ -32,6 +32,30 @@ const configMenuData = [{
 
 let lastClickTime = 0;
 
+// GERENCIADOR DE BANCO DE DADOS (NOVO)
+window.getSupabaseClient = function(contexto = '') {
+    if (typeof supabase === 'undefined') return null;
+
+    // Inicializa cliente principal
+    if (!window.supabaseClientGlobal && typeof SUPABASE_CONFIG !== 'undefined') {
+        window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+    }
+    // Inicializa cliente novo (Operacional e Manutenção)
+    if (!window.supabaseClientFrota && typeof SUPABASE_CONFIG_FROTA !== 'undefined') {
+        window.supabaseClientFrota = supabase.createClient(SUPABASE_CONFIG_FROTA.url, SUPABASE_CONFIG_FROTA.key);
+    }
+
+    // Define regra: Se for Operacional ou Manutenção, usar o banco NOVO
+    const ctxLower = contexto.toLowerCase();
+    if (ctxLower.includes('operacional') || ctxLower.includes('manutenção') || ctxLower.includes('manutencao') || ctxLower === 'resp_operacional' || ctxLower === 'resp_manutencao') {
+        return window.supabaseClientFrota;
+    }
+    
+    // Para todos os outros (SSMA, RH, etc.), usar o PRINCIPAL
+    return window.supabaseClientGlobal;
+};
+
+
 function renderMenuElements(dataArray, containerId) {
     const list = document.getElementById(containerId);
     list.innerHTML = '';
@@ -88,12 +112,13 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
     let nomeResponsavel = defName;
     if (respKey !== 'none') {
         try {
-            if (!window.supabaseClientGlobal && typeof supabase !== 'undefined' && typeof SUPABASE_CONFIG !== 'undefined') {
-                window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-            }
-            const { data } = await window.supabaseClientGlobal.from('configuracoes').select('valor').eq('chave', respKey).limit(1);
-            if (data && data.length > 0) {
-                nomeResponsavel = data[0].valor;
+            // Usa o banco correto baseado no setor que está sendo aberto
+            const client = window.getSupabaseClient(respKey);
+            if (client) {
+                const { data } = await client.from('configuracoes').select('valor').eq('chave', respKey).limit(1);
+                if (data && data.length > 0) {
+                    nomeResponsavel = data[0].valor;
+                }
             }
         } catch(e) {}
     }
@@ -187,14 +212,17 @@ async function carregarDropdownResponsaveis() {
     const select = document.getElementById('kb-responsavel');
     if(!select) return;
     
+    const setorInput = document.getElementById('kb-setor');
+    const setorNome = setorInput ? setorInput.value : '';
+    
     let membrosSalvos = [];
     try {
-        if (!window.supabaseClientGlobal && typeof supabase !== 'undefined' && typeof SUPABASE_CONFIG !== 'undefined') {
-            window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-        }
-        const { data } = await window.supabaseClientGlobal.from('configuracoes').select('valor').eq('chave', 'membros_kanban').limit(1);
-        if (data && data.length > 0) {
-            membrosSalvos = JSON.parse(data[0].valor);
+        const client = window.getSupabaseClient(setorNome);
+        if (client) {
+            const { data } = await client.from('configuracoes').select('valor').eq('chave', 'membros_kanban').limit(1);
+            if (data && data.length > 0) {
+                membrosSalvos = JSON.parse(data[0].valor);
+            }
         }
     } catch(e) {}
     
@@ -280,13 +308,10 @@ window.salvarKanbanItem = async function() {
     msg.innerText = 'Salvando no banco de dados...';
     
     try {
-        if (!window.supabaseClientGlobal && typeof supabase !== 'undefined' && typeof SUPABASE_CONFIG !== 'undefined') {
-            window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-        }
+        const client = window.getSupabaseClient(setor);
         
-        if (window.supabaseClientGlobal) {
-            const _supa = window.supabaseClientGlobal;
-            const { error } = await _supa.from('kanban_metas').insert([item]);
+        if (client) {
+            const { error } = await client.from('kanban_metas').insert([item]);
             
             if (error) {
                 console.error("Erro do Supabase:", error);

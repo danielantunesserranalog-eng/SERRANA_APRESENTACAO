@@ -2,10 +2,12 @@
 // MÓDULO 3: NÚCLEO, FILTROS E CÁLCULOS (OPERACIONAL)
 // =========================================================
 
-// --- GERENCIADOR INTELIGENTE DE MÚLTIPLOS BANCOS ---
-window.SUPABASE_URL_OP = 'https://qnpwkvazkntbqjbwegcp.supabase.co';
-window.SUPABASE_KEY_OP = 'sb_publishable_bjTFgpk-qAdpVuWzr4hbng_G8O9qlc8';
+// Apontando para o NOVO banco de dados da frota
+const supabaseUrlManutencao = 'https://tjjrzinpogjrquoosuqn.supabase.co';
+const supabaseKeyManutencao = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqanJ6aW5wb2dqcnF1b29zdXFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzMxODksImV4cCI6MjA5NDcwOTE4OX0.IdZOXfXiWeFIUI4LPDVb1sZNyKogo4fOs-_9UcP_xj0';
 
+// Usa a função inteligente criada no app.js (se existir) ou cria o cliente direto
+const supabaseManutencao = window.getSupabaseClient ? window.getSupabaseClient('manutencao') : window.supabase.createClient(supabaseUrlManutencao, supabaseKeyManutencao);
 if (!window.supabaseClientLocal) {
     window.supabaseClientLocal = window.supabase.createClient(window.SUPABASE_URL_OP, window.SUPABASE_KEY_OP);
 }
