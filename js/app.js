@@ -32,26 +32,22 @@ const configMenuData = [{
 
 let lastClickTime = 0;
 
-// GERENCIADOR DE BANCO DE DADOS (NOVO)
+// GERENCIADOR DE BANCO DE DADOS
 window.getSupabaseClient = function(contexto = '') {
     if (typeof supabase === 'undefined') return null;
 
-    // Inicializa cliente principal
     if (!window.supabaseClientGlobal && typeof SUPABASE_CONFIG !== 'undefined') {
         window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
     }
-    // Inicializa cliente novo (Operacional e Manutenção)
     if (!window.supabaseClientFrota && typeof SUPABASE_CONFIG_FROTA !== 'undefined') {
         window.supabaseClientFrota = supabase.createClient(SUPABASE_CONFIG_FROTA.url, SUPABASE_CONFIG_FROTA.key);
     }
 
-    // Define regra: Se for Operacional ou Manutenção, usar o banco NOVO
     const ctxLower = contexto.toLowerCase();
     if (ctxLower.includes('operacional') || ctxLower.includes('manutenção') || ctxLower.includes('manutencao') || ctxLower === 'resp_operacional' || ctxLower === 'resp_manutencao') {
         return window.supabaseClientFrota;
     }
     
-    // Para todos os outros (SSMA, RH, etc.), usar o PRINCIPAL
     return window.supabaseClientGlobal;
 };
 
@@ -112,10 +108,12 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
     let nomeResponsavel = defName;
     if (respKey !== 'none') {
         try {
-            // Usa o banco correto baseado no setor que está sendo aberto
-            const client = window.getSupabaseClient(respKey);
-            if (client) {
-                const { data } = await client.from('configuracoes').select('valor').eq('chave', respKey).limit(1);
+            // CORREÇÃO: Busca os nomes SEMPRE no banco Principal, pois a tabela configuracoes só existe lá
+            if (!window.supabaseClientGlobal && typeof SUPABASE_CONFIG !== 'undefined') {
+                window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+            }
+            if (window.supabaseClientGlobal) {
+                const { data } = await window.supabaseClientGlobal.from('configuracoes').select('valor').eq('chave', respKey).limit(1);
                 if (data && data.length > 0) {
                     nomeResponsavel = data[0].valor;
                 }
@@ -145,7 +143,6 @@ async function loadModule(event, subTitle, fileName, respKey, defName) {
             document.body.removeChild(newScript);
         });
         
-        // Bloqueia a exibição do gerador de metas dentro de páginas administrativas
         if (!['cons_historico.html', 'conf_sistema.html', 'cons_gestao_kanban.html'].includes(fileName)) {
             injectKanbanLauncher(subTitle);
         }
@@ -212,14 +209,14 @@ async function carregarDropdownResponsaveis() {
     const select = document.getElementById('kb-responsavel');
     if(!select) return;
     
-    const setorInput = document.getElementById('kb-setor');
-    const setorNome = setorInput ? setorInput.value : '';
-    
     let membrosSalvos = [];
     try {
-        const client = window.getSupabaseClient(setorNome);
-        if (client) {
-            const { data } = await client.from('configuracoes').select('valor').eq('chave', 'membros_kanban').limit(1);
+        // CORREÇÃO: Sempre busca os membros do Kanban no banco PRINCIPAL
+        if (!window.supabaseClientGlobal && typeof SUPABASE_CONFIG !== 'undefined') {
+            window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+        }
+        if (window.supabaseClientGlobal) {
+            const { data } = await window.supabaseClientGlobal.from('configuracoes').select('valor').eq('chave', 'membros_kanban').limit(1);
             if (data && data.length > 0) {
                 membrosSalvos = JSON.parse(data[0].valor);
             }
@@ -308,10 +305,13 @@ window.salvarKanbanItem = async function() {
     msg.innerText = 'Salvando no banco de dados...';
     
     try {
-        const client = window.getSupabaseClient(setor);
+        // CORREÇÃO: Salva o Kanban SEMPRE no banco Principal
+        if (!window.supabaseClientGlobal && typeof SUPABASE_CONFIG !== 'undefined') {
+            window.supabaseClientGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
+        }
         
-        if (client) {
-            const { error } = await client.from('kanban_metas').insert([item]);
+        if (window.supabaseClientGlobal) {
+            const { error } = await window.supabaseClientGlobal.from('kanban_metas').insert([item]);
             
             if (error) {
                 console.error("Erro do Supabase:", error);
@@ -320,7 +320,7 @@ window.salvarKanbanItem = async function() {
                 return;
             }
         } else {
-            throw new Error("Supabase não carregado");
+            throw new Error("Supabase principal não carregado");
         }
 
     } catch(e) {

@@ -2,12 +2,20 @@
 // MÓDULO 3: NÚCLEO, FILTROS E CÁLCULOS (OPERACIONAL)
 // =========================================================
 
-// Apontando para o NOVO banco de dados da frota
-const supabaseUrlManutencao = 'https://tjjrzinpogjrquoosuqn.supabase.co';
-const supabaseKeyManutencao = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqanJ6aW5wb2dqcnF1b29zdXFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzMxODksImV4cCI6MjA5NDcwOTE4OX0.IdZOXfXiWeFIUI4LPDVb1sZNyKogo4fOs-_9UcP_xj0';
+// Usamos 'window.' em vez de 'const' para evitar travamento de memória na troca de telas
+window.SUPABASE_URL_NOVO = 'https://tjjrzinpogjrquoosuqn.supabase.co';
+window.SUPABASE_KEY_NOVO = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqanJ6aW5wb2dqcnF1b29zdXFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzMxODksImV4cCI6MjA5NDcwOTE4OX0.IdZOXfXiWeFIUI4LPDVb1sZNyKogo4fOs-_9UcP_xj0';
 
-// Usa a função inteligente criada no app.js (se existir) ou cria o cliente direto
-const supabaseManutencao = window.getSupabaseClient ? window.getSupabaseClient('manutencao') : window.supabase.createClient(supabaseUrlManutencao, supabaseKeyManutencao);
+// Usa o cliente inteligente do app.js ou cria um de backup
+window.supabaseClientLocal = window.getSupabaseClient ? window.getSupabaseClient('operacional') : window.supabase.createClient(window.SUPABASE_URL_NOVO, window.SUPABASE_KEY_NOVO);
+window.supabaseClientMan = window.getSupabaseClient ? window.getSupabaseClient('manutencao') : window.supabaseClientLocal;
+
+window.getGlobalDB = function() {
+    // Para as metas e configurações antigas, sempre tenta usar o banco Global (Antigo)
+    if (window.supabaseClientGlobal) return window.supabaseClientGlobal;
+    return window.supabaseClientLocal; 
+};
+// --------------------------------------------------
 if (!window.supabaseClientLocal) {
     window.supabaseClientLocal = window.supabase.createClient(window.SUPABASE_URL_OP, window.SUPABASE_KEY_OP);
 }
