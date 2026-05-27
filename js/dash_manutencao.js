@@ -69,7 +69,19 @@ window.renderizarPatioManutencaoDash = function() {
         return;
     }
 
-    const osAtivas = window.ordensServico.filter(o => (o.status === 'Aguardando Oficina' || o.status === 'Em Manutenção') && o.tipo !== 'Sinistro' && o.tipo !== 'Cavalo Disponível S/ Carreta');
+    let cavalosValidos = [];
+    if (window.frotasManutencao) {
+        cavalosValidos = window.frotasManutencao
+            .filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM')
+            .map(f => f.cavalo);
+    }
+
+    const osAtivas = window.ordensServico.filter(o => 
+        o.placa && cavalosValidos.includes(o.placa) &&
+        (o.status === 'Aguardando Oficina' || o.status === 'Em Manutenção') && 
+        o.tipo !== 'Sinistro' && 
+        o.tipo !== 'Cavalo Disponível S/ Carreta'
+    );
 
     if (osAtivas.length === 0) {
         container.innerHTML = `
@@ -164,7 +176,12 @@ window.renderizarPatioManutencaoDash = function() {
 
 window.atualizarKPIsGlobais = function() {
     try {
-        if (!window.ordensServico) return;
+        if (!window.ordensServico || !window.frotasManutencao) return;
+
+        let cavalosValidos = window.frotasManutencao
+            .filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM')
+            .map(f => f.cavalo);
+
         const datas = typeof window.getDatasFiltroGlobal === 'function' ? window.getDatasFiltroGlobal() : { inicio: new Date(), fim: new Date() };
         const inicio = datas.inicio;
         const fim = datas.fim;
@@ -176,6 +193,7 @@ window.atualizarKPIsGlobais = function() {
         let osComTempo = 0;
         
         window.ordensServico.forEach(os => {
+            if (!os.placa || !cavalosValidos.includes(os.placa)) return;
             if (os.status === 'Agendada' || os.tipo === 'Cavalo Disponível S/ Carreta') return;
             let osInicioStr = os.data_abertura;
             if (!osInicioStr) return;
@@ -222,7 +240,8 @@ window.atualizarKPIsGlobais = function() {
         if(elKpiTaxa) elKpiTaxa.innerText = taxaConclusao + '%';
         if(elKpiTempo) elKpiTempo.innerText = tempoMedioStr;
         
-        if (!window.frotasManutencao || window.frotasManutencao.length === 0) return;
+        let frotasValidas = window.frotasManutencao.filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM');
+        if (frotasValidas.length === 0) return;
         
         let fimParaCalculo = fim > new Date() ? new Date() : fim;
         let msTotalPeriodo = fimParaCalculo - inicio;
@@ -232,9 +251,7 @@ window.atualizarKPIsGlobais = function() {
         let msSOS = 0;
         let totalMsDisponivelPeriodo = 0;
         
-        window.frotasManutencao.forEach(frota => {
-            if(frota.status === 'Inativo') return;
-            
+        frotasValidas.forEach(frota => {
             let frotaInicioStr = frota.data_inicial ? frota.data_inicial : '2026-04-01';
             let dtEntradaVeiculo = new Date(frotaInicioStr + 'T00:00:00');
             
@@ -305,6 +322,9 @@ window.atualizarKPIsGlobais = function() {
 window.renderizarGraficoStatusFrotaHorario = function() {
     try {
         if (!window.frotasManutencao || window.frotasManutencao.length === 0) return;
+
+        let frotasValidas = window.frotasManutencao.filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM');
+        if (frotasValidas.length === 0) return;
         
         const agora = new Date();
         let dataBase = new Date(); 
@@ -339,9 +359,7 @@ window.renderizarGraficoStatusFrotaHorario = function() {
             let qtdEmManutencao = 0;
             let qtdEmSOS = 0;
             
-            window.frotasManutencao.forEach(frota => {
-                if(frota.status === 'Inativo') return;
-                
+            frotasValidas.forEach(frota => {
                 let frotaInicioStr = frota.data_inicial ? frota.data_inicial : '2026-04-01';
                 let dtEntradaVeiculo = new Date(frotaInicioStr + 'T00:00:00');
                 if (dtEntradaVeiculo > fimHora) return; 
@@ -408,9 +426,7 @@ window.renderizarGraficoStatusFrotaHorario = function() {
             let msManutencaoComumDia = 0;
             let msSOSDia = 0;
             
-            window.frotasManutencao.forEach(frota => {
-                if(frota.status === 'Inativo') return;
-                
+            frotasValidas.forEach(frota => {
                 let frotaInicioStr = frota.data_inicial ? frota.data_inicial : '2026-04-01';
                 let dtEntradaVeiculo = new Date(frotaInicioStr + 'T00:00:00');
                 
@@ -543,11 +559,19 @@ window.preencherMesesDMDiaria = function() {
     const select = document.getElementById('filtroMesEvolucaoDMDiaria');
     if (!select || !window.ordensServico) return;
 
+    let cavalosValidos = [];
+    if (window.frotasManutencao) {
+        cavalosValidos = window.frotasManutencao
+            .filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM')
+            .map(f => f.cavalo);
+    }
+
     const mesesDisponiveis = new Set();
     const hoje = new Date();
     const mesAtualKey = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
 
     window.ordensServico.forEach(os => {
+        if (!os.placa || !cavalosValidos.includes(os.placa)) return;
         if (os.data_abertura && os.status !== 'Agendada' && os.tipo !== 'Cavalo Disponível S/ Carreta') {
             let dataStr = os.data_abertura;
             if (!dataStr.includes('T')) dataStr += 'T00:00:00';
@@ -588,6 +612,10 @@ window.preencherMesesDMDiaria = function() {
 window.renderizarGraficoEvolucaoDMDiaria = function() {
     try {
         if (!window.frotasManutencao || window.frotasManutencao.length === 0) return;
+
+        let frotasValidas = window.frotasManutencao.filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM');
+        if (frotasValidas.length === 0) return;
+        let cavalosValidos = frotasValidas.map(f => f.cavalo);
         
         if (typeof window.preencherMesesDMDiaria === 'function') {
             window.preencherMesesDMDiaria();
@@ -632,9 +660,7 @@ window.renderizarGraficoEvolucaoDMDiaria = function() {
                 let totalMsDisponivelDia = 0;
                 let msManutencaoDia = 0;
                 
-                window.frotasManutencao.forEach(frota => {
-                    if(frota.status === 'Inativo') return;
-                    
+                frotasValidas.forEach(frota => {
                     let frotaInicioStr = frota.data_inicial ? frota.data_inicial : '2026-04-01';
                     let dtEntradaVeiculo = new Date(frotaInicioStr + 'T00:00:00');
                     
@@ -697,6 +723,7 @@ window.renderizarGraficoEvolucaoDMDiaria = function() {
         let osComTempo = 0;
 
         window.ordensServico.forEach(os => {
+            if (!os.placa || !cavalosValidos.includes(os.placa)) return;
             if (os.status === 'Agendada' || os.tipo === 'Cavalo Disponível S/ Carreta') return;
             let osInicioStr = os.data_abertura;
             if (!osInicioStr) return;
@@ -816,11 +843,20 @@ window.renderizarGraficoEvolucaoDMDiaria = function() {
 window.renderizarRankingCavalos = function() {
     const container = document.getElementById('rankingCavalosOS');
     if(!container) return;
+
+    let cavalosValidos = [];
+    if (window.frotasManutencao) {
+        cavalosValidos = window.frotasManutencao
+            .filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM')
+            .map(f => f.cavalo);
+    }
+
     const os = window.ordensServico || [];
     const { inicio, fim } = window.getDatasFiltroGlobal();
     
     const contagem = {};
     os.forEach(o => {
+        if (!o.placa || !cavalosValidos.includes(o.placa)) return;
         if(o.status === 'Agendada' || o.tipo === 'Cavalo Disponível S/ Carreta') return;
         let dtStr = o.data_abertura;
         if(!dtStr) return;
@@ -861,11 +897,20 @@ window.renderizarRankingCavalos = function() {
 window.renderizarOcorrenciasTipoBarra = function() {
     const container = document.getElementById('graficoOcorrenciasTipoBarra');
     if(!container || typeof echarts === 'undefined') return;
+
+    let cavalosValidos = [];
+    if (window.frotasManutencao) {
+        cavalosValidos = window.frotasManutencao
+            .filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM')
+            .map(f => f.cavalo);
+    }
+
     const os = window.ordensServico || [];
     const { inicio, fim } = window.getDatasFiltroGlobal();
 
     const contagem = {};
     os.forEach(o => {
+        if (!o.placa || !cavalosValidos.includes(o.placa)) return;
         if(o.status === 'Agendada' || o.tipo === 'Cavalo Disponível S/ Carreta') return;
         let dtStr = o.data_abertura;
         if(!dtStr) return;
@@ -904,11 +949,20 @@ window.renderizarOcorrenciasTipoBarra = function() {
 window.renderizarPrioridadeOS = function() {
     const container = document.getElementById('graficoPrioridadeOS');
     if(!container || typeof echarts === 'undefined') return;
+
+    let cavalosValidos = [];
+    if (window.frotasManutencao) {
+        cavalosValidos = window.frotasManutencao
+            .filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM')
+            .map(f => f.cavalo);
+    }
+
     const os = window.ordensServico || [];
     const { inicio, fim } = window.getDatasFiltroGlobal();
 
     const contagem = { 'Urgente': 0, 'Alta': 0, 'Normal': 0, 'Baixa': 0 };
     os.forEach(o => {
+        if (!o.placa || !cavalosValidos.includes(o.placa)) return;
         if(o.status === 'Agendada' || o.tipo === 'Cavalo Disponível S/ Carreta') return;
         let dtStr = o.data_abertura;
         if(!dtStr) return;
@@ -953,11 +1007,20 @@ window.renderizarPrioridadeOS = function() {
 window.renderizarRelatorioTipoServico = function() {
     const tbody = document.getElementById('tabelaRelatorioTipoServico');
     if(!tbody) return;
+
+    let cavalosValidos = [];
+    if (window.frotasManutencao) {
+        cavalosValidos = window.frotasManutencao
+            .filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM')
+            .map(f => f.cavalo);
+    }
+
     const os = window.ordensServico || [];
     const { inicio, fim } = window.getDatasFiltroGlobal();
 
     const resumo = {};
     os.forEach(o => {
+        if (!o.placa || !cavalosValidos.includes(o.placa)) return;
         if(o.status === 'Agendada' || o.tipo === 'Cavalo Disponível S/ Carreta') return;
         let dtStr = o.data_abertura;
         if(!dtStr) return;
