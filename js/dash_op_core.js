@@ -795,12 +795,15 @@ window.atualizarPainelOperacional = function() {
         const dataC3 = filteredGlobal.filter(d => window.checkLoader(d, window.reflorestarLoaders, 'GRB') && window.isSerranaTransp(d));
         const dataC4 = filteredGlobal.filter(d => window.checkLoader(d, window.jslLoaders, 'GSL') && window.isSerranaTransp(d));
         
+        // Agrupa os dados exatos para que a coluna "Total (Geral)" seja a soma real das colunas exibidas
+        const dataGlobalExato = [...new Set([...dataC1, ...dataC2, ...dataASN, ...dataC3, ...dataC4])];
+
         const stC1 = window.calcStats(dataC1), 
               stC2 = window.calcStats(dataC2), 
               stASN = window.calcStats(dataASN),
               stC3 = window.calcStats(dataC3), 
               stC4 = window.calcStats(dataC4), 
-              stGlobal = window.calcStats(filteredGlobal);
+              stGlobal = window.calcStats(dataGlobalExato);
 
         tbodyComp.innerHTML = `
             <tr class="hover:bg-slate-800/30 transition-colors">
@@ -810,7 +813,7 @@ window.atualizarPainelOperacional = function() {
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right text-purple-400">${dataASN.length}</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right text-amber-400">${dataC3.length}</td>
                 <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right text-indigo-400">${dataC4.length}</td>
-                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${filteredGlobal.length}</td>
+                <td class="px-6 py-4 font-mono text-white text-[16px] font-bold text-right">${dataGlobalExato.length}</td>
             </tr>
             <tr class="hover:bg-slate-800/30 transition-colors">
                 <td class="px-6 py-4 font-bold text-white text-[13px]"><i class="fas fa-box-open text-indigo-400 w-5"></i> Caixa de Carga Média</td>
