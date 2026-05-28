@@ -168,6 +168,76 @@
         return d;
     }
 
+    // --- FUNÇÕES DE FILTRAGEM SEGURAS ---
+    const isSerranaTransp = function(d) {
+        let valTransp = String(d.transportadora || d['Nome da Transportadora'] || d.nomeTransportadora || '').toUpperCase().replace(/\s+/g, '');
+        if (valTransp.includes('SERRANALOG') || valTransp.includes('SERRANA')) return true;
+
+        for (let key in d) {
+            if (d[key] && typeof d[key] === 'string') {
+                let val = d[key].toUpperCase().replace(/\s+/g, '');
+                if (val.includes('SERRANALOG') || val.includes('SERRANATRANSPORTES')) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    const checkLoader = function(d, loaderArray) {
+        let colunasPrioritarias = [];
+        let outrasColunas = [];
+
+        for (let key in d) {
+            let keyUpper = key.toUpperCase();
+            let val = d[key];
+            if (val && typeof val === 'string') {
+                let vClean = val.trim().toUpperCase().replace(/\s+/g, '');
+                if (!vClean || vClean === '-' || vClean === 'N/A' || vClean === '0') continue;
+
+                if (keyUpper.includes('GRUA') || keyUpper.includes('CARREG') || keyUpper.includes('EQUIP') || keyUpper.includes('FRENTE')) {
+                    colunasPrioritarias.push(vClean);
+                } else {
+                    outrasColunas.push(vClean);
+                }
+            }
+        }
+
+        let valoresParaChecar = colunasPrioritarias.length > 0 ? colunasPrioritarias : outrasColunas;
+
+        for (let v of valoresParaChecar) {
+            for (let code of loaderArray) {
+                let codeClean = code.replace(/\s+/g, '');
+                if (v === codeClean || v.includes(codeClean)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    };
+
+    const normalizarCiclos = function(dataArr) {
+        const pMap = new Map();
+        dataArr.forEach(d => {
+            if (d.cicloHorasOriginal === undefined) { d.cicloHorasOriginal = d.cicloHoras; }
+            if (d.cicloHorasOriginal > 0 && d.cicloHorasOriginal <= 12) { 
+                const pl = d.placa || 'N/A';
+                if (!pMap.has(pl)) pMap.set(pl, { ciclos: 0, count: 0 });
+                pMap.get(pl).ciclos += d.cicloHorasOriginal;
+                pMap.get(pl).count++;
+            }
+        });
+        
+        const frotas = Array.from(pMap.values()).map(x => x.ciclos / x.count).sort((a, b) => a - b).slice(0, 20);
+        if (frotas.length === 0) return;
+        const mediaMenores = frotas.reduce((a, b) => a + b, 0) / frotas.length;
+        
+        dataArr.forEach(d => {
+            if (d.cicloHorasOriginal > 12) { d.cicloHoras = mediaMenores; } 
+            else { d.cicloHoras = d.cicloHorasOriginal; }
+        });
+    };
+
     // --- LÓGICA DE GESTÃO DO D-1 E MURAIS ---
     window.carregarResumoD1EMurais = async function() {
         const statEl = document.getElementById('status-load-d1');
@@ -184,11 +254,11 @@
 
         // Instâncias Supabase
         const supaGlobal = supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.key);
-        const supaOp = supabase.createClient('https://qnpwkvazkntbqjbwegcp.supabase.co', 'sb_publishable_bjTFgpk-qAdpVuWzr4hbng_G8O9qlc8');
+        const supaOp = supabase.createClient('https://tjjrzinpogjrquoosuqn.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqanJ6aW5wb2dqcnF1b29zdXFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzMxODksImV4cCI6MjA5NDcwOTE4OX0.IdZOXfXiWeFIUI4LPDVb1sZNyKogo4fOs-_9UcP_xj0');
         const supaMan = supabase.createClient('https://ihgiyxzxdldqmrkziijl.supabase.co', 'sb_publishable_JpMZhW5ZrFKBr7m9KXBkoQ_cpxy1k3x');
 
         try {
-            // ================= 1. OPERACIONAL D-1 (COM LOOP DE BUSCA COMPLETA) =================
+            // ================= 1. OPERACIONAL D-1 =================
             let opData = [];
             let from = 0;
             const step = 1000;
@@ -205,19 +275,23 @@
             }
 
             if (opData.length > 0) {
-                // Filtro exato para puxar apenas Serrana para bater com o dashboard original
-                const serranaLoaders = ['GSR0001', 'GSR0002', 'GSR0003', 'GSR0007', 'GSR0008', 'GRB0015', 'GRB0022'];
-                const isSerranaTransp = (d) => String(d.transportadora || '').toUpperCase().includes('SERRANALOG') || String(d.transportadora || '').toUpperCase().includes('SERRANA FLORESTAL');
-                const checkLoader = (d, loaderArray) => {
-                    const val = String(d.carregadorFlorestal || d.grua || '').trim().toUpperCase();
-                    if (val && val !== '-') return loaderArray.includes(val);
-                    for (let key in d) {
-                        if (d[key] && typeof d[key] === 'string') {
-                            if (loaderArray.includes(d[key].trim().toUpperCase())) return true;
-                        }
+                normalizarCiclos(opData);
+
+                // Busca dinâmica de gruas da Serrana
+                let dynSerranaLoaders = ['GSR0001', 'GSR0002', 'GSR0003', 'GSR0007', 'GSR0008', 'GRB0015', 'GRB0022']; 
+                try {
+                    const { data: gruasData } = await supaOp.from('config_gruas').select('*');
+                    if (gruasData && gruasData.length > 0) {
+                        let tempLoaders = [];
+                        gruasData.forEach(row => {
+                            let ord = row.ordem ? row.ordem.toUpperCase().trim() : '';
+                            if (row.codigos && (ord === 'C1' || ord === 'C2')) {
+                                tempLoaders.push(...row.codigos.split(',').map(c => c.trim().toUpperCase()).filter(Boolean));
+                            }
+                        });
+                        if (tempLoaders.length > 0) dynSerranaLoaders = tempLoaders;
                     }
-                    return false;
-                };
+                } catch(e) {}
 
                 const fOp = opData.filter(d => {
                     const motorista = String(d.motorista || '').toUpperCase();
@@ -240,7 +314,7 @@
                     if(pDate) {
                         pDate.setHours(0,0,0,0);
                         if(pDate.getTime() === ontem.getTime()) {
-                            return checkLoader(d, serranaLoaders) && isSerranaTransp(d);
+                            return checkLoader(d, dynSerranaLoaders) && isSerranaTransp(d);
                         }
                     }
                     return false;
@@ -273,7 +347,7 @@
                 document.getElementById('d1-fabrica').innerText = window.formatarHorasMinutos(calcMed(fOp, 'filaFabricaHoras'));
             }
 
-            // ================= 2. MANUTENÇÃO D-1 =================
+            // ================= 2. MANUTENÇÃO D-1 (TMOS CORRIGIDO) =================
             const { data: osData } = await supaMan.from('ordens_servico').select('*');
             const { data: frotasData } = await supaMan.from('frotas_manutencao').select('*');
             
@@ -284,12 +358,11 @@
                 let msTotalDia = 24 * 60 * 60 * 1000;
                 let totalMsDisponivel = frotasData.length * msTotalDia;
                 let msManutencao = 0;
-                let osTempoMs = 0;
-                let qtdOsTempo = 0;
 
+                // 1. Lógica Original de Tempo Parado/Disponibilidade
                 frotasData.forEach(frota => {
                     let manutCavalo = 0;
-                    const osCavalo = osData.filter(o => o.placa === frota.cavalo && o.status !== 'Agendada');
+                    const osCavalo = osData.filter(o => o.placa === frota.cavalo && o.status !== 'Agendada' && o.tipo !== 'Cavalo Disponível S/ Carreta');
                     
                     osCavalo.forEach(os => {
                         let osInStr = os.data_abertura;
@@ -309,13 +382,6 @@
                             if (oIn < oOut) {
                                 manutCavalo += (oOut - oIn);
                             }
-
-                            if ((os.status === 'Concluída' || os.status === 'Resolvido') && os.data_conclusao) {
-                                if(osFim >= ontem && osFim <= fimOntem) {
-                                    osTempoMs += (osFim - osInicio);
-                                    qtdOsTempo++;
-                                }
-                            }
                         }
                     });
                     if(manutCavalo > msTotalDia) manutCavalo = msTotalDia;
@@ -327,6 +393,39 @@
                 let percDM = totalMsDisponivel > 0 ? (dispMs / totalMsDisponivel) * 100 : 100;
                 let medDisp = msTotalDia > 0 ? Math.round(dispMs / msTotalDia) : 0;
                 let medMan = msTotalDia > 0 ? Math.round(msManutencao / msTotalDia) : 0;
+
+                // 2. Lógica Refinada de TMOS separada (Igual ao Dash Manutenção Principal)
+                let osTempoMs = 0;
+                let qtdOsTempo = 0;
+                const placasValidas = frotasData.map(f => f.cavalo);
+
+                osData.forEach(os => {
+                    if (!os.placa || !placasValidas.includes(os.placa)) return;
+                    if (os.status === 'Agendada' || os.tipo === 'Cavalo Disponível S/ Carreta') return;
+                    
+                    let osInStr = os.data_abertura;
+                    if(!osInStr) return;
+                    if(!osInStr.includes('T')) osInStr += 'T00:00:00';
+                    const dtAb = new Date(osInStr.replace('Z','').replace('+00:00',''));
+                    
+                    let dtCon = new Date();
+                    if(os.data_conclusao) {
+                        let osFimStr = os.data_conclusao;
+                        if(!osFimStr.includes('T')) osFimStr += 'T00:00:00';
+                        dtCon = new Date(osFimStr.replace('Z','').replace('+00:00',''));
+                    }
+
+                    // A OS deve tocar o período do dia filtrado
+                    if (dtAb <= fimOntem && dtCon >= ontem) {
+                        if (os.status === 'Concluída' || os.status === 'Resolvido') {
+                            if (os.data_conclusao) {
+                                // Soma o tempo total entre abertura e conclusão (não apenas a fração do dia)
+                                osTempoMs += (dtCon - dtAb);
+                                qtdOsTempo++;
+                            }
+                        }
+                    }
+                });
 
                 let tmosStr = '0h 0m';
                 if(qtdOsTempo > 0) {
