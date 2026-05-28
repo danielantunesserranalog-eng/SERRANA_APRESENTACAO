@@ -77,7 +77,6 @@ window.carregarConfigGruas = async function() {
                 let ord = row.ordem ? row.ordem.toUpperCase().trim() : '';
                 
                 if (row.codigos) {
-                    // Pega os códigos do banco separados por vírgula, ex: "GSR0001, GSR0002"
                     const codigos = row.codigos.split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
                     if (ord === 'C1') c1.push(...codigos);
                     else if (ord === 'C2') c2.push(...codigos);
@@ -98,7 +97,6 @@ window.carregarConfigGruas = async function() {
             window.serranaLoaders = [...window.serranaFrente05Loaders, ...window.serranaFrente06Loaders];
             console.log("✅ Configuração de gruas dinâmica carregada com sucesso da tabela config_gruas!");
             
-            // Atualiza cabeçalhos da tabela no HTML automaticamente
             const thC1 = document.getElementById('th_c1'); if(thC1) thC1.innerHTML = `<i class="fas fa-star mr-1"></i> ${window.frentesNomes['C1']}`;
             const thC2 = document.getElementById('th_c2'); if(thC2) thC2.innerHTML = `<i class="fas fa-star mr-1"></i> ${window.frentesNomes['C2']}`;
             const thC3 = document.getElementById('th_c3'); if(thC3) thC3.innerHTML = `<i class="fas fa-tree mr-1"></i> ${window.frentesNomes['C3']}`;
@@ -241,7 +239,6 @@ window.checkLoader = function(d, loaderArray, prefix = '') {
 
     let valoresParaChecar = colunasPrioritarias.length > 0 ? colunasPrioritarias : outrasColunas;
 
-    // Procura exata na array de Gruas
     for (let v of valoresParaChecar) {
         for (let code of loaderArray) {
             let codeClean = code.replace(/\s+/g, '');
@@ -250,7 +247,6 @@ window.checkLoader = function(d, loaderArray, prefix = '') {
             }
         }
 
-        // Prefixo (Rede de Segurança - Usado apenas quando não há conflitos)
         if (prefix) {
             if (prefix === 'GSR') {
                 if (v.startsWith('GSR') || v.includes('GSR0')) return true;
@@ -347,10 +343,10 @@ window.setupOperacionalFilters = function() {
 
 window.loadManutencaoDataForMeta = async function() {
     try {
-        const clientMan = window.supabaseClientMan; 
+        const client = window.supabaseClientLocal; 
         const [osResp, frotasResp] = await Promise.all([
-            clientMan.from('ordens_servico').select('*'),
-            clientMan.from('frotas_manutencao').select('*')
+            client.from('ordens_servico').select('*'),
+            client.from('frotas_manutencao').select('*')
         ]);
         if (osResp.data) window.osParaMeta = osResp.data;
         if (frotasResp.data) window.frotasParaMeta = frotasResp.data;
@@ -595,12 +591,18 @@ window.atualizarPainelOperacional = function() {
     let diasConsideradosCalc = 1;
     let mediaAtivosReal = 0; 
 
+    // ========================================================================
+    // CÁLCULO EXATO DE META E DISPONIBILIDADE BASEADO NA MANUTENÇÃO E VEÍCULOS
+    // ========================================================================
     if (elMetaTexto && window.frotasParaMeta && window.osParaMeta) {
+        
+        // CORREÇÃO: Trazendo de volta o filtro rígido de TRITREM igualzinho ao de Manutenção, 
+        // para isolar as frotas corretas e garantir que o número bata.
         const frotasAtivas = window.frotasParaMeta.filter(f => {
             const st = String(f.status || '').trim().toUpperCase();
-            return st === 'ATIVO' || st === 'ATIVA';
+            const cat = String(f.categoria || '').trim().toUpperCase();
+            return (st === 'ATIVO' || st === 'ATIVA') && cat === 'TRITREM';
         });
-        let totalFrota = frotasAtivas.length;
         
         let dataInicioCalc = new Date(); dataInicioCalc.setHours(0,0,0,0);
         let dataFimCalc = new Date(); dataFimCalc.setHours(23,59,59,999);
@@ -644,40 +646,78 @@ window.atualizarPainelOperacional = function() {
 
         window.diasConsideradosGlobais = diasConsideradosCalc;
 
-        let msTotalPeriodo = dataFimCalc - dataInicioCalc;
-        if (msTotalPeriodo <= 0) msTotalPeriodo = 1;
+        // CORREÇÃO: Usando a trava de "agora" exata caso o filtro caia no dia de hoje
+        let fimParaCalculo = dataFimCalc > new Date() ? new Date() : dataFimCalc;
+        let msTotalPeriodo = fimParaCalculo.getTime() - dataInicioCalc.getTime();
+        if (msTotalPeriodo <= 0) msTotalPeriodo = 86400000; // Mínimo de 1 dia
 
-        let msManutTotal = 0;
+        let totalMetaCalculadaExata = 0;
+        let totalDispNoPeriodoMs = 0;
+
         frotasAtivas.forEach(frota => {
-            const todasOSCavalo = window.osParaMeta.filter(o => o.placa === frota.cavalo && o.status !== 'Agendada' && o.tipo !== 'Cavalo Disponível S/ Carreta');
-            todasOSCavalo.forEach(os => {
-                let osInicioStr = os.data_abertura;
-                if (!osInicioStr) return;
-                if (!osInicioStr.includes('T')) osInicioStr += 'T00:00:00';
-                const osInicio = new Date(osInicioStr.replace('Z', '').replace('+00:00', ''));
+            let frotaInicioStr = frota.data_inicial ? frota.data_inicial : '2026-04-01';
+            let dtEntradaVeiculo = new Date(frotaInicioStr + 'T00:00:00');
+
+            let overlapDispInicio = dtEntradaVeiculo > dataInicioCalc ? dtEntradaVeiculo : dataInicioCalc;
+            let totalMsDisponivelVeiculo = 0;
+            
+            if (overlapDispInicio < fimParaCalculo) {
+                totalMsDisponivelVeiculo = (fimParaCalculo.getTime() - overlapDispInicio.getTime());
+            }
+
+            if (totalMsDisponivelVeiculo > 0) {
+                let msManutVeiculo = 0;
+                const todasOSCavalo = window.osParaMeta.filter(o => o.placa === frota.cavalo && o.status !== 'Agendada' && o.tipo !== 'Cavalo Disponível S/ Carreta');
                 
-                let osFim = new Date(); 
-                if (os.data_conclusao) {
-                    let osFimStr = os.data_conclusao;
-                    if (!osFimStr.includes('T')) osFimStr += 'T00:00:00';
-                    osFim = new Date(osFimStr.replace('Z', '').replace('+00:00', ''));
+                todasOSCavalo.forEach(os => {
+                    let osInicioStr = os.data_abertura;
+                    if (!osInicioStr) return;
+                    if (!osInicioStr.includes('T')) osInicioStr += 'T00:00:00';
+                    const osInicio = new Date(osInicioStr.replace('Z', '').replace('+00:00', ''));
+                    
+                    let osFim = new Date(); 
+                    if (os.data_conclusao) {
+                        let osFimStr = os.data_conclusao;
+                        if (!osFimStr.includes('T')) osFimStr += 'T00:00:00';
+                        osFim = new Date(osFimStr.replace('Z', '').replace('+00:00', ''));
+                    }
+                    
+                    let inicioValido = osInicio > dtEntradaVeiculo ? osInicio : dtEntradaVeiculo;
+                    const overlapInicio = inicioValido > dataInicioCalc ? inicioValido : dataInicioCalc;
+                    const overlapFim = osFim < fimParaCalculo ? osFim : fimParaCalculo;
+                    
+                    if (overlapInicio < overlapFim) {
+                        msManutVeiculo += (overlapFim.getTime() - overlapInicio.getTime());
+                    }
+                });
+
+                let dispVeiculoMs = totalMsDisponivelVeiculo - msManutVeiculo;
+                if (dispVeiculoMs < 0) dispVeiculoMs = 0;
+
+                totalDispNoPeriodoMs += dispVeiculoMs;
+
+                // CONTAGEM DA FROTA OPERACIONAL (1 OU 2) EXTRAÍDA RIGOROSAMENTE DO BANCO
+                let metaDiariaVeiculo = 2; // Padrão se não estiver preenchido no BD
+                if (frota.meta !== null && frota.meta !== undefined && frota.meta !== '') {
+                    let parsedMeta = parseFloat(frota.meta);
+                    if (!isNaN(parsedMeta) && parsedMeta > 0) {
+                        metaDiariaVeiculo = parsedMeta;
+                    }
                 }
-                const overlapInicio = osInicio > dataInicioCalc ? osInicio : dataInicioCalc;
-                const overlapFim = osFim < dataFimCalc ? osFim : dataFimCalc;
-                if (overlapInicio < overlapFim) { msManutTotal += (overlapFim - overlapInicio); }
-            });
+
+                // Soma as viagens baseadas na DM exata do veículo multiplicada pela meta DÊLE (1 ou 2)
+                let veiculoDiasDisponiveis = dispVeiculoMs / 86400000;
+                totalMetaCalculadaExata += (veiculoDiasDisponiveis * metaDiariaVeiculo);
+            }
         });
 
-        const totalMsDisponivelPeriodo = totalFrota * msTotalPeriodo;
-        let dispNoPeriodoMs = totalMsDisponivelPeriodo - msManutTotal;
-        if (dispNoPeriodoMs < 0) dispNoPeriodoMs = 0;
-        
-        mediaAtivosReal = Math.round(dispNoPeriodoMs / msTotalPeriodo);
+        // CORREÇÃO: Arredondamento para inteiro idêntico à Manutenção para cravar exatos 39!
+        mediaAtivosReal = Math.round(totalDispNoPeriodoMs / msTotalPeriodo);
 
         if (activeT === 'ALL' || activeT.toUpperCase().includes('SERRANALOG')) {
-            window.metaViagensCalculada = mediaAtivosReal * 2 * diasConsideradosCalc;
+            window.metaViagensCalculada = Math.round(totalMetaCalculadaExata);
             
-            elMetaTexto.innerHTML = `Disp: <b class="text-emerald-400">${mediaAtivosReal}</b> carros | Meta: <b class="text-sky-400">${window.metaViagensCalculada}</b>`;
+            elMetaTexto.innerHTML = `Disp: <b class="text-emerald-400">${mediaAtivosReal}</b> carros (DM) | Meta Total: <b class="text-sky-400">${window.metaViagensCalculada}</b> viag.`;
             elMetaTexto.classList.remove('hidden');
             
             if (window.metaViagensCalculada > 0) {
@@ -786,16 +826,12 @@ window.atualizarPainelOperacional = function() {
     // TABELA COMPARATIVA DE CENÁRIOS COM BLINDAGEM DE GRUAS EXATA
     const tbodyComp = document.getElementById('comparativoBody');
     if (tbodyComp) {
-        // NOTA: Para Frentes 05 e 06 (C1 e C2), OMITI O 'GSR' DE PROPÓSITO para não roubarem os dados uma da outra!
         const dataC1 = filteredGlobal.filter(d => window.checkLoader(d, window.serranaFrente05Loaders) && window.isSerranaTransp(d));
         const dataC2 = filteredGlobal.filter(d => window.checkLoader(d, window.serranaFrente06Loaders) && window.isSerranaTransp(d));
-        // A ASN carrega de tudo da Serrana, então mantemos a rede de segurança de encontrar 'GSR' se ela carregar outra coisa
         const dataASN = filteredGlobal.filter(d => window.checkLoader(d, window.serranaLoaders, 'GSR') && !window.isSerranaTransp(d));
-        // Para Reflorestar (C3) e JSL (C4), o prefixo continua lá de segurança
         const dataC3 = filteredGlobal.filter(d => window.checkLoader(d, window.reflorestarLoaders, 'GRB') && window.isSerranaTransp(d));
         const dataC4 = filteredGlobal.filter(d => window.checkLoader(d, window.jslLoaders, 'GSL') && window.isSerranaTransp(d));
         
-        // Agrupa os dados exatos para que a coluna "Total (Geral)" seja a soma real das colunas exibidas
         const dataGlobalExato = [...new Set([...dataC1, ...dataC2, ...dataASN, ...dataC3, ...dataC4])];
 
         const stC1 = window.calcStats(dataC1), 
