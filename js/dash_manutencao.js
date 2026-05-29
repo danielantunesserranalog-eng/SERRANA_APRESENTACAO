@@ -127,9 +127,21 @@ window.renderizarPatioManutencaoDash = function() {
         else if (diffHrs >= 12) { colorCronometro = '#f59e0b'; }
 
         const frotaVinculada = (window.frotasManutencao || []).find(f => f.cavalo === os.placa) || {};
-        const conjuntosBadge = [frotaVinculada.carreta1, frotaVinculada.carreta2, frotaVinculada.carreta3]
+        
+        // MONTAGEM DAS TAGS COM O NÚMERO DA FROTA, GO E CARRETAS NA MESMA LINHA
+        let conjuntosBadge = '';
+
+        if (frotaVinculada.numero_frota && String(frotaVinculada.numero_frota).trim() !== '') {
+            conjuntosBadge += `<span style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(245, 158, 11, 0.5); font-weight: bold; white-space: nowrap;">FR: ${String(frotaVinculada.numero_frota).toUpperCase()}</span>`;
+        }
+        
+        if (frotaVinculada.go && String(frotaVinculada.go).trim() !== '') {
+            conjuntosBadge += `<span style="background: rgba(59, 130, 246, 0.2); color: #93c5fd; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(59, 130, 246, 0.5); font-weight: bold; white-space: nowrap;">GO: ${String(frotaVinculada.go).toUpperCase()}</span>`;
+        }
+        
+        conjuntosBadge += [frotaVinculada.carreta1, frotaVinculada.carreta2, frotaVinculada.carreta3]
             .filter(Boolean)
-            .map(c => `<span style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.2); margin-right: 6px; display: inline-block;">${c}</span>`)
+            .map(c => `<span style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.2); white-space: nowrap;">${c}</span>`)
             .join('');
 
         const textoStatus = os.status === 'Em Manutenção' ? 'EM OFICINA' : 'AGUARDANDO ATENDIMENTO';
@@ -149,7 +161,7 @@ window.renderizarPatioManutencaoDash = function() {
                         </div>
                     </div>
                 </div>
-                <div style="margin-bottom: 12px; min-height: 22px;">${conjuntosBadge}</div>
+                <div style="margin-bottom: 12px; min-height: 22px; display: flex; gap: 6px; flex-wrap: nowrap; overflow: hidden; align-items: center; width: 100%;">${conjuntosBadge}</div>
                 
                 <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 12px; margin-bottom: 15px; flex: 1;">
                     <div style="color: #60a5fa; font-weight: 800; font-size: 0.95rem; margin-bottom: 6px;">${os.tipo}</div>
