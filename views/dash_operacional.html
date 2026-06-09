@@ -56,59 +56,59 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-5 mb-5">
-            <div class="glass-card rounded-2xl p-5 glow-border-blue card-hover flex flex-col justify-between relative">
-                <div>
+            <div class="glass-card rounded-2xl p-5 glow-border-blue card-hover flex flex-col justify-between relative overflow-hidden">
+                <div class="relative z-10">
                     <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest m-0 mb-1">Viagens</p>
                     <div class="flex items-center gap-2">
                         <p id="totalViagens" class="text-[32px] font-extrabold text-white leading-none m-0 transition-all">0</p>
                         <span id="iconeMetaViagens"></span>
                     </div>
-                    <p id="metaViagensText" class="text-[10px] font-bold text-slate-500 mt-1 m-0 hidden">Calculando meta...</p>
+                    <p id="metaViagensText" class="text-[10.5px] font-bold text-white mt-1 m-0 hidden">Calculando meta...</p>
                 </div>
-                <i class="fas fa-route text-blue-500 text-[26px] absolute right-5 top-1/2 -translate-y-1/2 opacity-80"></i>
+                <i class="fas fa-route text-blue-500 text-[36px] absolute right-3 bottom-3 opacity-30 z-0"></i>
             </div>
             
-            <div class="glass-card rounded-2xl p-5 glow-border-cyan card-hover flex flex-col justify-between relative">
-                <div>
+            <div class="glass-card rounded-2xl p-5 glow-border-cyan card-hover flex flex-col justify-between relative overflow-hidden">
+                <div class="relative z-10">
                     <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest m-0 mb-2">Média de PBTC</p>
                     <p id="totalPesoLiq" class="text-[32px] font-extrabold text-white leading-none m-0 flex items-center gap-2">0 t</p>
                 </div>
-                <i class="fas fa-weight-hanging text-cyan-400 text-[26px] absolute right-5 top-1/2 -translate-y-1/2 opacity-80"></i>
+                <i class="fas fa-weight-hanging text-cyan-400 text-[36px] absolute right-3 bottom-3 opacity-30 z-0"></i>
             </div>
             
-            <div class="glass-card rounded-2xl p-5 glow-border-indigo card-hover flex flex-col justify-between relative">
-                <div>
+            <div class="glass-card rounded-2xl p-5 glow-border-indigo card-hover flex flex-col justify-between relative overflow-hidden">
+                <div class="relative z-10">
                     <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest m-0 mb-1">Média de Vol (m³)</p>
                     <div class="flex items-center gap-2">
                         <p id="mediaVolumeViagem" class="text-[32px] font-extrabold text-white leading-none m-0 transition-all">0 m³</p>
                         <span id="iconeMetaVolMedia"></span>
                     </div>
-                    <p id="metaVolMediaText" class="text-[10px] font-bold text-slate-500 mt-1 m-0 hidden">Meta: --</p>
+                    <p id="metaVolMediaText" class="text-[10.5px] font-bold text-white mt-1 m-0 hidden">Meta: --</p>
                 </div>
-                <i class="fas fa-box-open text-indigo-400 text-[26px] absolute right-5 top-1/2 -translate-y-1/2 opacity-80"></i>
+                <i class="fas fa-box-open text-indigo-400 text-[36px] absolute right-3 bottom-3 opacity-30 z-0"></i>
             </div>
 
-            <div class="glass-card rounded-2xl p-5 glow-border-purple card-hover flex flex-col justify-between relative">
-                <div>
+            <div class="glass-card rounded-2xl p-5 glow-border-purple card-hover flex flex-col justify-between relative overflow-hidden">
+                <div class="relative z-10">
                     <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest m-0 mb-1">Média de RPV</p>
                     <div class="flex items-center gap-2">
                         <p id="mediaRPV" class="text-[32px] font-extrabold text-white leading-none m-0 transition-all">0</p>
                     </div>
-                    <p class="text-[10px] font-bold text-slate-500 mt-1 m-0">kg / m³</p>
+                    <p class="text-[10px] font-bold text-white mt-1 m-0">kg / m³</p>
                 </div>
-                <i class="fas fa-balance-scale-right text-purple-400 text-[26px] absolute right-5 top-1/2 -translate-y-1/2 opacity-80"></i>
+                <i class="fas fa-balance-scale-right text-purple-400 text-[36px] absolute right-3 bottom-3 opacity-30 z-0"></i>
             </div>
             
-            <div class="glass-card rounded-2xl p-5 glow-border-amber card-hover flex flex-col justify-between relative">
-                <div>
+            <div class="glass-card rounded-2xl p-5 glow-border-amber card-hover flex flex-col justify-between relative overflow-hidden">
+                <div class="relative z-10">
                     <p class="text-slate-400 text-[11px] font-bold uppercase tracking-widest m-0 mb-1">Volume Total</p>
                     <div class="flex items-center gap-2">
                         <p id="totalVolumeReal" class="text-[32px] font-extrabold text-white leading-none m-0 transition-all">0 m³</p>
                         <span id="iconeMetaVolTotal"></span>
                     </div>
-                    <p id="metaVolTotalText" class="text-[10px] font-bold text-slate-500 mt-1 m-0 hidden">Calculando meta...</p>
+                    <p id="metaVolTotalText" class="text-[10.5px] font-bold text-white mt-1 m-0 hidden">Calculando meta...</p>
                 </div>
-                <i class="fas fa-cubes text-amber-500 text-[26px] absolute right-5 top-1/2 -translate-y-1/2 opacity-80"></i>
+                <i class="fas fa-cubes text-amber-500 text-[36px] absolute right-3 bottom-3 opacity-30 z-0"></i>
             </div>
             
             <div class="glass-card rounded-2xl p-5 glow-border-emerald card-hover flex flex-col justify-between relative">

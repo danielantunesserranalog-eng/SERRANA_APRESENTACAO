@@ -711,7 +711,11 @@ window.atualizarPainelOperacional = function() {
         if (activeT === 'ALL' || activeT.toUpperCase().includes('SERRANALOG')) {
             window.metaViagensCalculada = Math.round(totalMetaCalculadaExata);
             
-            elMetaTexto.innerHTML = `Disp: <b class="text-emerald-400">${mediaAtivosReal}</b> carros (DM) | Meta Total: <b class="text-sky-400">${window.metaViagensCalculada}</b> viag.`;
+            // CÁLCULO E TEXTO BRANCO COM VIAGENS FALTANTES
+            let viagensFaltantes = window.metaViagensCalculada - totalViagens;
+            let textoFalta = viagensFaltantes > 0 ? `| Faltam: <b class="text-rose-400">${viagensFaltantes}</b> viag.` : `| <b class="text-emerald-400">Batida!</b>`;
+            
+            elMetaTexto.innerHTML = `<span class="text-white drop-shadow-md">Disp: <b>${mediaAtivosReal}</b> (DM) | Meta: <b>${window.metaViagensCalculada}</b> viag. ${textoFalta}</span>`;
             elMetaTexto.classList.remove('hidden');
             
             if (window.metaViagensCalculada > 0) {
@@ -775,7 +779,7 @@ window.atualizarPainelOperacional = function() {
             elRpv.innerText = "0";
             if(pSub && pSub.tagName === 'P') {
                 pSub.innerText = "kg / m³";
-                pSub.className = "text-[10px] font-bold text-slate-500 mt-1 m-0";
+                pSub.className = "text-[10px] font-bold text-white mt-1 m-0";
             }
         }
     }
@@ -817,7 +821,9 @@ window.atualizarPainelOperacional = function() {
     
     if (metaCaixaFinal > 0) {
         if(metaCaixaText) {
-            metaCaixaText.innerText = `Meta: ${metaCaixaFinal} m³`;
+            let diffCaixa = metaCaixaFinal - mediaVol;
+            let txtFaltaCaixa = diffCaixa > 0 ? ` | Faltam: <b class="text-rose-400">${diffCaixa.toLocaleString('pt-PT', {maximumFractionDigits:1})}</b>` : ` | <b class="text-emerald-400">Batida!</b>`;
+            metaCaixaText.innerHTML = `<span class="text-white">Meta: <b>${metaCaixaFinal} m³</b>${txtFaltaCaixa}</span>`;
             metaCaixaText.classList.remove('hidden');
         }
         if (elMediaVol) {
@@ -844,7 +850,9 @@ window.atualizarPainelOperacional = function() {
 
     if (metaVolumeCalculada > 0) {
         if(metaVolTotalText) {
-            metaVolTotalText.innerHTML = `Meta: <b class="text-sky-400">${metaVolumeCalculada.toLocaleString('pt-PT')} m³</b>`;
+            let faltamVol = metaVolumeCalculada - totalVol;
+            let txtFaltamVol = faltamVol > 0 ? ` | Faltam: <b class="text-rose-400">${faltamVol.toLocaleString('pt-PT', {maximumFractionDigits:1})}</b>` : ` | <b class="text-emerald-400">Batida!</b>`;
+            metaVolTotalText.innerHTML = `<span class="text-white">Meta: <b>${metaVolumeCalculada.toLocaleString('pt-PT')} m³</b>${txtFaltamVol}</span>`;
             metaVolTotalText.classList.remove('hidden');
         }
         if (elTotalVol) {
