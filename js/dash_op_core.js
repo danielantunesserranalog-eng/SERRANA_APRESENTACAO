@@ -727,10 +727,9 @@ window.atualizarPainelOperacional = function() {
     } else { if(elMetaTexto) elMetaTexto.classList.add('hidden'); if(elIconeMeta) elIconeMeta.innerHTML = ''; }
 
     // ========================================================================
-    // CÁLCULOS PRINCIPAIS - RPV E PBTC
+    // CÁLCULOS PRINCIPAIS - RPV E PBTC (COM REGRAS DE SLA DO CONTRATO)
     // ========================================================================
 
-    // AJUSTE SOLICITADO: PBTC puxando EXCLUSIVAMENTE de peso_na_entrada (sem fallback de pesoLiquido)
     const totalPesoKg = cardsData.reduce((s, x) => {
         let p = x.peso_na_entrada || 0;
         return s + (parseFloat(String(p).replace(',', '.')) || 0);
@@ -740,19 +739,70 @@ window.atualizarPainelOperacional = function() {
     const validRpv = cardsData.filter(d => d.rpv !== null && d.rpv > 0);
     const mediaRPV = validRpv.length > 0 ? validRpv.reduce((sum, r) => sum + r.rpv, 0) / validRpv.length : 0;
 
+    // --- NOVA LÓGICA DE INDICADOR SLA (Matriz RPV x PBTC Mínimo) ---
+    // Descobre qual é a meta de PBTC com base na faixa da média do RPV atual
+    let reqPbtc = 74.0;
+    if (mediaRPV <= 700 && mediaRPV > 0) reqPbtc = 71.0;
+    else if (mediaRPV > 700 && mediaRPV < 800) reqPbtc = 73.0;
+    else reqPbtc = 74.0;
+
+    // SLA é atendido se o PBTC médio alcançou a meta estipulada pela faixa do RPV
+    let slaAtendido = (mediaPbtc >= reqPbtc);
+
     const elRpv = document.getElementById('mediaRPV');
-    if (elRpv) elRpv.innerText = mediaRPV > 0 ? mediaRPV.toLocaleString('pt-PT', {maximumFractionDigits: 2}) : "0";
+    if (elRpv) {
+        let rpvStr = mediaRPV > 0 ? mediaRPV.toLocaleString('pt-PT', {maximumFractionDigits: 2}) : "0";
+        const pSub = elRpv.parentElement.nextElementSibling; // A tag <p> que fica embaixo do número
 
-    // ========================================================================
+        if (mediaRPV > 0) {
+            if (slaAtendido) {
+                elRpv.className = "text-[32px] font-extrabold text-emerald-400 leading-none m-0 transition-all drop-shadow-md";
+                elRpv.innerHTML = `${rpvStr} <i class="fas fa-check-circle text-[20px] ml-2" title="SLA Atendido (PBTC >= ${reqPbtc}t)"></i>`;
+                if(pSub && pSub.tagName === 'P') {
+                    pSub.innerText = `SLA OK (Alvo PBTC: ${reqPbtc}t)`;
+                    pSub.className = "text-[11px] font-bold mt-1 m-0 text-emerald-500";
+                }
+            } else {
+                elRpv.className = "text-[32px] font-extrabold text-rose-500 leading-none m-0 transition-all drop-shadow-md";
+                elRpv.innerHTML = `${rpvStr} <i class="fas fa-exclamation-circle text-[20px] ml-2" title="SLA Não Atendido (Faltou PBTC >= ${reqPbtc}t)"></i>`;
+                if(pSub && pSub.tagName === 'P') {
+                    pSub.innerText = `SLA PENDENTE (Falta PBTC: ${reqPbtc}t)`;
+                    pSub.className = "text-[11px] font-bold mt-1 m-0 text-rose-500";
+                }
+            }
+        } else {
+            elRpv.className = "text-[32px] font-extrabold text-white leading-none m-0 transition-all";
+            elRpv.innerText = "0";
+            if(pSub && pSub.tagName === 'P') {
+                pSub.innerText = "kg / m³";
+                pSub.className = "text-[10px] font-bold text-slate-500 mt-1 m-0";
+            }
+        }
+    }
 
+    // --- ATUALIZAÇÃO DA COR DO PBTC PARA ACOMPANHAR A META DO CONTRATO ---
     let pbtcCor = "text-white", pbtcIcone = "";
     if (mediaPbtc > 0) {
-        if (mediaPbtc < 74) { pbtcCor = "text-yellow-400"; pbtcIcone = '<i class="fas fa-exclamation-triangle text-yellow-400 text-xl ml-2" title="Abaixo do ideal"></i>'; }
-        else if (mediaPbtc >= 74 && mediaPbtc <= 77.7) { pbtcCor = "text-emerald-400"; pbtcIcone = '<i class="fas fa-check-circle text-emerald-400 text-xl ml-2" title="Ideal"></i>'; }
-        else if (mediaPbtc > 77.7) { pbtcCor = "text-rose-500"; pbtcIcone = '<i class="fas fa-times-circle text-rose-500 text-xl ml-2" title="Acima do ideal"></i>'; }
+        if (mediaPbtc < reqPbtc) { 
+            // Abaixo da meta dinâmica do SLA
+            pbtcCor = "text-rose-500"; 
+            pbtcIcone = `<i class="fas fa-exclamation-circle text-rose-500 text-xl ml-2" title="Abaixo da Meta SLA (${reqPbtc}t)"></i>`; 
+        }
+        else if (mediaPbtc >= reqPbtc && mediaPbtc <= 77.7) { 
+            // Bateu a meta da faixa atual do RPV!
+            pbtcCor = "text-emerald-400"; 
+            pbtcIcone = `<i class="fas fa-check-circle text-emerald-400 text-xl ml-2" title="Dentro do SLA (${reqPbtc}t)"></i>`; 
+        }
+        else if (mediaPbtc > 77.7) { 
+            // Acima do Limite Legal/Tolerância
+            pbtcCor = "text-amber-500"; 
+            pbtcIcone = '<i class="fas fa-exclamation-triangle text-amber-500 text-xl ml-2" title="Acima da Tolerância Legal"></i>'; 
+        }
     }
     const elPbtc = document.getElementById('totalPesoLiq');
     if (elPbtc) elPbtc.innerHTML = `<span class="${pbtcCor}">${mediaPbtc.toLocaleString('pt-PT', {maximumFractionDigits:1})} t</span>${pbtcIcone}`;
+
+    // ========================================================================
 
     const totalVol = cardsData.reduce((s,x)=>s+(parseFloat(String(x.volumeReal).replace(',','.'))||0), 0);
     const mediaVol = totalViagens > 0 ? (totalVol / totalViagens) : 0;
