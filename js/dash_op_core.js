@@ -596,8 +596,6 @@ window.atualizarPainelOperacional = function() {
     // ========================================================================
     if (elMetaTexto && window.frotasParaMeta && window.osParaMeta) {
         
-        // CORREÇÃO: Trazendo de volta o filtro rígido de TRITREM igualzinho ao de Manutenção, 
-        // para isolar as frotas corretas e garantir que o número bata.
         const frotasAtivas = window.frotasParaMeta.filter(f => {
             const st = String(f.status || '').trim().toUpperCase();
             const cat = String(f.categoria || '').trim().toUpperCase();
@@ -646,10 +644,9 @@ window.atualizarPainelOperacional = function() {
 
         window.diasConsideradosGlobais = diasConsideradosCalc;
 
-        // CORREÇÃO: Usando a trava de "agora" exata caso o filtro caia no dia de hoje
         let fimParaCalculo = dataFimCalc > new Date() ? new Date() : dataFimCalc;
         let msTotalPeriodo = fimParaCalculo.getTime() - dataInicioCalc.getTime();
-        if (msTotalPeriodo <= 0) msTotalPeriodo = 86400000; // Mínimo de 1 dia
+        if (msTotalPeriodo <= 0) msTotalPeriodo = 86400000; 
 
         let totalMetaCalculadaExata = 0;
         let totalDispNoPeriodoMs = 0;
@@ -696,8 +693,7 @@ window.atualizarPainelOperacional = function() {
 
                 totalDispNoPeriodoMs += dispVeiculoMs;
 
-                // CONTAGEM DA FROTA OPERACIONAL (1 OU 2) EXTRAÍDA RIGOROSAMENTE DO BANCO
-                let metaDiariaVeiculo = 2; // Padrão se não estiver preenchido no BD
+                let metaDiariaVeiculo = 2; 
                 if (frota.meta !== null && frota.meta !== undefined && frota.meta !== '') {
                     let parsedMeta = parseFloat(frota.meta);
                     if (!isNaN(parsedMeta) && parsedMeta > 0) {
@@ -705,13 +701,11 @@ window.atualizarPainelOperacional = function() {
                     }
                 }
 
-                // Soma as viagens baseadas na DM exata do veículo multiplicada pela meta DÊLE (1 ou 2)
                 let veiculoDiasDisponiveis = dispVeiculoMs / 86400000;
                 totalMetaCalculadaExata += (veiculoDiasDisponiveis * metaDiariaVeiculo);
             }
         });
 
-        // CORREÇÃO: Arredondamento para inteiro idêntico à Manutenção para cravar exatos 39!
         mediaAtivosReal = Math.round(totalDispNoPeriodoMs / msTotalPeriodo);
 
         if (activeT === 'ALL' || activeT.toUpperCase().includes('SERRANALOG')) {
@@ -732,9 +726,25 @@ window.atualizarPainelOperacional = function() {
         } else { elMetaTexto.classList.add('hidden'); if(elIconeMeta) elIconeMeta.innerHTML = ''; }
     } else { if(elMetaTexto) elMetaTexto.classList.add('hidden'); if(elIconeMeta) elIconeMeta.innerHTML = ''; }
 
-    const totalPesoKg = cardsData.reduce((s,x)=>s+(parseFloat(String(x.pesoLiquido).replace(',','.'))||0), 0);
+    // ========================================================================
+    // CÁLCULOS PRINCIPAIS - RPV E PBTC
+    // ========================================================================
+
+    // AJUSTE SOLICITADO: PBTC puxando EXCLUSIVAMENTE de peso_na_entrada (sem fallback de pesoLiquido)
+    const totalPesoKg = cardsData.reduce((s, x) => {
+        let p = x.peso_na_entrada || 0;
+        return s + (parseFloat(String(p).replace(',', '.')) || 0);
+    }, 0);
     const mediaPbtc = totalViagens > 0 ? (totalPesoKg / 1000) / totalViagens : 0;
     
+    const validRpv = cardsData.filter(d => d.rpv !== null && d.rpv > 0);
+    const mediaRPV = validRpv.length > 0 ? validRpv.reduce((sum, r) => sum + r.rpv, 0) / validRpv.length : 0;
+
+    const elRpv = document.getElementById('mediaRPV');
+    if (elRpv) elRpv.innerText = mediaRPV > 0 ? mediaRPV.toLocaleString('pt-PT', {maximumFractionDigits: 2}) : "0";
+
+    // ========================================================================
+
     let pbtcCor = "text-white", pbtcIcone = "";
     if (mediaPbtc > 0) {
         if (mediaPbtc < 74) { pbtcCor = "text-yellow-400"; pbtcIcone = '<i class="fas fa-exclamation-triangle text-yellow-400 text-xl ml-2" title="Abaixo do ideal"></i>'; }
