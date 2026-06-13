@@ -1,6 +1,6 @@
 // Apontando para o NOVO banco de dados da frota
-const supabaseUrlManutencao = 'https://tjjrzinpogjrquoosuqn.supabase.co';
-const supabaseKeyManutencao = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRqanJ6aW5wb2dqcnF1b29zdXFuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMzMxODksImV4cCI6MjA5NDcwOTE4OX0.IdZOXfXiWeFIUI4LPDVb1sZNyKogo4fOs-_9UcP_xj0';
+const supabaseUrlManutencao = 'https://bydlwhosxtmzfqlnyhcz.supabase.co';
+const supabaseKeyManutencao = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5ZGx3aG9zeHRtemZxbG55aGN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTU1MzQsImV4cCI6MjA5Njg3MTUzNH0.UIQPOUSNLAef6QPGZk6bkRPWvH2DtNu6HoaMv9X4e3Q';
 
 // Usa a função inteligente criada no app.js (se existir) ou cria o cliente direto
 const supabaseManutencao = window.getSupabaseClient ? window.getSupabaseClient('manutencao') : window.supabase.createClient(supabaseUrlManutencao, supabaseKeyManutencao);
