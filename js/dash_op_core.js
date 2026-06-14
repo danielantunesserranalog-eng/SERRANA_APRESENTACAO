@@ -23,6 +23,22 @@ window.getGlobalDB = function() {
 };
 // --------------------------------------------------
 
+// Sincronizador de Data do Banco (Garante que a contagem de horas da O.S seja idêntica ao Indicadores)
+window.corrigirDataSupabaseLocal = function(dateStr) {
+    if (!dateStr || dateStr === 'null' || dateStr === 'undefined') return null;
+    let str = String(dateStr).trim();
+    if (!str.includes('T')) str = str.replace(' ', 'T');
+    const partes = str.split('T');
+    if (partes.length === 2) {
+        const horaStr = partes[1];
+        if (!horaStr.includes('Z') && !horaStr.includes('+') && !horaStr.includes('-')) {
+            str += 'Z';
+        }
+    }
+    const d = new Date(str);
+    return isNaN(d.getTime()) ? null : d;
+};
+
 window.op_chartDataLabelsPlugin = {
     id: 'customDataLabels',
     afterDatasetsDraw: (chart) => {
@@ -344,10 +360,19 @@ window.setupOperacionalFilters = function() {
 window.loadManutencaoDataForMeta = async function() {
     try {
         const client = window.supabaseClientLocal; 
-        const [osResp, frotasResp] = await Promise.all([
-            client.from('ordens_servico').select('*'),
-            client.from('frotas_manutencao').select('*')
-        ]);
+        
+        // LIMITADO A 5000 COM ORDENAÇÃO E EXCLUSÃO DO STATUS "Agendada" PARA FUNCIONAR IGUAL AO INDICADORES
+        const osResp = await client.from('ordens_servico')
+            .select('*')
+            .neq('status', 'Agendada')
+            .order('data_abertura', { ascending: false })
+            .limit(5000);
+
+        let frotasResp = await client.from('frotas_manutencao').select('*').limit(2000);
+        if (!frotasResp.data || frotasResp.data.length === 0) {
+            frotasResp = await client.from('cadastro_frota').select('*').limit(2000);
+        }
+
         if (osResp.data) window.osParaMeta = osResp.data;
         if (frotasResp.data) window.frotasParaMeta = frotasResp.data;
     } catch (e) { console.error("Erro dados manutenção:", e); }
@@ -596,11 +621,12 @@ window.atualizarPainelOperacional = function() {
     // ========================================================================
     if (elMetaTexto && window.frotasParaMeta && window.osParaMeta) {
         
-        const frotasAtivas = window.frotasParaMeta.filter(f => {
-            const st = String(f.status || '').trim().toUpperCase();
-            const cat = String(f.categoria || '').trim().toUpperCase();
-            return (st === 'ATIVO' || st === 'ATIVA') && cat === 'TRITREM';
-        });
+        // FILTRO DE ATIVOS EXATAMENTE IGUAL AO RELATÓRIO GERENCIAL
+        const frotasAtivas = window.frotasParaMeta.filter(f => 
+            f.status === 'Ativo' && 
+            f.categoria && 
+            f.categoria.toUpperCase() === 'TRITREM'
+        );
         
         let dataInicioCalc = new Date(); dataInicioCalc.setHours(0,0,0,0);
         let dataFimCalc = new Date(); dataFimCalc.setHours(23,59,59,999);
@@ -652,8 +678,9 @@ window.atualizarPainelOperacional = function() {
         let totalDispNoPeriodoMs = 0;
 
         frotasAtivas.forEach(frota => {
-            let frotaInicioStr = frota.data_inicial ? frota.data_inicial : '2026-04-01';
-            let dtEntradaVeiculo = new Date(frotaInicioStr + 'T00:00:00');
+            // DATA BASE EXATA DE ENTRADA DO VEICULO
+            let dtEntradaVeiculo = new Date('2026-04-01T00:00:00');
+            if(frota.data_inicial) dtEntradaVeiculo = new Date(frota.data_inicial + 'T00:00:00');
 
             let overlapDispInicio = dtEntradaVeiculo > dataInicioCalc ? dtEntradaVeiculo : dataInicioCalc;
             let totalMsDisponivelVeiculo = 0;
@@ -664,20 +691,21 @@ window.atualizarPainelOperacional = function() {
 
             if (totalMsDisponivelVeiculo > 0) {
                 let msManutVeiculo = 0;
-                const todasOSCavalo = window.osParaMeta.filter(o => o.placa === frota.cavalo && o.status !== 'Agendada' && o.tipo !== 'Cavalo Disponível S/ Carreta');
+                let placaFrota = frota.placa || frota.cavalo; 
+                
+                // EXCLUSÃO ESTRITA EXATAMENTE COMO NO RELATÓRIO DE INDICADORES
+                const todasOSCavalo = window.osParaMeta.filter(o => {
+                    if (o.placa !== placaFrota) return false;
+                    if (o.status === 'Agendada') return false;
+                    if (o.tipo && o.tipo.toUpperCase() === 'CAVALO DISPONÍVEL S/ CARRETA') return false;
+                    return true;
+                });
                 
                 todasOSCavalo.forEach(os => {
-                    let osInicioStr = os.data_abertura;
-                    if (!osInicioStr) return;
-                    if (!osInicioStr.includes('T')) osInicioStr += 'T00:00:00';
-                    const osInicio = new Date(osInicioStr.replace('Z', '').replace('+00:00', ''));
+                    let osInicio = window.corrigirDataSupabaseLocal(os.data_abertura);
+                    if (!osInicio) return;
                     
-                    let osFim = new Date(); 
-                    if (os.data_conclusao) {
-                        let osFimStr = os.data_conclusao;
-                        if (!osFimStr.includes('T')) osFimStr += 'T00:00:00';
-                        osFim = new Date(osFimStr.replace('Z', '').replace('+00:00', ''));
-                    }
+                    let osFim = os.data_conclusao ? window.corrigirDataSupabaseLocal(os.data_conclusao) : new Date();
                     
                     let inicioValido = osInicio > dtEntradaVeiculo ? osInicio : dtEntradaVeiculo;
                     const overlapInicio = inicioValido > dataInicioCalc ? inicioValido : dataInicioCalc;
@@ -711,7 +739,6 @@ window.atualizarPainelOperacional = function() {
         if (activeT === 'ALL' || activeT.toUpperCase().includes('SERRANALOG')) {
             window.metaViagensCalculada = Math.round(totalMetaCalculadaExata);
             
-            // CÁLCULO E TEXTO BRANCO COM VIAGENS FALTANTES
             let viagensFaltantes = window.metaViagensCalculada - totalViagens;
             let textoFalta = viagensFaltantes > 0 ? `| Faltam: <b class="text-rose-400">${viagensFaltantes}</b> viag.` : `| <b class="text-emerald-400">Batida!</b>`;
             
@@ -743,20 +770,17 @@ window.atualizarPainelOperacional = function() {
     const validRpv = cardsData.filter(d => d.rpv !== null && d.rpv > 0);
     const mediaRPV = validRpv.length > 0 ? validRpv.reduce((sum, r) => sum + r.rpv, 0) / validRpv.length : 0;
 
-    // --- NOVA LÓGICA DE INDICADOR SLA (Matriz RPV x PBTC Mínimo) ---
-    // Descobre qual é a meta de PBTC com base na faixa da média do RPV atual
     let reqPbtc = 74.0;
     if (mediaRPV <= 700 && mediaRPV > 0) reqPbtc = 71.0;
     else if (mediaRPV > 700 && mediaRPV < 800) reqPbtc = 73.0;
     else reqPbtc = 74.0;
 
-    // SLA é atendido se o PBTC médio alcançou a meta estipulada pela faixa do RPV
     let slaAtendido = (mediaPbtc >= reqPbtc);
 
     const elRpv = document.getElementById('mediaRPV');
     if (elRpv) {
         let rpvStr = mediaRPV > 0 ? mediaRPV.toLocaleString('pt-PT', {maximumFractionDigits: 2}) : "0";
-        const pSub = elRpv.parentElement.nextElementSibling; // A tag <p> que fica embaixo do número
+        const pSub = elRpv.parentElement.nextElementSibling; 
 
         if (mediaRPV > 0) {
             if (slaAtendido) {
@@ -784,21 +808,17 @@ window.atualizarPainelOperacional = function() {
         }
     }
 
-    // --- ATUALIZAÇÃO DA COR DO PBTC PARA ACOMPANHAR A META DO CONTRATO ---
     let pbtcCor = "text-white", pbtcIcone = "";
     if (mediaPbtc > 0) {
         if (mediaPbtc < reqPbtc) { 
-            // Abaixo da meta dinâmica do SLA
             pbtcCor = "text-rose-500"; 
             pbtcIcone = `<i class="fas fa-exclamation-circle text-rose-500 text-xl ml-2" title="Abaixo da Meta SLA (${reqPbtc}t)"></i>`; 
         }
         else if (mediaPbtc >= reqPbtc && mediaPbtc <= 77.7) { 
-            // Bateu a meta da faixa atual do RPV!
             pbtcCor = "text-emerald-400"; 
             pbtcIcone = `<i class="fas fa-check-circle text-emerald-400 text-xl ml-2" title="Dentro do SLA (${reqPbtc}t)"></i>`; 
         }
         else if (mediaPbtc > 77.7) { 
-            // Acima do Limite Legal/Tolerância
             pbtcCor = "text-amber-500"; 
             pbtcIcone = '<i class="fas fa-exclamation-triangle text-amber-500 text-xl ml-2" title="Acima da Tolerância Legal"></i>'; 
         }
