@@ -1,8 +1,12 @@
-// Apontando para o NOVO banco de dados da frota
+// =================================================================
+// ARQUIVO: os_painel.js
+// COM LOGS DE DEPURAÇÃO (DEBUG)
+// =================================================================
+console.log('[OS Painel] Inicializando os_painel.js e instanciando o Supabase...');
+
 const supabaseUrlManutencao = 'https://bydlwhosxtmzfqlnyhcz.supabase.co';
 const supabaseKeyManutencao = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ5ZGx3aG9zeHRtemZxbG55aGN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTU1MzQsImV4cCI6MjA5Njg3MTUzNH0.UIQPOUSNLAef6QPGZk6bkRPWvH2DtNu6HoaMv9X4e3Q';
 
-// Usa a função inteligente criada no app.js (se existir) ou cria o cliente direto
 const supabaseManutencao = window.getSupabaseClient ? window.getSupabaseClient('manutencao') : window.supabase.createClient(supabaseUrlManutencao, supabaseKeyManutencao);
 
 window.ordensServico = [];
@@ -10,18 +14,37 @@ window.frotasManutencao = [];
 window.estadoFiltroGlobal = { tipo: 'MES_ATUAL', mesAno: '' };
 
 window.carregarDadosManutencao = async function() {
+    console.log('[OS Painel] INICIANDO REQUISIÇÃO SUPABASE -> carregarDadosManutencao()');
     try {
         const { data: osData, error: osError } = await supabaseManutencao.from('ordens_servico').select('*');
-        if (!osError && osData) { window.ordensServico = osData; } else { window.ordensServico = []; }
+        if (osError) {
+            console.error('[OS Painel ERRO] Banco ordens_servico retornou erro:', osError);
+            window.ordensServico = [];
+        } else {
+            console.log(`[OS Painel SUCESSO] ${osData?.length || 0} ordens de serviço carregadas!`);
+            window.ordensServico = osData || [];
+        }
 
         const { data: frotaData, error: frotaError } = await supabaseManutencao.from('frotas_manutencao').select('*').order('cavalo', { ascending: true });
-        if (!frotaError && frotaData) { window.frotasManutencao = frotaData; } else { window.frotasManutencao = []; }
-    } catch (error) { console.error("Erro Crítico ao carregar dados da manutenção:", error); }
+        if (frotaError) {
+            console.error('[OS Painel ERRO] Banco frotas_manutencao retornou erro:', frotaError);
+            window.frotasManutencao = [];
+        } else {
+            console.log(`[OS Painel SUCESSO] ${frotaData?.length || 0} frotas carregadas!`);
+            window.frotasManutencao = frotaData || [];
+        }
+    } catch (error) { 
+        console.error("[OS Painel ERRO CRÍTICO] Falha severa ao carregar dados da manutenção:", error); 
+    }
 };
 
 window.preencherFiltroMesGlobal = function() {
     const select = document.getElementById('filtroMesGlobal');
-    if (!select || !window.ordensServico || !window.frotasManutencao) return;
+    if (!select) {
+        console.warn('[OS Painel] Div id="filtroMesGlobal" não encontrada. O Select de mês será ignorado.');
+        return;
+    }
+    if (!window.ordensServico || !window.frotasManutencao) return;
 
     let cavalosValidos = window.frotasManutencao
         .filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM')
@@ -32,7 +55,7 @@ window.preencherFiltroMesGlobal = function() {
     const mesAtualKey = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
 
     window.ordensServico.forEach(os => {
-        if (!os.placa || !cavalosValidos.includes(os.placa)) return; // Filtro
+        if (!os.placa || !cavalosValidos.includes(os.placa)) return; 
         if (os.data_abertura && os.status !== 'Agendada') {
             let dataStr = os.data_abertura;
             if (!dataStr.includes('T')) dataStr += 'T00:00:00';
@@ -61,6 +84,7 @@ window.preencherFiltroMesGlobal = function() {
 };
 
 window.aplicarFiltroRapido = function(tipo, btn) {
+    console.log(`[OS Painel] Filtro Rapido Acionado: ${tipo}`);
     window.estadoFiltroGlobal.tipo = tipo;
     document.querySelectorAll('.btn-qf-global').forEach(b => {
         b.classList.remove('active'); b.style.background = 'transparent'; b.style.color = '#94a3b8';
@@ -75,6 +99,7 @@ window.aplicarFiltroRapido = function(tipo, btn) {
 window.aplicarFiltroMesGlobal = function() {
     const select = document.getElementById('filtroMesGlobal');
     const valor = select.value;
+    console.log(`[OS Painel] Filtro Mês Acionado: ${valor}`);
     document.querySelectorAll('.btn-qf-global').forEach(b => {
         b.classList.remove('active'); b.style.background = 'transparent'; b.style.color = '#94a3b8';
     });
@@ -91,7 +116,8 @@ window.aplicarFiltroMesGlobal = function() {
     window.dispararFiltrosGlobais();
 };
 
-window.getDatasFiltroGlobal = function() {
+window.getDatasFiltroGlobal_OSPanel = function() {
+    console.warn('[OS Painel ATENÇÃO] A função getDatasFiltroGlobal do painel de OS foi chamada. Cuidado para não conflitar com o core.');
     const hoje = new Date();
     let inicio = new Date(hoje);
     let fim = new Date(hoje);
@@ -126,255 +152,16 @@ window.getDatasFiltroGlobal = function() {
 };
 
 window.dispararFiltrosGlobais = function() {
-    try { if(typeof atualizarKPIsGlobais === 'function') atualizarKPIsGlobais(); } catch(e){}
-    try { if(typeof renderizarGraficoEvolucaoDMDiaria === 'function') renderizarGraficoEvolucaoDMDiaria(); } catch(e){}
-    try { if(typeof renderizarRelatorioGerencialOS === 'function') renderizarRelatorioGerencialOS(); } catch(e){}
-    try { if(typeof renderizarRelatorioTipoServico === 'function') renderizarRelatorioTipoServico(); } catch(e){}
-};
-
-window.atualizarKPIsGlobais = function() {
-    try {
-        if (!window.ordensServico || !window.frotasManutencao) return;
-
-        let cavalosValidos = window.frotasManutencao
-            .filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM')
-            .map(f => f.cavalo);
-
-        const datas = window.getDatasFiltroGlobal();
-        const inicio = datas.inicio, fim = datas.fim;
-        let totalOS = 0, abertasOS = 0, concluidasOS = 0, msTotalTempo = 0, osComTempo = 0;
-        
-        window.ordensServico.forEach(os => {
-            if (!os.placa || !cavalosValidos.includes(os.placa)) return; // Filtro
-            if (os.status === 'Agendada') return;
-
-            let osInicioStr = os.data_abertura;
-            if (!osInicioStr) return;
-            if (!osInicioStr.includes('T')) osInicioStr += 'T00:00:00';
-            const dtAbertura = new Date(osInicioStr.replace('Z', '').replace('+00:00', ''));
-            let dtConclusao = new Date();
-            if (os.data_conclusao) {
-                let osFimStr = os.data_conclusao;
-                if (!osFimStr.includes('T')) osFimStr += 'T00:00:00';
-                dtConclusao = new Date(osFimStr.replace('Z', '').replace('+00:00', ''));
-            }
-            if (dtAbertura <= fim && dtConclusao >= inicio) {
-                totalOS++;
-                if (os.status === 'Concluída' || os.status === 'Resolvido') {
-                    concluidasOS++;
-                    if (dtAbertura && os.data_conclusao) { msTotalTempo += (dtConclusao - dtAbertura); osComTempo++; }
-                } else { abertasOS++; }
-            }
-        });
-        
-        let taxaConclusao = totalOS > 0 ? ((concluidasOS / totalOS) * 100).toFixed(1) : 0;
-        let tempoMedioStr = '0h 0m';
-        if (osComTempo > 0) {
-            let mediaMs = msTotalTempo / osComTempo;
-            let mediaHoras = Math.floor(mediaMs / (1000 * 60 * 60));
-            let mediaMinutos = Math.floor((mediaMs % (1000 * 60 * 60)) / (1000 * 60));
-            tempoMedioStr = `${mediaHoras}h ${mediaMinutos}m`;
-        }
-        
-        if(document.getElementById('kpiTotalOS')) document.getElementById('kpiTotalOS').innerText = totalOS;
-        if(document.getElementById('kpiAbertasOS')) document.getElementById('kpiAbertasOS').innerText = abertasOS;
-        if(document.getElementById('kpiConcluidasOS')) document.getElementById('kpiConcluidasOS').innerText = concluidasOS;
-        if(document.getElementById('kpiTaxaOS')) document.getElementById('kpiTaxaOS').innerText = taxaConclusao + '%';
-        if(document.getElementById('kpiTempoMedioOS')) document.getElementById('kpiTempoMedioOS').innerText = tempoMedioStr;
-        
-        let frotasValidas = window.frotasManutencao.filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM');
-        if (frotasValidas.length === 0) return;
-        
-        const totalFrota = frotasValidas.length;
-        let fimParaCalculo = fim > new Date() ? new Date() : fim;
-        let msTotalPeriodo = fimParaCalculo - inicio;
-        if (msTotalPeriodo <= 0) msTotalPeriodo = 1;
-        let msManutencaoComum = 0, msSOS = 0;
-        
-        frotasValidas.forEach(frota => {
-            const todasOSCavalo = window.ordensServico.filter(o => o.placa === frota.cavalo && o.status !== 'Agendada');
-            todasOSCavalo.forEach(os => {
-                let osInicioStr = os.data_abertura;
-                if (!osInicioStr) return;
-                if (!osInicioStr.includes('T')) osInicioStr += 'T00:00:00';
-                const osInicio = new Date(osInicioStr.replace('Z', '').replace('+00:00', ''));
-                
-                let osFim = new Date(); 
-                if (os.data_conclusao) {
-                    let osFimStr = os.data_conclusao;
-                    if (!osFimStr.includes('T')) osFimStr += 'T00:00:00';
-                    osFim = new Date(osFimStr.replace('Z', '').replace('+00:00', ''));
-                }
-                const overlapInicio = osInicio > inicio ? osInicio : inicio;
-                const overlapFim = osFim < fimParaCalculo ? osFim : fimParaCalculo;
-                if (overlapInicio < overlapFim) {
-                    const tempoParado = overlapFim - overlapInicio;
-                    const tipoOS = (os.tipo || os.tipo_manutencao || '').toUpperCase();
-                    if (tipoOS.includes('S.O.S') || tipoOS.includes('SOS')) { msSOS += tempoParado; } else { msManutencaoComum += tempoParado; }
-                }
-            });
-        });
-        
-        const totalMsDisponivelPeriodo = totalFrota * msTotalPeriodo;
-        let msManutTotal = msManutencaoComum + msSOS;
-        let dispNoPeriodoMs = totalMsDisponivelPeriodo - msManutTotal;
-        if (dispNoPeriodoMs < 0) dispNoPeriodoMs = 0;
-        const mediaAtivosReal = Math.round(dispNoPeriodoMs / msTotalPeriodo);
-        const mediaManutReal = Math.round(msManutencaoComum / msTotalPeriodo);
-        const mediaSOSReal = Math.round(msSOS / msTotalPeriodo);
-        const percentDMReal = totalMsDisponivelPeriodo > 0 ? (dispNoPeriodoMs / totalMsDisponivelPeriodo) * 100 : 100;
-        
-        if(document.getElementById('avgDM')) document.getElementById('avgDM').innerText = percentDMReal.toFixed(1) + '%';
-        if(document.getElementById('avgAtivos')) document.getElementById('avgAtivos').innerText = mediaAtivosReal;
-        if(document.getElementById('avgManut')) document.getElementById('avgManut').innerText = mediaManutReal;
-        if(document.getElementById('avgSOS')) document.getElementById('avgSOS').innerText = mediaSOSReal;
-    } catch(e) { console.error("Erro ao atualizar KPIs Globais:", e); }
-};
-
-window.renderizarGraficoEvolucaoDMDiaria = function() {
-    try {
-        if (!window.frotasManutencao || window.frotasManutencao.length === 0) return;
-        
-        let cavalosValidos = window.frotasManutencao
-            .filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM')
-            .map(f => f.cavalo);
-        
-        let frotasValidas = window.frotasManutencao.filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM');
-
-        const datas = window.getDatasFiltroGlobal();
-        let dataInicio = new Date(datas.inicio);
-        let hoje = new Date(datas.fim);
-
-        const labelsDias = [], dadosDMDiaria = [];
-        let atual = new Date(dataInicio);
-        
-        while (atual <= hoje) {
-            const inicioDia = new Date(atual.getFullYear(), atual.getMonth(), atual.getDate(), 0, 0, 0);
-            const fimDia = new Date(atual.getFullYear(), atual.getMonth(), atual.getDate(), 23, 59, 59, 999);
-            
-            let msTotalDia = 24 * 60 * 60 * 1000;
-            let fimParaCalculo = fimDia;
-            const ehHoje = (atual.toDateString() === new Date().toDateString());
-            if (ehHoje) {
-                const agora = new Date();
-                msTotalDia = agora - inicioDia;
-                fimParaCalculo = agora;
-            }
-            if (msTotalDia > 0) {
-                let qtdFrotaDia = frotasValidas.length;
-                const totalMsDisponivelDia = qtdFrotaDia * msTotalDia;
-                let msManutencaoDia = 0;
-                
-                frotasValidas.forEach(frota => {
-                    let manutencaoCavalo = 0;
-                    const todasOSCavalo = window.ordensServico.filter(o => o.placa === frota.cavalo && o.status !== 'Agendada');
-                    todasOSCavalo.forEach(os => {
-                        let osInicioStr = os.data_abertura;
-                        if (!osInicioStr) return;
-                        if (!osInicioStr.includes('T')) osInicioStr += 'T00:00:00';
-                        const osInicio = new Date(osInicioStr.replace('Z', '').replace('+00:00', ''));
-                        
-                        let osFim = new Date(); 
-                        if (os.data_conclusao) {
-                            let osFimStr = os.data_conclusao;
-                            if (!osFimStr.includes('T')) osFimStr += 'T00:00:00';
-                            osFim = new Date(osFimStr.replace('Z', '').replace('+00:00', ''));
-                        }
-                        const overlapInicio = osInicio > inicioDia ? osInicio : inicioDia;
-                        const overlapFim = osFim < fimParaCalculo ? osFim : fimParaCalculo;
-                        if (overlapInicio < overlapFim) { manutencaoCavalo += (overlapFim - overlapInicio); }
-                    });
-                    if (manutencaoCavalo > msTotalDia) manutencaoCavalo = msTotalDia;
-                    msManutencaoDia += manutencaoCavalo;
-                });
-                
-                let dispNoDiaMs = totalMsDisponivelDia - msManutencaoDia;
-                if (dispNoDiaMs < 0) dispNoDiaMs = 0;
-                let percentDM = totalMsDisponivelDia > 0 ? (dispNoDiaMs / totalMsDisponivelDia) * 100 : 100;
-                let mediaCavalosDisp = msTotalDia > 0 ? Math.round(dispNoDiaMs / msTotalDia) : 0;
-                const diaStr = String(atual.getDate()).padStart(2, '0') + '/' + String(atual.getMonth() + 1).padStart(2, '0');
-                labelsDias.push(diaStr);
-                
-                dadosDMDiaria.push({ value: percentDM.toFixed(2), disp: mediaCavalosDisp, total: qtdFrotaDia });
-            }
-            atual.setDate(atual.getDate() + 1);
-        }
-
-        let somaDM = 0; dadosDMDiaria.forEach(d => somaDM += parseFloat(d.value));
-        let mediaDM = dadosDMDiaria.length > 0 ? (somaDM / dadosDMDiaria.length).toFixed(1) : 0;
-
-        let totalOSMes = 0, concluidasOSMes = 0, tempoTotalMs = 0, osComTempo = 0;
-        window.ordensServico.forEach(os => {
-            if (!os.placa || !cavalosValidos.includes(os.placa)) return; // Filtro
-            if (os.status === 'Agendada') return;
-            let osInicioStr = os.data_abertura;
-            if (!osInicioStr) return;
-            if (!osInicioStr.includes('T')) osInicioStr += 'T00:00:00';
-            const dtAbertura = new Date(osInicioStr.replace('Z', '').replace('+00:00', ''));
-            let dtConclusao = new Date();
-            if (os.data_conclusao) {
-                let osFimStr = os.data_conclusao;
-                if (!osFimStr.includes('T')) osFimStr += 'T00:00:00';
-                dtConclusao = new Date(osFimStr.replace('Z', '').replace('+00:00', ''));
-            }
-
-            if (dtAbertura <= hoje && dtConclusao >= dataInicio) {
-                totalOSMes++;
-                if (os.status === 'Concluída' || os.status === 'Resolvido') {
-                    concluidasOSMes++;
-                    if (os.data_conclusao) { tempoTotalMs += (dtConclusao - dtAbertura); osComTempo++; }
-                }
-            }
-        });
-
-        let tempoMedioStr = '0h 0m';
-        if (osComTempo > 0) {
-            let mediaMs = tempoTotalMs / osComTempo;
-            let mediaHoras = Math.floor(mediaMs / (1000 * 60 * 60));
-            let mediaMinutos = Math.floor((mediaMs % (1000 * 60 * 60)) / (1000 * 60));
-            tempoMedioStr = `${mediaHoras}h ${mediaMinutos}m`;
-        }
-
-        if(document.getElementById('kpiMiniDM')) document.getElementById('kpiMiniDM').innerText = mediaDM + '%';
-        if(document.getElementById('kpiMiniTotalOS')) document.getElementById('kpiMiniTotalOS').innerText = totalOSMes;
-        if(document.getElementById('kpiMiniConcluidas')) document.getElementById('kpiMiniConcluidas').innerText = concluidasOSMes;
-        if(document.getElementById('kpiMiniTempo')) document.getElementById('kpiMiniTempo').innerText = tempoMedioStr;
-
-        if (typeof echarts === 'undefined') return;
-        const chartDom = document.getElementById('graficoEvolucaoDMDiaria');
-        if (chartDom) {
-            let myChart = echarts.getInstanceByDom(chartDom);
-            if (!myChart) myChart = echarts.init(chartDom);
-            const option = {
-                backgroundColor: 'transparent',
-                tooltip: { 
-                    trigger: 'axis', 
-                    formatter: function (params) {
-                        const d = params[0].data;
-                        return `<b style="font-size:14px;">${params[0].name}</b><br/>` +
-                               `Disponíveis: <span style="color:#10b981; font-weight:bold;">${d.disp}</span>/${d.total}<br/>` +
-                               `DM: <span style="color:#10b981; font-weight:bold;">${d.value}%</span>`;
-                    }
-                },
-                grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-                xAxis: { type: 'category', boundaryGap: false, data: labelsDias, axisLabel: { color: '#ffffff', fontWeight: 'bold' } },
-                yAxis: { type: 'value', min: 0, max: 100, axisLabel: { formatter: '{value}%', color: '#ffffff', fontWeight: 'bold' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)' } } },
-                series: [{
-                    name: 'Média DM Diária', type: 'line', data: dadosDMDiaria, smooth: true, symbol: 'circle', symbolSize: 8,
-                    label: { show: true, position: 'top', formatter: function (params) { return `${params.data.disp}/${params.data.total}\n(${params.data.value}%)`; }, color: '#ffffff', fontSize: 12, fontWeight: '900' },
-                    itemStyle: { color: '#10b981' }, lineStyle: { width: 4 },
-                    areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: 'rgba(16, 185, 129, 0.4)' }, { offset: 1, color: 'rgba(16, 185, 129, 0)' }]) }
-                }]
-            };
-            myChart.setOption(option);
-            setTimeout(() => myChart.resize(), 100);
-            window.addEventListener('resize', () => myChart.resize());
-        }
-    } catch(e) { console.error("Erro na DM Evolução Diária:", e); }
+    console.log('[OS Painel] Disparando Filtros Globais...');
+    try { if(typeof atualizarKPIsGlobais === 'function') atualizarKPIsGlobais(); } catch(e){ console.error(e); }
+    try { if(typeof renderizarGraficoEvolucaoDMDiaria === 'function') renderizarGraficoEvolucaoDMDiaria(); } catch(e){ console.error(e); }
+    try { if(typeof renderizarRelatorioGerencialOS === 'function') renderizarRelatorioGerencialOS(); } catch(e){ console.error(e); }
+    try { if(typeof renderizarRelatorioTipoServico === 'function') renderizarRelatorioTipoServico(); } catch(e){ console.error(e); }
 };
 
 window.renderizarRelatorioGerencialOS = function() {
-    let filtroData = window.getDatasFiltroGlobal();
+    // Atenção: Esta função requer a função correta de `getDatasFiltroGlobal`. Se os_painel estiver sobrepondo dash_manutencao, use a função local.
+    let filtroData = (typeof window.getDatasFiltroGlobal_OSPanel === 'function') ? window.getDatasFiltroGlobal_OSPanel() : window.getDatasFiltroGlobal();
     
     let cavalosValidos = [];
     if (window.frotasManutencao) {
@@ -384,7 +171,7 @@ window.renderizarRelatorioGerencialOS = function() {
     }
 
     const osManutencao = window.ordensServico.filter(o => {
-        if (!o.placa || !cavalosValidos.includes(o.placa)) return false; // Filtro
+        if (!o.placa || !cavalosValidos.includes(o.placa)) return false; 
         if (o.tipo === 'Sinistro') return false;
         if (!o.data_abertura) return false;
         let osInicioStr = o.data_abertura;
@@ -403,7 +190,9 @@ window.renderizarRelatorioGerencialOS = function() {
         const percent = (qtd / maxCavaloCount) * 100;
         htmlCavalos += `<div style="margin-bottom: 12px;"><div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.85rem; color: #e2e8f0;"><strong>${index + 1}º ${placa}</strong><span>${qtd} O.S.</span></div><div style="background: rgba(255,255,255,0.1); border-radius: 4px; height: 12px; overflow: hidden;"><div style="background: #ef4444; width: ${percent}%; height: 100%;"></div></div></div>`;
     });
-    if(document.getElementById('rankingCavalosOS')) document.getElementById('rankingCavalosOS').innerHTML = htmlCavalos || '<p style="color:#94a3b8;">Sem dados.</p>';
+    const elRkCavalo = document.getElementById('rankingCavalosOS');
+    if(elRkCavalo) elRkCavalo.innerHTML = htmlCavalos || '<p style="color:#94a3b8;">Sem dados.</p>';
+    else console.warn('[OS Painel] div id="rankingCavalosOS" não encontrada.');
 
     const porPrioridade = { 'Urgente': 0, 'Alta': 0, 'Normal': 0, 'Baixa': 0 };
     osManutencao.forEach(o => { if(porPrioridade[o.prioridade] !== undefined) porPrioridade[o.prioridade]++; });
@@ -415,16 +204,17 @@ window.renderizarRelatorioGerencialOS = function() {
         const percent = osManutencao.length > 0 ? (qtd / osManutencao.length) * 100 : 0;
         htmlPrio += `<div style="margin-bottom: 12px;"><div style="display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 0.85rem; color: #e2e8f0;"><span>Prioridade <strong>${p}</strong></span><span>${qtd} ocorrências</span></div><div style="background: rgba(255,255,255,0.1); border-radius: 4px; height: 10px; overflow: hidden;"><div style="background: ${colorsPri[p]}; width: ${percent}%; height: 100%;"></div></div></div>`;
     });
-    if(document.getElementById('graficoPrioridadeOS')) document.getElementById('graficoPrioridadeOS').innerHTML = htmlPrio || '<p style="color:#94a3b8;">Sem dados.</p>';
+    const elPrio = document.getElementById('graficoPrioridadeOS');
+    if(elPrio) elPrio.innerHTML = htmlPrio || '<p style="color:#94a3b8;">Sem dados.</p>';
 
-    window.renderizarGraficoOcorrenciasPorTipo();
+    if(typeof window.renderizarGraficoOcorrenciasPorTipo === 'function') window.renderizarGraficoOcorrenciasPorTipo();
 };
 
 window.renderizarGraficoOcorrenciasPorTipo = function() {
     const el = document.getElementById('graficoOcorrenciasTipoBarra');
-    if (!el) return;
+    if (!el) { console.warn('[OS Painel] Div id="graficoOcorrenciasTipoBarra" não encontrada.'); return; }
 
-    let filtroData = window.getDatasFiltroGlobal();
+    let filtroData = (typeof window.getDatasFiltroGlobal_OSPanel === 'function') ? window.getDatasFiltroGlobal_OSPanel() : window.getDatasFiltroGlobal();
     
     let cavalosValidos = [];
     if (window.frotasManutencao) {
@@ -434,7 +224,7 @@ window.renderizarGraficoOcorrenciasPorTipo = function() {
     }
 
     const filtradas = window.ordensServico.filter(o => {
-        if (!o.placa || !cavalosValidos.includes(o.placa)) return false; // Filtro
+        if (!o.placa || !cavalosValidos.includes(o.placa)) return false; 
         if (o.tipo === 'Sinistro') return false; 
         if (!o.data_abertura) return false;
         let osInicioStr = o.data_abertura;
@@ -461,8 +251,7 @@ window.renderizarGraficoOcorrenciasPorTipo = function() {
         
         window.chartOcorrenciasTipo = echarts.init(el);
         const option = {
-            backgroundColor: 'transparent',
-            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+            backgroundColor: 'transparent', tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
             grid: { left: '3%', right: '4%', bottom: '25%', top: '15%', containLabel: true },
             xAxis: { type: 'category', data: categories, axisLabel: { color: '#94a3b8', rotate: 35, interval: 0, fontSize: 10, fontWeight: 'bold' } },
             yAxis: { type: 'value', axisLabel: { color: '#94a3b8' }, splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)', type: 'dashed' } } },
@@ -475,72 +264,7 @@ window.renderizarGraficoOcorrenciasPorTipo = function() {
         window.chartOcorrenciasTipo.setOption(option);
         setTimeout(() => window.chartOcorrenciasTipo.resize(), 100);
         window.addEventListener('resize', () => window.chartOcorrenciasTipo.resize());
-    }
-};
-
-window.renderizarRelatorioTipoServico = function() {
-    const tbody = document.getElementById('tabelaRelatorioTipoServico');
-    if (!tbody) return;
-    
-    let cavalosValidos = [];
-    if (window.frotasManutencao) {
-        cavalosValidos = window.frotasManutencao
-            .filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM')
-            .map(f => f.cavalo);
-    }
-
-    let filtroData = window.getDatasFiltroGlobal();
-    const osNoPeriodo = window.ordensServico.filter(o => {
-        if (!o.placa || !cavalosValidos.includes(o.placa)) return false; // Filtro
-        if (o.status === 'Agendada') return false;
-        if (!o.data_abertura) return false;
-        let osInicioStr = o.data_abertura;
-        if (!osInicioStr.includes('T')) osInicioStr += 'T00:00:00';
-        const d = new Date(osInicioStr.replace('Z', '').replace('+00:00', ''));
-        return d >= filtroData.inicio && d <= filtroData.fim;
-    });
-
-    const agrupado = {};
-    osNoPeriodo.forEach(os => {
-        const tipo = os.tipo || os.tipo_manutencao || 'Não Informado';
-        if (!agrupado[tipo]) { agrupado[tipo] = { quantidade: 0, tempoTotalMs: 0, concluidasComTempo: 0 }; }
-        agrupado[tipo].quantidade++;
-        
-        if ((os.status === 'Concluída' || os.status === 'Resolvido') && os.data_abertura && os.data_conclusao) {
-            const inicio = new Date(os.data_abertura.replace('Z', '').replace('+00:00', ''));
-            const fim = new Date(os.data_conclusao.replace('Z', '').replace('+00:00', ''));
-            if (fim > inicio) { agrupado[tipo].tempoTotalMs += (fim - inicio); agrupado[tipo].concluidasComTempo++; }
-        }
-    });
-
-    let dadosTabela = Object.keys(agrupado).map(tipo => {
-        const info = agrupado[tipo];
-        let tempoMedioStr = '-';
-        if (info.concluidasComTempo > 0) {
-            const mediaMs = info.tempoTotalMs / info.concluidasComTempo;
-            const mediaHrs = Math.floor(mediaMs / (1000 * 60 * 60));
-            const mediaMin = Math.floor((mediaMs % (1000 * 60 * 60)) / (1000 * 60));
-            tempoMedioStr = `${mediaHrs}h ${String(mediaMin).padStart(2, '0')}m`;
-        }
-        return { tipo: tipo, quantidade: info.quantidade, tempoMedioStr: tempoMedioStr };
-    });
-
-    dadosTabela.sort((a, b) => a.tipo.localeCompare(b.tipo));
-
-    if (dadosTabela.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:20px; color:#94a3b8;">Nenhum serviço encontrado no período.</td></tr>';
-        window.tipoServicoDataExport = [];
-        return;
-    }
-
-    tbody.innerHTML = dadosTabela.map(item => `
-        <tr style="background: rgba(255,255,255,0.02);">
-            <td style="color: #3b82f6; font-weight: bold; font-size: 1.1rem; padding: 12px; border-bottom: 1px solid var(--border);">${item.tipo}</td>
-            <td style="color: #fff; text-align: center; font-size: 1.1rem; font-weight: bold; padding: 12px; border-bottom: 1px solid var(--border);">${item.quantidade}</td>
-            <td style="color: #a855f7; text-align: right; font-weight: bold; font-size: 1.1rem; padding: 12px; border-bottom: 1px solid var(--border);">${item.tempoMedioStr}</td>
-        </tr>
-    `).join('');
-    window.tipoServicoDataExport = dadosTabela;
+    } else { console.error('[OS Painel ERRO] Biblioteca echarts não foi carregada no projeto!'); }
 };
 
 window.exportarRelatorioTipoServicoExcel = function() {
@@ -557,7 +281,7 @@ window.exportarRelatorioTipoServicoExcel = function() {
 
 window.exportarGraficoPNG = async function(idElemento, nomeArquivo) {
     const chartDiv = document.getElementById(idElemento);
-    if (!chartDiv) return;
+    if (!chartDiv) { console.error(`[Exportar] Div com ID ${idElemento} não encontrada.`); return; }
     const container = chartDiv.closest('.content-panel');
     if (!container) return;
     
@@ -570,7 +294,7 @@ window.exportarGraficoPNG = async function(idElemento, nomeArquivo) {
         const link = document.createElement('a');
         link.href = url; link.download = `${nomeArquivo}_${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.png`;
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
-    } catch (e) { console.error("Erro ao exportar:", e); } finally {
+    } catch (e) { console.error("Erro ao exportar PNG:", e); } finally {
         botoes.forEach(btn => btn.style.display = '');
     }
 };
