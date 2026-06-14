@@ -1,5 +1,5 @@
 // =================================================================
-// ARQUIVO: dash_manutencao_core.js
+// ARQUIVO: js/dash_manutencao_core.js
 // RESPONSABILIDADE: Filtros Globais, Pátio, KPIs e Inicialização
 // =================================================================
 console.log('[Dash Core] Inicializando dash_manutencao_core.js');
@@ -69,7 +69,7 @@ window.getDatasFiltroGlobal = function() {
 window.renderizarPatioManutencaoDash = function() {
     const container = document.getElementById('patioManutencaoDashContainer');
     if (!container) {
-        console.error('[Dash Core ERRO] DOM: Elemento "patioManutencaoDashContainer" NÃO ENCONTRADO no HTML!');
+        console.error('[Dash Core ERRO] DOM: Elemento "patioManutencaoDashContainer" NÃO ENCONTRADO!');
         return;
     }
 
@@ -79,19 +79,22 @@ window.renderizarPatioManutencaoDash = function() {
         return;
     }
 
+    // Prevenção de quebra por case sensitive ou espaços (ex: " Ativo", "ATIVO")
     let cavalosValidos = [];
     if (window.frotasManutencao) {
         cavalosValidos = window.frotasManutencao
-            .filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM')
-            .map(f => f.cavalo);
+            .filter(f => (f.status || '').toUpperCase() === 'ATIVO' && (f.categoria || '').toUpperCase() === 'TRITREM')
+            .map(f => (f.cavalo || '').trim());
     }
 
-    const osAtivas = window.ordensServico.filter(o => 
-        o.placa && cavalosValidos.includes(o.placa) &&
-        (o.status === 'Aguardando Oficina' || o.status === 'Em Manutenção') && 
-        o.tipo !== 'Sinistro' && 
-        o.tipo !== 'Cavalo Disponível S/ Carreta'
-    );
+    const osAtivas = window.ordensServico.filter(o => {
+        const placaOs = (o.placa || '').trim();
+        if (!placaOs || !cavalosValidos.includes(placaOs)) return false;
+        if (o.tipo === 'Sinistro' || o.tipo === 'Cavalo Disponível S/ Carreta') return false;
+        
+        const st = (o.status || '').toUpperCase();
+        return (st === 'AGUARDANDO OFICINA' || st === 'EM MANUTENÇÃO' || st === 'EM MANUTENCAO');
+    });
 
     console.log(`[Dash Core] Pátio Manutenção: ${osAtivas.length} OS ativas encontradas no pátio.`);
 
@@ -138,7 +141,8 @@ window.renderizarPatioManutencaoDash = function() {
         if (diffHrs >= 24) { colorCronometro = '#ef4444'; piscarAnimacao = 'animation: piscar 1.5s infinite;'; }
         else if (diffHrs >= 12) { colorCronometro = '#f59e0b'; }
 
-        const frotaVinculada = (window.frotasManutencao || []).find(f => f.cavalo === os.placa) || {};
+        const placaTrimmed = (os.placa || '').trim();
+        const frotaVinculada = (window.frotasManutencao || []).find(f => (f.cavalo || '').trim() === placaTrimmed) || {};
         
         let conjuntosBadge = '';
         if (frotaVinculada.numero_frota && String(frotaVinculada.numero_frota).trim() !== '') {
@@ -152,30 +156,33 @@ window.renderizarPatioManutencaoDash = function() {
             .map(c => `<span style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.2); white-space: nowrap;">${c}</span>`)
             .join('');
 
-        const textoStatus = os.status === 'Em Manutenção' ? 'EM OFICINA' : 'AGUARDANDO ATENDIMENTO';
-        const bgStatus = os.status === 'Em Manutenção' ? '#1e3a8a' : '#1e293b';
-        const borderStatus = os.status === 'Em Manutenção' ? '#3b82f6' : '#475569';
+        const statusLower = (os.status || '').toLowerCase();
+        const textoStatus = (statusLower === 'em manutenção' || statusLower === 'em manutencao') ? 'EM OFICINA' : 'AGUARDANDO ATENDIMENTO';
+        const bgStatus = (statusLower === 'em manutenção' || statusLower === 'em manutencao') ? '#1e3a8a' : '#1e293b';
+        const borderStatus = (statusLower === 'em manutenção' || statusLower === 'em manutencao') ? '#3b82f6' : '#475569';
+        
+        const numeroOsFormatado = os.numero_os ? os.numero_os : os.id;
 
         return `
             <div style="background: ${bgStatus}; border: 2px solid ${borderStatus}; border-radius: 12px; padding: 18px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); display: flex; flex-direction: column;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                     <div>
-                        <div style="font-size: 0.75rem; color: #cbd5e1; margin-bottom: 2px; font-weight: 600;">O.S. #${os.id} | ${textoStatus}</div>
-                        <div style="font-size: 2.2rem; font-weight: 900; color: #fff; line-height: 1.1; letter-spacing: 1px;">${os.placa}</div>
+                        <div style="font-size: 0.75rem; color: #cbd5e1; margin-bottom: 2px; font-weight: 600;">O.S. #${numeroOsFormatado} | ${textoStatus}</div>
+                        <div style="font-size: 2.2rem; font-weight: 900; color: #fff; line-height: 1.1; letter-spacing: 1px;">${placaTrimmed}</div>
                     </div>
                     <div style="text-align: right;">
                         <div style="background: ${corPrioridade}; color: #fff; font-weight: bold; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; text-transform: uppercase;">
-                            ${os.prioridade}
+                            ${os.prioridade || 'NORMAL'}
                         </div>
                     </div>
                 </div>
                 <div style="margin-bottom: 12px; min-height: 22px; display: flex; gap: 6px; flex-wrap: nowrap; overflow: hidden; align-items: center; width: 100%;">${conjuntosBadge}</div>
                 
                 <div style="background: rgba(0,0,0,0.3); border-radius: 8px; padding: 12px; margin-bottom: 15px; flex: 1;">
-                    <div style="color: #60a5fa; font-weight: 800; font-size: 0.95rem; margin-bottom: 6px;">${os.tipo}</div>
+                    <div style="color: #60a5fa; font-weight: 800; font-size: 0.95rem; margin-bottom: 6px;">${os.tipo || 'Não especificado'}</div>
                     <div style="color: #cbd5e1; font-size: 0.85rem;">Motorista: <strong style="color: #fff;">${os.motorista || '-'}</strong></div>
-                    <div style="color: #94a3b8; font-size: 0.8rem; margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="${os.problema || 'Nenhum detalhe'}">
-                        Detalhe: ${os.problema || 'Nenhum detalhe'}
+                    <div style="color: #94a3b8; font-size: 0.8rem; margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" title="${os.problema || os.observacoes || 'Nenhum detalhe'}">
+                        Detalhe: ${os.problema || os.observacoes || 'Nenhum detalhe'}
                     </div>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
@@ -197,13 +204,13 @@ window.renderizarPatioManutencaoDash = function() {
 window.atualizarKPIsGlobais = function() {
     try {
         if (!window.ordensServico || !window.frotasManutencao) {
-            console.warn('[Dash Core] atualizarKPIsGlobais cancelado: ordensServico ou frotasManutencao não estão prontos.');
+            console.warn('[Dash Core] atualizarKPIsGlobais cancelado: dados não prontos.');
             return;
         }
 
         let cavalosValidos = window.frotasManutencao
-            .filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM')
-            .map(f => f.cavalo);
+            .filter(f => (f.status || '').toUpperCase() === 'ATIVO' && (f.categoria || '').toUpperCase() === 'TRITREM')
+            .map(f => (f.cavalo || '').trim());
 
         const datas = typeof window.getDatasFiltroGlobal === 'function' ? window.getDatasFiltroGlobal() : { inicio: new Date(), fim: new Date() };
         const inicio = datas.inicio;
@@ -212,13 +219,16 @@ window.atualizarKPIsGlobais = function() {
         let totalOS = 0, abertasOS = 0, concluidasOS = 0, msTotalTempo = 0, osComTempo = 0;
         
         window.ordensServico.forEach(os => {
-            if (!os.placa || !cavalosValidos.includes(os.placa)) return;
+            const placaOs = (os.placa || '').trim();
+            if (!placaOs || !cavalosValidos.includes(placaOs)) return;
             if (os.status === 'Agendada' || os.tipo === 'Cavalo Disponível S/ Carreta') return;
+            
             let osInicioStr = os.data_abertura;
             if (!osInicioStr) return;
             if (!osInicioStr.includes('T')) osInicioStr += 'T00:00:00';
             const dtAbertura = new Date(osInicioStr.replace('Z', '').replace('+00:00', ''));
             let dtConclusao = new Date();
+            
             if (os.data_conclusao) {
                 let osFimStr = os.data_conclusao;
                 if (!osFimStr.includes('T')) osFimStr += 'T00:00:00';
@@ -227,7 +237,8 @@ window.atualizarKPIsGlobais = function() {
             
             if (dtAbertura <= fim && dtConclusao >= inicio) {
                 totalOS++;
-                if (os.status === 'Concluída' || os.status === 'Resolvido') {
+                const statusUpper = (os.status || '').toUpperCase();
+                if (statusUpper === 'CONCLUÍDA' || statusUpper === 'CONCLUIDA' || statusUpper === 'RESOLVIDO') {
                     concluidasOS++;
                     if (dtAbertura && os.data_conclusao) { 
                         msTotalTempo += (dtConclusao - dtAbertura);
@@ -256,13 +267,13 @@ window.atualizarKPIsGlobais = function() {
         const elKpiTaxa = document.getElementById('kpiTaxaOS');
         const elKpiTempo = document.getElementById('kpiTempoMedioOS');
 
-        if(elKpiTotal) elKpiTotal.innerText = totalOS; else console.error('[Dash Core ERRO] HTML sem id="kpiTotalOS"');
+        if(elKpiTotal) elKpiTotal.innerText = totalOS;
         if(elKpiAbertas) elKpiAbertas.innerText = abertasOS; 
         if(elKpiConcluidas) elKpiConcluidas.innerText = concluidasOS; 
         if(elKpiTaxa) elKpiTaxa.innerText = taxaConclusao + '%'; 
         if(elKpiTempo) elKpiTempo.innerText = tempoMedioStr; 
         
-        let frotasValidas = window.frotasManutencao.filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM');
+        let frotasValidas = window.frotasManutencao.filter(f => (f.status || '').toUpperCase() === 'ATIVO' && (f.categoria || '').toUpperCase() === 'TRITREM');
         if (frotasValidas.length === 0) return;
         
         let fimParaCalculo = fim > new Date() ? new Date() : fim;
@@ -274,13 +285,14 @@ window.atualizarKPIsGlobais = function() {
         frotasValidas.forEach(frota => {
             let frotaInicioStr = frota.data_inicial ? frota.data_inicial : '2026-04-01';
             let dtEntradaVeiculo = new Date(frotaInicioStr + 'T00:00:00');
+            const cavaloFrota = (frota.cavalo || '').trim();
             
             let overlapDispInicio = dtEntradaVeiculo > inicio ? dtEntradaVeiculo : inicio;
             if (overlapDispInicio < fimParaCalculo) {
                 totalMsDisponivelPeriodo += (fimParaCalculo - overlapDispInicio);
             }
             
-            const todasOSCavalo = window.ordensServico.filter(o => o.placa === frota.cavalo && o.status !== 'Agendada' && o.tipo !== 'Cavalo Disponível S/ Carreta');
+            const todasOSCavalo = window.ordensServico.filter(o => (o.placa || '').trim() === cavaloFrota && o.status !== 'Agendada' && o.tipo !== 'Cavalo Disponível S/ Carreta');
             todasOSCavalo.forEach(os => {
                 let osInicioStr = os.data_abertura;
                 if (!osInicioStr) return;
@@ -300,9 +312,10 @@ window.atualizarKPIsGlobais = function() {
                 
                 if (overlapInicio < overlapFim) {
                     const tempoParado = overlapFim - overlapInicio;
-                    const tipoOS = (os.tipo || os.tipo_manutencao || '').toUpperCase();
-                    const descOS = (os.descricao || '').toUpperCase();
+                    const tipoOS = (os.tipo || '').toUpperCase();
+                    const descOS = (os.problema || os.observacoes || '').toUpperCase();
                     const prioridadeOS = (os.prioridade || '').toUpperCase();
+
                     if (tipoOS.includes('S.O.S') || tipoOS.includes('SOS') || tipoOS.includes('SOCORRO') || descOS.includes('S.O.S') || descOS.includes('SOS') || descOS.includes('SOCORRO') || prioridadeOS.includes('EMERGÊNCIA')) {
                         msSOS += tempoParado;
                     } else {
@@ -326,7 +339,7 @@ window.atualizarKPIsGlobais = function() {
         const elAvgManut = document.getElementById('avgManut');
         const elAvgSOS = document.getElementById('avgSOS');
         
-        if(elAvgDM) elAvgDM.innerText = percentDMReal.toFixed(1) + '%'; else console.error('[Dash Core ERRO] HTML sem id="avgDM"');
+        if(elAvgDM) elAvgDM.innerText = percentDMReal.toFixed(1) + '%';
         if(elAvgAtivos) elAvgAtivos.innerText = mediaAtivosReal;
         if(elAvgManut) elAvgManut.innerText = mediaManutReal;
         if(elAvgSOS) elAvgSOS.innerText = mediaSOSReal;

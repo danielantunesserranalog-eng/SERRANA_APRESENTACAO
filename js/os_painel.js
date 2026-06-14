@@ -16,7 +16,13 @@ window.estadoFiltroGlobal = { tipo: 'MES_ATUAL', mesAno: '' };
 window.carregarDadosManutencao = async function() {
     console.log('[OS Painel] INICIANDO REQUISIÇÃO SUPABASE -> carregarDadosManutencao()');
     try {
-        const { data: osData, error: osError } = await supabaseManutencao.from('ordens_servico').select('*');
+        // CORREÇÃO: Order by id desc para pegar as O.S mais NOVAS e limit extendido
+        const { data: osData, error: osError } = await supabaseManutencao
+            .from('ordens_servico')
+            .select('*')
+            .order('id', { ascending: false })
+            .limit(5000);
+
         if (osError) {
             console.error('[OS Painel ERRO] Banco ordens_servico retornou erro:', osError);
             window.ordensServico = [];
@@ -25,7 +31,11 @@ window.carregarDadosManutencao = async function() {
             window.ordensServico = osData || [];
         }
 
-        const { data: frotaData, error: frotaError } = await supabaseManutencao.from('frotas_manutencao').select('*').order('cavalo', { ascending: true });
+        const { data: frotaData, error: frotaError } = await supabaseManutencao
+            .from('frotas_manutencao')
+            .select('*')
+            .order('cavalo', { ascending: true });
+            
         if (frotaError) {
             console.error('[OS Painel ERRO] Banco frotas_manutencao retornou erro:', frotaError);
             window.frotasManutencao = [];
@@ -46,16 +56,19 @@ window.preencherFiltroMesGlobal = function() {
     }
     if (!window.ordensServico || !window.frotasManutencao) return;
 
+    // Garantir filtro seguro para case-insensitive e trim (espaços extras)
     let cavalosValidos = window.frotasManutencao
-        .filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM')
-        .map(f => f.cavalo);
+        .filter(f => (f.status || '').toUpperCase() === 'ATIVO' && (f.categoria || '').toUpperCase() === 'TRITREM')
+        .map(f => (f.cavalo || '').trim());
 
     const mesesDisponiveis = new Set();
     const hoje = new Date();
     const mesAtualKey = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
 
     window.ordensServico.forEach(os => {
-        if (!os.placa || !cavalosValidos.includes(os.placa)) return; 
+        const placaOs = (os.placa || '').trim();
+        if (!placaOs || !cavalosValidos.includes(placaOs)) return; 
+        
         if (os.data_abertura && os.status !== 'Agendada') {
             let dataStr = os.data_abertura;
             if (!dataStr.includes('T')) dataStr += 'T00:00:00';
@@ -160,18 +173,18 @@ window.dispararFiltrosGlobais = function() {
 };
 
 window.renderizarRelatorioGerencialOS = function() {
-    // Atenção: Esta função requer a função correta de `getDatasFiltroGlobal`. Se os_painel estiver sobrepondo dash_manutencao, use a função local.
     let filtroData = (typeof window.getDatasFiltroGlobal_OSPanel === 'function') ? window.getDatasFiltroGlobal_OSPanel() : window.getDatasFiltroGlobal();
     
     let cavalosValidos = [];
     if (window.frotasManutencao) {
         cavalosValidos = window.frotasManutencao
-            .filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM')
-            .map(f => f.cavalo);
+            .filter(f => (f.status || '').toUpperCase() === 'ATIVO' && (f.categoria || '').toUpperCase() === 'TRITREM')
+            .map(f => (f.cavalo || '').trim());
     }
 
     const osManutencao = window.ordensServico.filter(o => {
-        if (!o.placa || !cavalosValidos.includes(o.placa)) return false; 
+        const placaOs = (o.placa || '').trim();
+        if (!placaOs || !cavalosValidos.includes(placaOs)) return false; 
         if (o.tipo === 'Sinistro') return false;
         if (!o.data_abertura) return false;
         let osInicioStr = o.data_abertura;
@@ -181,7 +194,10 @@ window.renderizarRelatorioGerencialOS = function() {
     });
 
     const porCavalo = {};
-    osManutencao.forEach(o => { porCavalo[o.placa] = (porCavalo[o.placa] || 0) + 1; });
+    osManutencao.forEach(o => { 
+        const placaOs = (o.placa || '').trim();
+        porCavalo[placaOs] = (porCavalo[placaOs] || 0) + 1; 
+    });
     const topCavalos = Object.entries(porCavalo).sort((a, b) => b[1] - a[1]).slice(0, 5);
     
     const maxCavaloCount = topCavalos.length > 0 ? topCavalos[0][1] : 1;
@@ -192,10 +208,12 @@ window.renderizarRelatorioGerencialOS = function() {
     });
     const elRkCavalo = document.getElementById('rankingCavalosOS');
     if(elRkCavalo) elRkCavalo.innerHTML = htmlCavalos || '<p style="color:#94a3b8;">Sem dados.</p>';
-    else console.warn('[OS Painel] div id="rankingCavalosOS" não encontrada.');
 
     const porPrioridade = { 'Urgente': 0, 'Alta': 0, 'Normal': 0, 'Baixa': 0 };
-    osManutencao.forEach(o => { if(porPrioridade[o.prioridade] !== undefined) porPrioridade[o.prioridade]++; });
+    osManutencao.forEach(o => { 
+        const prio = o.prioridade || 'Normal';
+        if(porPrioridade[prio] !== undefined) porPrioridade[prio]++; 
+    });
     const colorsPri = { 'Urgente': '#ef4444', 'Alta': '#f97316', 'Normal': '#eab308', 'Baixa': '#10b981' };
     
     let htmlPrio = '';
@@ -212,19 +230,20 @@ window.renderizarRelatorioGerencialOS = function() {
 
 window.renderizarGraficoOcorrenciasPorTipo = function() {
     const el = document.getElementById('graficoOcorrenciasTipoBarra');
-    if (!el) { console.warn('[OS Painel] Div id="graficoOcorrenciasTipoBarra" não encontrada.'); return; }
+    if (!el) { return; }
 
     let filtroData = (typeof window.getDatasFiltroGlobal_OSPanel === 'function') ? window.getDatasFiltroGlobal_OSPanel() : window.getDatasFiltroGlobal();
     
     let cavalosValidos = [];
     if (window.frotasManutencao) {
         cavalosValidos = window.frotasManutencao
-            .filter(f => f.status === 'Ativo' && f.categoria && f.categoria.toUpperCase() === 'TRITREM')
-            .map(f => f.cavalo);
+            .filter(f => (f.status || '').toUpperCase() === 'ATIVO' && (f.categoria || '').toUpperCase() === 'TRITREM')
+            .map(f => (f.cavalo || '').trim());
     }
 
     const filtradas = window.ordensServico.filter(o => {
-        if (!o.placa || !cavalosValidos.includes(o.placa)) return false; 
+        const placaOs = (o.placa || '').trim();
+        if (!placaOs || !cavalosValidos.includes(placaOs)) return false; 
         if (o.tipo === 'Sinistro') return false; 
         if (!o.data_abertura) return false;
         let osInicioStr = o.data_abertura;
@@ -264,7 +283,7 @@ window.renderizarGraficoOcorrenciasPorTipo = function() {
         window.chartOcorrenciasTipo.setOption(option);
         setTimeout(() => window.chartOcorrenciasTipo.resize(), 100);
         window.addEventListener('resize', () => window.chartOcorrenciasTipo.resize());
-    } else { console.error('[OS Painel ERRO] Biblioteca echarts não foi carregada no projeto!'); }
+    }
 };
 
 window.exportarRelatorioTipoServicoExcel = function() {
